@@ -33,4 +33,4 @@
 **/sessions/
 **/public/images/*
 
-**/.env
+**/*.env
