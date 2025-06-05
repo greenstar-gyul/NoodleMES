@@ -37,8 +37,7 @@ const sidebarItem: menu[] = [
   { divider: true },
   { header: 'Pages' },
   {
-    title: 'Authentication',
-    icon: KeyIcon,
+    title: '기준정보',
     to: '/auth',
     children: [
       {
@@ -54,57 +53,85 @@ const sidebarItem: menu[] = [
     ]
   },
   {
-    title: 'Error 404',
-    icon: BugIcon,
-    to: '/pages/error'
-  },
-  { divider: true },
-  { header: 'Utilities' },
-  {
-    title: 'Typography',
-    icon: TypographyIcon,
-    to: '/utils/typography'
-  },
-  {
-    title: 'Shadows',
-    icon: ShadowIcon,
-    to: '/utils/shadows'
-  },
-  {
-    title: 'Colors',
-    icon: PaletteIcon,
-    to: '/utils/colors'
-  },
-
-  {
-    title: 'Icons',
-    icon: WindmillIcon,
-    to: '/forms/radio',
+    title: '주문',
+    to: '/auth',
     children: [
       {
-        title: 'Tabler Icons',
+        title: 'Login',
         icon: CircleIcon,
-        to: '/icons/tabler'
+        to: '/auth/login'
       },
       {
-        title: 'Material Icons',
+        title: 'Register',
         icon: CircleIcon,
-        to: '/icons/material'
+        to: '/auth/register'
       }
     ]
   },
-  { divider: true },
   {
-    title: 'Sample Page',
-    icon: BrandChromeIcon,
-    to: '/starter'
+    title: '생산',
+    to: '/auth',
+    children: [
+      {
+        title: 'Login',
+        icon: CircleIcon,
+        to: '/auth/login'
+      },
+      {
+        title: 'Register',
+        icon: CircleIcon,
+        to: '/auth/register'
+      }
+    ]
   },
   {
-    title: 'Documentation',
-    icon: HelpIcon,
-    to: 'https://codedthemes.gitbook.io/berry-vuetify/',
-    type: 'external'
-  }
+    title: '품질',
+    to: '/auth',
+    children: [
+      {
+        title: 'Login',
+        icon: CircleIcon,
+        to: '/auth/login'
+      },
+      {
+        title: 'Register',
+        icon: CircleIcon,
+        to: '/auth/register'
+      }
+    ]
+  },
+  {
+    title: '설비',
+    to: '/auth',
+    children: [
+      {
+        title: 'Login',
+        icon: CircleIcon,
+        to: '/auth/login'
+      },
+      {
+        title: 'Register',
+        icon: CircleIcon,
+        to: '/auth/register'
+      }
+    ]
+  },
+  {
+    title: '자재',
+    to: '/auth',
+    children: [
+      {
+        title: 'Login',
+        icon: CircleIcon,
+        to: '/auth/login'
+      },
+      {
+        title: 'Register',
+        icon: CircleIcon,
+        to: '/auth/register'
+      }
+    ]
+  },
 ];
 
 export default sidebarItem;

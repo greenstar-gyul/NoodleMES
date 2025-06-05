@@ -60,10 +60,11 @@ function searchbox() {
 
     <!-- ---------------------------------------------- -->
     <!-- Search part -->
-    <!-- ---------------------------------------------- -->
+    <!-- --------------------------
     <v-sheet class="mx-3 v-col-3 v-col-xl-2 v-col-lg-4 d-none d-lg-block">
       <Searchbar />
     </v-sheet>
+    -------------------- -->
 
     <!---/Search part -->
 
@@ -88,7 +89,7 @@ function searchbox() {
 
     <!-- ---------------------------------------------- -->
     <!-- User Profile -->
-    <!-- ---------------------------------------------- -->
+    <!-- ----------------------
     <v-menu :close-on-content-click="false">
       <template v-slot:activator="{ props }">
         <v-btn class="profileBtn text-primary" color="lightprimary" variant="flat" rounded="pill" v-bind="props">
@@ -102,5 +103,6 @@ function searchbox() {
         <ProfileDD />
       </v-sheet>
     </v-menu>
+    ------------------------ -->
   </v-app-bar>
 </template>
