@@ -105,6 +105,11 @@ const router = createRouter({
                     component: () => import('@/views/pages/Documentation.vue')
                 },
                 {
+                    path: '/reference/bom',
+                    name: 'refBom',
+                    component: () => import('@/views/pages/reference/bom.vue')
+                },
+                {
                     path: '/orderForm/management',
                     name: 'orderManagement',
                     component: () => import('@/views/pages/order/order-form/Management.vue')

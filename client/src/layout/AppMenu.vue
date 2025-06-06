@@ -17,18 +17,15 @@ const model = ref([
                 label: '기준정보',
                 items: [
                     {
-                        label: 'Login',
-                        icon: 'pi pi-fw pi-sign-in',
-                        to: '/auth/login'
+                        label: 'BOM',
+                        to: '/reference/bom'
                     },
                     {
-                        label: 'Error',
-                        icon: 'pi pi-fw pi-times-circle',
+                        label: '거래처 정보',
                         to: '/auth/error'
                     },
                     {
-                        label: 'Access Denied',
-                        icon: 'pi pi-fw pi-lock',
+                        label: '공정 정보',
                         to: '/auth/access'
                     }
                 ]
@@ -63,17 +60,14 @@ const model = ref([
                 items: [
                     {
                         label: 'Login',
-                        icon: 'pi pi-fw pi-sign-in',
                         to: '/auth/login'
                     },
                     {
                         label: 'Error',
-                        icon: 'pi pi-fw pi-times-circle',
                         to: '/auth/error'
                     },
                     {
                         label: 'Access Denied',
-                        icon: 'pi pi-fw pi-lock',
                         to: '/auth/access'
                     }
                 ]
@@ -83,17 +77,14 @@ const model = ref([
                 items: [
                     {
                         label: 'Login',
-                        icon: 'pi pi-fw pi-sign-in',
                         to: '/auth/login'
                     },
                     {
                         label: 'Error',
-                        icon: 'pi pi-fw pi-times-circle',
                         to: '/auth/error'
                     },
                     {
                         label: 'Access Denied',
-                        icon: 'pi pi-fw pi-lock',
                         to: '/auth/access'
                     }
                 ]
@@ -103,17 +94,14 @@ const model = ref([
                 items: [
                     {
                         label: 'Login',
-                        icon: 'pi pi-fw pi-sign-in',
                         to: '/auth/login'
                     },
                     {
                         label: 'Error',
-                        icon: 'pi pi-fw pi-times-circle',
                         to: '/auth/error'
                     },
                     {
                         label: 'Access Denied',
-                        icon: 'pi pi-fw pi-lock',
                         to: '/auth/access'
                     }
                 ]
@@ -123,17 +111,14 @@ const model = ref([
                 items: [
                     {
                         label: 'Login',
-                        icon: 'pi pi-fw pi-sign-in',
                         to: '/auth/login'
                     },
                     {
                         label: 'Error',
-                        icon: 'pi pi-fw pi-times-circle',
                         to: '/auth/error'
                     },
                     {
                         label: 'Access Denied',
-                        icon: 'pi pi-fw pi-lock',
                         to: '/auth/access'
                     }
                 ]

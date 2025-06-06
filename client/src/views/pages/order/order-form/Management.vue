@@ -2,7 +2,10 @@
 import { CountryService } from '@/service/CountryService';
 import { NodeService } from '@/service/NodeService';
 import { onMounted, ref } from 'vue';
-import { ProductService } from '@/service/ProductService';
+
+// 팝업 visible 상태
+const dialogVisible = ref(false);
+// 팝업 visible 상태 끝
 
 const autoValue = ref(null);
 const selectedAutoValue = ref(null);
@@ -23,6 +26,29 @@ const columns = ref([
     { field: 'totalPrice', header: '총액' },
 ]);
 
+// 팝업시작
+const orders = ref([
+    { id: 1, ord_code: 'MES00123', ord_date: '2025.05.26', ord_name: '예담 신라면외 2건', client: '예담', delivery_date: '2025.05.26', priority: '1' },
+    { id: 2, ord_code: 'MES00123', ord_date: '2025.05.26', ord_name: '라면이조아 신라면외 1건', client: '라면이조아', delivery_date: '2025.05.26', priority: '2' },
+    { id: 3, ord_code: 'MES00124', ord_date: '2025.05.26', ord_name: '카모', client: '카모', delivery_date: '2025.05.26', priority: '3' },
+    { id: 4, ord_code: 'MES00125', ord_date: '2025.05.26', ord_name: '지니스라면', client: '지니스라면', delivery_date: '2025.05.26', priority: '1' },
+    { id: 5, ord_code: 'MES00126', ord_date: '2025.05.26', ord_name: '라면프레쉬', client: '라면프레쉬', delivery_date: '2025.05.26', priority: '3' },
+]);
+
+
+const selectedOrder = ref(null);
+
+// 확인 버튼 클릭 시
+const confirmOrder = () => {
+    console.log('선택된 주문:', selectedOrder.value);
+    // TODO: 상위 폼에 값 채우는 작업 추가하면 됨!
+    dialogVisible.value = false;
+};
+
+const searchOrders = () => {
+    console.log('검색 실행!');
+};
+//팝업 끝
 
 
 onMounted(() => {
@@ -113,7 +139,7 @@ const products = ref([
                                 <Button label="삭제" severity="danger" class="min-w-fit" />
                                 <Button label="초기화" severity="contrast" class="min-w-fit" />
                                 <Button label="저장" severity="info" class="min-w-fit" />
-                                <Button label="주문정보 불러오기" severity="success" class="min-w-fit whitespace-nowrap" />
+                                <Button label="주문정보 불러오기" severity="success" class="min-w-fit whitespace-nowrap" @click="dialogVisible = true" />
                             </div>
                         </div>
                     </div>
@@ -191,4 +217,32 @@ const products = ref([
             </DataTable>
         </div>
     </div>
+
+    <!-- 팝업 -->
+    <Dialog v-model:visible="dialogVisible" modal header="주문정보 조회" :style="{ width: '70vw' }" :closable="false">
+        <!-- 검색창 -->
+        <div class="flex items-center gap-2 mb-4">
+            <InputText placeholder="주문번호 또는 주문명 또는 거래처를 입력해주세요." class="flex-1" />
+            <Button label="검색" severity="info" @click="searchOrders" />
+        </div>
+
+        <!-- 주문 테이블 -->
+        <DataTable :value="orders" selectionMode="single" v-model:selection="selectedOrder" dataKey="id"
+            showGridlines scrollable scrollHeight="300px">
+            <Column selectionMode="single" headerStyle="width: 3rem"></Column>
+            <Column field="ord_code" header="주문번호"></Column>
+            <Column field="ord_date" header="주문일자"></Column>
+            <Column field="ord_name" header="주문명"></Column>
+            <Column field="client" header="거래처"></Column>
+            <Column field="delivery_date" header="납기일"></Column>
+            <Column field="priority" header="우선순위"></Column>
+        </DataTable>
+
+        <!-- 버튼 영역 -->
+        <div class="flex justify-center gap-3 mt-4">
+            <Button label="취소" severity="contrast" @click="dialogVisible = false" />
+            <Button label="확인" severity="warning" @click="confirmOrder" />
+        </div>
+    </Dialog>
+    <!-- 팝업 끝 -->
 </template>
