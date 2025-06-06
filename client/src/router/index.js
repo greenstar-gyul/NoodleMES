@@ -103,7 +103,32 @@ const router = createRouter({
                     path: '/documentation',
                     name: 'documentation',
                     component: () => import('@/views/pages/Documentation.vue')
-                }
+                },
+                {
+                    path: '/orderForm/management',
+                    name: 'orderManagement',
+                    component: () => import('@/views/pages/order/order-form/Management.vue')
+                },
+                {
+                    path: '/orderForm/list',
+                    name: 'orderList',
+                    component: () => import('@/views/pages/order/order-form/List.vue')
+                },
+                {
+                    path: '/releaseForm/management',
+                    name: 'releaseManagement',
+                    component: () => import('@/views/pages/order/release-form/Management.vue')
+                },
+                {
+                    path: '/releaseForm/list',
+                    name: 'releaseList',
+                    component: () => import('@/views/pages/order/release-form/List.vue')
+                },
+                {
+                    path: '/statistics/statis',
+                    name: 'statistics',
+                    component: () => import('@/views/pages/order/statistics/Statistics.vue')
+                },
             ]
         },
         {
@@ -131,31 +156,6 @@ const router = createRouter({
             path: '/auth/error',
             name: 'error',
             component: () => import('@/views/pages/auth/Error.vue')
-        },
-        {
-            path: '/orderForm/management',
-            name: 'orderManagement',
-            component: () => import('@/views/pages/order/order-form/Management.vue')
-        },
-        {
-            path: '/orderForm/list',
-            name: 'orderList',
-            component: () => import('@/views/pages/order/order-form/List.vue')
-        },
-        {
-            path: '/releaseForm/management',
-            name: 'releaseManagement',
-            component: () => import('@/views/pages/order/release-form/Management.vue')
-        },
-        {
-            path: '/releaseForm/list',
-            name: 'releaseList',
-            component: () => import('@/views/pages/order/release-form/List.vue')
-        },
-        {
-            path: '/statistics/statis',
-            name: 'statistics',
-            component: () => import('@/views/pages/order/statistics/Statistics.vue')
         },
     ]
 });

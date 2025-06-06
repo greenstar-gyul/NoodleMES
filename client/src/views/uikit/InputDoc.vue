@@ -109,11 +109,11 @@ const products = ref([
                             <div>
                                 <div class="font-semibold text-2xl">기본정보</div>
                             </div>
-                            <div class="flex items-center gap-4 flex-nowrap">
-                                <Button label="삭제" severity="danger" />
-                                <Button label="초기화" severity="contrast" />
-                                <Button label="저장" severity="info" />
-                                <Button label="주문정보 불러오기" severity="success" class="w-auto whitespace-nowrap" />
+                            <div class="flex items-center gap-2 flex-nowrap">
+                                <Button label="삭제" severity="danger" class="min-w-fit" />
+                                <Button label="초기화" severity="contrast" class="min-w-fit" />
+                                <Button label="저장" severity="info" class="min-w-fit" />
+                                <Button label="주문정보 불러오기" severity="success" class="min-w-fit whitespace-nowrap" />
                             </div>
                         </div>
                     </div>
