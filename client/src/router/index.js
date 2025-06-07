@@ -105,34 +105,34 @@ const router = createRouter({
                     component: () => import('@/views/pages/Documentation.vue')
                 },
                 {
-                    path: '/reference/bom',
-                    name: 'refBom',
-                    component: () => import('@/views/pages/reference/bom.vue')
+                    path: '/standard/bom',
+                    name: 'stdBom',
+                    component: () => import('@/views/standard/bom.vue')
                 },
                 {
                     path: '/orderForm/management',
                     name: 'orderManagement',
-                    component: () => import('@/views/pages/order/order-form/Management.vue')
+                    component: () => import('@/views/order/Management.vue')
                 },
                 {
                     path: '/orderForm/list',
                     name: 'orderList',
-                    component: () => import('@/views/pages/order/order-form/List.vue')
+                    component: () => import('@/views/order/List.vue')
                 },
                 {
                     path: '/releaseForm/management',
                     name: 'releaseManagement',
-                    component: () => import('@/views/pages/order/release-form/Management.vue')
+                    component: () => import('@/views/order/release-form/Management.vue')
                 },
                 {
                     path: '/releaseForm/list',
                     name: 'releaseList',
-                    component: () => import('@/views/pages/order/release-form/List.vue')
+                    component: () => import('@/views/order/release-form/List.vue')
                 },
                 {
                     path: '/statistics/statis',
                     name: 'statistics',
-                    component: () => import('@/views/pages/order/statistics/Statistics.vue')
+                    component: () => import('@/views/order/statistics/Statistics.vue')
                 },
             ]
         },
@@ -150,17 +150,17 @@ const router = createRouter({
         {
             path: '/auth/login',
             name: 'login',
-            component: () => import('@/views/pages/auth/Login.vue')
+            component: () => import('@/views/auth/Login.vue')
         },
         {
             path: '/auth/access',
             name: 'accessDenied',
-            component: () => import('@/views/pages/auth/Access.vue')
+            component: () => import('@/views/auth/Access.vue')
         },
         {
             path: '/auth/error',
             name: 'error',
-            component: () => import('@/views/pages/auth/Error.vue')
+            component: () => import('@/views/auth/Error.vue')
         },
     ]
 });

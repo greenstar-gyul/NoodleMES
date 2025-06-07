@@ -18,7 +18,7 @@ const model = ref([
                 items: [
                     {
                         label: 'BOM',
-                        to: '/reference/bom'
+                        to: '/standard/bom'
                     },
                     {
                         label: '거래처 정보',
