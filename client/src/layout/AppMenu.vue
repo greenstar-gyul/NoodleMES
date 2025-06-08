@@ -76,15 +76,19 @@ const model = ref([
                 label: '품질',
                 items: [
                     {
-                        label: 'Login',
+                        label: '품질기준정보',
+                        to: '/qulity/QulityStandard'
+                    },
+                    {
+                        label: '품질검사지시',
                         to: '/auth/login'
                     },
                     {
-                        label: 'Error',
+                        label: '품질검사결과',
                         to: '/auth/error'
                     },
                     {
-                        label: 'Access Denied',
+                        label: '품질통계',
                         to: '/auth/access'
                     }
                 ]

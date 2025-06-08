@@ -1,7 +1,7 @@
 export default [
-    // {
-    //     path: '/productions/product',
-    //     name: 'productions',
-    //     component: () => import('@/views/order/production/production.vue')
-    // },
+    {
+        path: '/qulity/qulityStandard',
+        name: 'qulityStandard',
+        component: () => import('@/views/qulity/QulityStandard.vue')
+    },
 ];
