@@ -5,7 +5,7 @@
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
                 <div>
-                    <div class="font-semibold text-2xl">검색결과</div>
+                    <div class="font-semibold text-2xl">{{ title }}</div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" />
@@ -55,7 +55,11 @@ const props = defineProps({
     mapper: {
         type: Array,
         required: true
-    }
+    },
+    title: {
+    type: String,
+    default: ''
+  }
 });
 // 테이블에 보여줄 제품 데이터 (예시 데이터)
 const itemsWDE = ref([]);
