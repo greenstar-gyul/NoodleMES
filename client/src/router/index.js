@@ -1,5 +1,13 @@
 import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import orderRoutes from './order';
+import mrpRoutes from './mrp';
+import prodRoutes from './production';
+import eqRoutes from './equipment';
+import matRoutes from './materials';
+import qaRoutes from './quality';
+import stdRoutes from './standard';
+import auth from './auth';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -105,21 +113,6 @@ const router = createRouter({
                     component: () => import('@/views/pages/Documentation.vue')
                 },
                 {
-                    path: '/standard/bom',
-                    name: 'stdBom',
-                    component: () => import('@/views/standard/bom.vue')
-                },
-                {
-                    path: '/orderForm/management',
-                    name: 'orderManagement',
-                    component: () => import('@/views/order/Management.vue')
-                },
-                {
-                    path: '/orderForm/list',
-                    name: 'orderList',
-                    component: () => import('@/views/order/List.vue')
-                },
-                {
                     path: '/releaseForm/management',
                     name: 'releaseManagement',
                     component: () => import('@/views/order/release-form/Management.vue')
@@ -134,6 +127,13 @@ const router = createRouter({
                     name: 'statistics',
                     component: () => import('@/views/order/statistics/Statistics.vue')
                 },
+                ...orderRoutes,
+                ...mrpRoutes,
+                ...prodRoutes,
+                ...eqRoutes,
+                ...matRoutes,
+                ...qaRoutes,
+                ...stdRoutes,
             ]
         },
         {
@@ -146,22 +146,7 @@ const router = createRouter({
             name: 'notfound',
             component: () => import('@/views/pages/NotFound.vue')
         },
-
-        {
-            path: '/auth/login',
-            name: 'login',
-            component: () => import('@/views/auth/Login.vue')
-        },
-        {
-            path: '/auth/access',
-            name: 'accessDenied',
-            component: () => import('@/views/auth/Access.vue')
-        },
-        {
-            path: '/auth/error',
-            name: 'error',
-            component: () => import('@/views/auth/Error.vue')
-        },
+        ...auth,
     ]
 });
 
