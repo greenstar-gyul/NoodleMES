@@ -56,9 +56,9 @@ const props = defineProps({
         default: 'id'
     },
   mapper: {
-      type: Array,
-      required: true
-  }
+  type: Object,
+  default: () => ({}) // 안 넘겨도 에러 안 나도록
+}
 });
 const emit = defineEmits(['update:visible', 'confirm']);
 
