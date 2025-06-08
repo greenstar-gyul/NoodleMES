@@ -1,21 +1,7 @@
-import AppLayout from '@/layout/AppLayout.vue';
-import { createRouter, createWebHistory } from 'vue-router';
-
-const router = createRouter({
-    history: createWebHistory(),
-    routes: [
-        {
-            path: '/',
-            component: AppLayout,
-            children: [
-                {
-                    path: '/productions/manage',
-                    name: 'productions',
-                    component: () => import('@/views/order/production/ProductionManage.vue')
-                },
-            ]
-        },
-    ]
-});
-
-export default router;
+export default [
+    {
+        path: '/productions/manage',
+        name: 'productions',
+        component: () => import('@/views/production/ProductionManage.vue')
+    },
+];

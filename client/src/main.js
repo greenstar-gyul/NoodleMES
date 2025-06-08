@@ -3,7 +3,7 @@ import App from './App.vue';
 import router from './router';
 import mrpRouter from './router/mrp';
 import prodRouter from './router/production';
-import eqRouter from './router/euipment';
+import eqRouter from './router/equipment';
 import matRouter from './router/materials';
 import qaRouter from './router/quality';
 import stdRouter from './router/standard';
@@ -26,6 +26,7 @@ app.use(matRouter);
 app.use(qaRouter);
 app.use(stdRouter);
 app.use(ordRouter);
+
 app.use(PrimeVue, {
     theme: {
         preset: Aura,
