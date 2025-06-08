@@ -47,7 +47,13 @@
             <TableWDE :data="products" :dataKey="'prod_code'" :mapper="bomMapper"/>
 
             <!-- 하위자재 구성 테이블 -->
-            <TableWAD :data="mats" :dataKey="'mat_code'" :mapper="bomSubMapper" @open-popup="openPopup()"></TableWAD>
+            <EditableTable :fields="['mat_code', 'mat_name', 'mat_type','req_qtt','unit','loss_rate']" 
+            :mapper="{ mat_code: '자재코드', mat_name: '자재명', mat_type: '자재유형', req_qtt: '소요수량',
+            unit : '단위',loss_rate : '손실율' }" 
+            dataKey="id"
+             @update="handleUpdate" 
+             title="생산계획상세" 
+             scrollHeight="250px"/>
         </div>
 
         <!-- 우측: 제품 등록 영역 (45%) -->
@@ -71,6 +77,7 @@ import bomMapper from '@/service/BOMMapping.js';
 import bomSubMapper from '@/service/BOMSubMapping.js';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
+import EditableTable from '@/components/form/EditableTable.vue';
 
 // 검색조건 데이터 (v-model로 바인딩됨)
 const search = ref({
