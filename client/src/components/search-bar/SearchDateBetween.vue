@@ -1,5 +1,5 @@
 <script setup>
-import { watch, toRef } from 'vue';
+import { watch, ref } from 'vue';
 
 const props = defineProps({
     label: String,
@@ -13,11 +13,15 @@ const props = defineProps({
 
 const emit = defineEmits(['update:from', 'update:to']);
 
-const internalFrom = toRef(props, 'from');
-const internalTo = toRef(props, 'to');
+const internalFrom = ref(props.from);
+const internalTo = ref(props.to);
 
 watch(internalFrom, (val) => emit('update:from', val));
 watch(internalTo, (val) => emit('update:to', val));
+
+watch(() => props.from, (val) => internalFrom.value = val);
+watch(() => props.to, (val) => internalTo.value = val);
+
 </script>
 <template>
     <div class="flex items-center gap-3 w-full">
