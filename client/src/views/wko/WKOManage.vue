@@ -7,9 +7,9 @@ import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
 import TableWithAddDel from '@/components/form/TableWithAddDel.vue';
 import mrpMapping from '@/service/MRPMapping';
-import MRPManageSearch from './mrp-sub/MRPManageSearch.vue';
 import bomSubMapping from '@/service/BOMSubMapping';
 import EditableTable from '@/components/form/EditableTable.vue';
+import WKOManageSearch from './wko-sub/WKOManageSearch.vue';
 
 // 팝업 visible 상태
 const dialogVisible = ref(false);
@@ -257,8 +257,8 @@ const openPopup = () => {
             </div>
         </Fluid>
         -->
-        <MRPManageSearch></MRPManageSearch>
-        <TableWithAddDel :data="mats" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재"></TableWithAddDel>
+        <WKOManageSearch></WKOManageSearch>
+        <TableWithAddDel :data="mats" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="공정 순서"></TableWithAddDel>
         <!-- <EditableTable :fields="matsFields" :dataKey="'mat_code'" :mapper="mrpMapping" title="자재"></EditableTable> -->
     </div>
 
