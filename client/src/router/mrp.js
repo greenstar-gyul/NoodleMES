@@ -9,9 +9,9 @@ const router = createRouter({
             component: AppLayout,
             children: [
                 {
-                    path: '/productions/manage',
-                    name: 'productions',
-                    component: () => import('@/views/order/production/ProductionManage.vue')
+                    path: '/mrp/manage',
+                    name: 'mrpManage',
+                    component: () => import('@/views/mrp/MRPManage.vue')
                 },
             ]
         },

@@ -59,12 +59,12 @@ const model = ref([
                 label: '생산',
                 items: [
                     {
-                        label: 'Login',
-                        to: '/auth/login'
+                        label: '생산계획관리',
+                        to: '/productions/manage'
                     },
                     {
-                        label: 'Error',
-                        to: '/auth/error'
+                        label: 'MRP관리',
+                        to: '/mrp/manage'
                     },
                     {
                         label: 'Access Denied',
