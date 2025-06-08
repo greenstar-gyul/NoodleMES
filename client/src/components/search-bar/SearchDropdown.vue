@@ -23,11 +23,13 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
-const internalValue = toRef(props, 'modelValue');
+const internalValue = toRef(props.modelValue);
 
 watch(internalValue, (val) => {
   emit('update:modelValue', val);
 });
+
+watch(() => props.internalValue, (val) => internalValue.value = val);
 </script>
 <template>
     <div class="flex items-center gap-3 w-full">

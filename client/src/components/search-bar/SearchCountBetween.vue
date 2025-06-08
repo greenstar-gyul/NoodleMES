@@ -1,19 +1,23 @@
 <script setup>
-import { watch, toRef } from 'vue';
+import { watch, ref } from 'vue';
 
 const props = defineProps({
     label: String,
-    from: Number,
-    to: Number
+    from: String,
+    to: String
 });
 
 const emit = defineEmits(['update:from', 'update:to']);
 
-const qtyFrom = toRef(props, 'from');
-const qtyTo = toRef(props, 'to');
+const qtyFrom = ref(props.from);
+const qtyTo = ref(props.to);
 
 watch(qtyFrom, (val) => emit('update:from', val));
 watch(qtyTo, (val) => emit('update:to', val));
+
+watch(() => props.from, (val) => qtyFrom.value = val);
+watch(() => props.to, (val) => qtyTo.value = val);
+
 </script>
 <template>
 <div class="flex items-center gap-3 w-full">
