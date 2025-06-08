@@ -14,7 +14,7 @@
                 </div>
             </div>
             <DataTable v-model:selection="selectedRows" :value="rows" :dataKey="dataKey" selectionMode="multiple"
-                showGridlines scrollable scrollHeight="600px" tableStyle="min-width: 50rem">
+                showGridlines scrollable :scrollHeight="scrollHeight" tableStyle="min-width: 50rem">
                 <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
                 <Column v-for="field in fields" :key="field" :field="field" :header="mapper?.[field] ?? field">
@@ -52,6 +52,10 @@ const props = defineProps({
   title: {
     type: String,
     default: ''
+  },
+  scrollHeight: {
+    type: String,
+    default: '400px' // 기본값 지정
   }
 })
 
