@@ -1,6 +1,52 @@
+<script setup>
+import { ref, watch } from 'vue';
+import Button from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+
+const props = defineProps({
+    data: {
+        type: Array,  // ✅ Object가 아니라 Array로 해야 함 (Array of objects)
+        required: true
+    },
+    dataKey: {
+        type: String,
+        default: 'id'
+    },
+    mapper: {
+        type: Array,
+        required: true
+    },
+    title: {
+    type: String,
+    default: ''
+    }
+});
+// 테이블에 보여줄 제품 데이터 (예시 데이터)
+const itemsWDE = ref([]);
+
+// 데이터가 바뀔 때마다 열 추출
+watch(
+    () => props.data,
+    (newVal) => {
+        if (newVal?.length > 0) {
+            itemsWDE.value = Object.keys(newVal[0]);
+        } else {
+            itemsWDE.value = [];
+        }
+    },
+    { immediate: true }
+);
+
+
+// DataTable 선택된 행 (선택 모드)
+const selectedWDE = ref([]);
+
+</script>
+
 <template>
     <!-- 📋 검색 조회 테이블 영역 -->
-    <div class="card mt-6">
+    <div class="card" style="margin-bottom: 1rem;">
         <!-- 테이블 상단 (타이틀 + 엑셀 다운로드 버튼) -->
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
@@ -37,51 +83,6 @@
     </div>
 </template>
 
-<script setup>
-import { ref, watch } from 'vue';
-import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-
-const props = defineProps({
-    data: {
-        type: Array,  // ✅ Object가 아니라 Array로 해야 함 (Array of objects)
-        required: true
-    },
-    dataKey: {
-        type: String,
-        default: 'id'
-    },
-    mapper: {
-        type: Array,
-        required: true
-    },
-    title: {
-    type: String,
-    default: ''
-  }
-});
-// 테이블에 보여줄 제품 데이터 (예시 데이터)
-const itemsWDE = ref([]);
-
-// 데이터가 바뀔 때마다 열 추출
-watch(
-    () => props.data,
-    (newVal) => {
-        if (newVal?.length > 0) {
-            itemsWDE.value = Object.keys(newVal[0]);
-        } else {
-            itemsWDE.value = [];
-        }
-    },
-    { immediate: true }
-);
-
-
-// DataTable 선택된 행 (선택 모드)
-const selectedWDE = ref([]);
-
-</script>
 
 <style scoped>
 /* 필요시 커스텀 스타일 여기에 추가 */

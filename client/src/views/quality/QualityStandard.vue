@@ -40,7 +40,9 @@
         <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
         <div class="space-y-6" style="width: 65%">
             <!-- 검색결과 테이블 -->
-            <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapper"/>
+
+            <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
+
 
             <!-- 하위자재 구성 테이블
             <TableWAD :data="mats" :dataKey="'mat_code'" :mapper="bomSubMapper" @open-popup="openPopup()"></TableWAD> -->
@@ -60,9 +62,9 @@ import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
-import QualityMapping from '@/service/QualityMapping.js';
+import QualityInputForm from '@/views/quality/QualityInputForm.vue';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
-import QualityMapper from '@/service/QualityMapping.js';
+import QualityMapping from '@/service/QualityMapping';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 

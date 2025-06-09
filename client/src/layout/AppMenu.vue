@@ -17,7 +17,7 @@ const model = ref([
                 label: '기준정보',
                 items: [
                     {
-                        label: 'BOM',
+                        label: '제품 및 BOM 등록',
                         to: '/standard/bom'
                     },
                     {
@@ -27,6 +27,10 @@ const model = ref([
                     {
                         label: '공정 정보',
                         to: '/auth/access'
+                    },
+                    {
+                        label: '설비 점검 항목 정보',
+                        to: '/standard/eqspectype'
                     }
                 ]
             },
@@ -63,6 +67,10 @@ const model = ref([
                         to: '/productions/manage'
                     },
                     {
+                        label: '생산계획조회',
+                        to: '/productions/list'
+                    },
+                    {
                         label: 'MRP관리',
                         to: '/mrp/manage'
                     },
@@ -85,7 +93,7 @@ const model = ref([
                     },
                     {
                         label: '품질검사결과',
-                        to: '/auth/error'
+                        to: '/quality/QualityResults'
                     },
                     {
                         label: '품질통계',
@@ -97,12 +105,12 @@ const model = ref([
                 label: '자재',
                 items: [
                     {
-                        label: 'Login',
-                        to: '/auth/login'
+                        label: '자재구매요청목록',
+                        to: '/material/list'
                     },
                     {
-                        label: 'Error',
-                        to: '/auth/error'
+                        label: '자재구매요청관리',
+                        to: '/material/manage'
                     },
                     {
                         label: 'Access Denied',
@@ -114,8 +122,12 @@ const model = ref([
                 label: '설비',
                 items: [
                     {
-                        label: 'Login',
-                        to: '/auth/login'
+                        label: '설비정보',
+                        to: '/equipment/eqinfo'
+                    },
+                    {
+                        label: '설비점검지시서',
+                        to: '/equipment/eqiilist'
                     },
                     {
                         label: 'Error',

@@ -6,7 +6,12 @@ export default [
     },
     {
         path: '/quality/QualityList',
-        name: 'QualityStandard',
+        name: 'QualityList',
         component: () => import('@/views/quality/QualityList.vue')
+    },
+    {
+        path: '/quality/QualityResults',
+        name: 'QualityResults',
+        component: () => import('@/views/quality/QualityResults.vue')
     },
 ];

@@ -11,6 +11,7 @@
 
             <!-- 주문명 -->
             <div class="flex items-center gap-3 w-full">
+<<<<<<< HEAD
                 <label class="font-semibold w-24">공정명</label>
                 <InputText v-model="search.prod_name" class="flex-1" />
             </div>
@@ -40,6 +41,7 @@
             <!-- 상태 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">검사유형</label>
+<!--         -->
                 <Dropdown v-model="search.is_used1" :options="orderStatusOptions" optionLabel="label" optionValue="value" placeholder="" class="flex-1" />
             </div>
         </div>
@@ -56,6 +58,7 @@
         <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
         <div class="space-y-6" style="width: 55%">
             <!-- 검색결과 테이블 -->
+<<<<<<< HEAD
             <TableWDE :data="products" :dataKey="'prod_code'" :mapper="bomMapper"/>
 
             <!-- 하위자재 구성 테이블
@@ -64,7 +67,10 @@
 
         <!-- 우측: 제품 등록 영역 (45%)
         <StandardInputForm /> -->
-    </div>
+
+            <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
+        </div>
+
 
     <!-- <MultiplePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></MultiplePopup> -->
     <SinglePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></SinglePopup>
@@ -76,6 +82,7 @@ import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
+<<<<<<< HEAD
 import StandardInputForm from '@/components/form/StandardInputForm.vue';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
 import TableWAD from '@/components/form/TableWithAddDel.vue';
@@ -91,6 +98,21 @@ const search = ref({
     regdate_from: null,
     regdate_to: null,
     is_used: ''
+
+import QualityInputForm from './QualityInputForm.vue';
+import TableWDE from '@/components/form/TableWithDelExcel.vue';
+import TableWAD from '@/components/form/TableWithAddDel.vue';
+import QualityMapping from '@/service/QualityMapping';
+import MultiplePopup from '@/components/popup/MultiplePopup.vue';
+import SinglePopup from '@/components/popup/SinglePopup.vue';
+
+
+// 검색조건 데이터 (v-model로 바인딩됨)
+const search = ref({
+    qcr_code: '',
+    po_code: '',
+    inspection_item: null,
+    check_method: ''
 });
 
 // 팝업창 Open/Close 변수
@@ -98,8 +120,10 @@ const dialogVisible = ref(false);
 
 // 주문상태 옵션 (예시 데이터)
 const orderStatusOptions = [
-    { label: '활성', value: 'a1' },
-    { label: '비활성', value: 'a2' }
+
+    { label: '수동', value: 'a1' },
+    { label: '자동', value: 'a2' }
+
 ];
 
 // 조회 버튼 기능 (API 호출 자리)
@@ -111,6 +135,7 @@ const fetchOrders = () => {
 // 초기화 버튼 기능
 const resetSearch = () => {
     search.value = {
+
         prod_code: '',
         prod_name: '',
         regdate_from: null,
@@ -197,6 +222,67 @@ const submats = ref([
         loss_rate: '-'
     }
 ]);
+
+        qcr_code: '',
+        prod_name: '',
+        inspection_item: null,
+        check_method: ''
+    };
+};
+
+// 테이블에 보여줄 목록 데이터 (예시 데이터)
+const qualitys = ref([
+    {
+        qcr_code: '품질기준코드',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+    {
+        qcr_code: '품질기준코드',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+    {
+        qcr_code: '품질기준코드',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+]);
+
+
 
 const openPopup = () => {
     dialogVisible.value = true;
