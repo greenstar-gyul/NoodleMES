@@ -6,13 +6,13 @@
             <!-- 설비코드 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">설비코드</label>
-                <InputText v-model="search.prod_code" class="flex-1" />
+                <InputText v-model="search.eq_code" class="flex-1" />
             </div>
 
             <!-- 설비명 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">설비명</label>
-                <InputText v-model="search.prod_name" class="flex-1" />
+                <InputText v-model="search.eq_name" class="flex-1" />
             </div>
 
             <!-- 제조사 -->
@@ -41,7 +41,7 @@
         <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
         <div class="space-y-6" style="width: 55%">
             <!-- 검색결과 테이블 -->
-            <TableWDE style="margin-bottom:0px; height:730px" :data="products" :dataKey="'eq_code'"
+            <TableWDE   style="margin-bottom:0px; height:730px" :data="products" :dataKey="'eq_code'"
                 :mapper="eqMapper" />
         </div>
 
@@ -71,10 +71,9 @@ import SinglePopup from '@/components/popup/SinglePopup.vue';
 
 // 검색조건 데이터 (v-model로 바인딩됨)
 const search = ref({
-    prod_code: '',
-    prod_name: '',
-    regdate_from: null,
-    regdate_to: null,
+    eq_code: '',
+    eq_name: '',
+    eq_maker: '',
     is_used: ''
 });
 

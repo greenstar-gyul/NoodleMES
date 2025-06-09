@@ -44,41 +44,59 @@
                 <InputText type="text" class="w-full" />
             </div>
             <div>
-                <LabeledDatePicker v-model="regdate" label="등록일자" placeholder="날짜를 선택" :disabled="false" />
+                <label class="font-semibold text-xl block mb-2">단위</label>
+                <InputText type="text" class="w-full" />
             </div>
         </div>
 
         <!-- 제조일자 / 점검주기 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <LabeledDatePicker v-model="regdate" label="제조일자" placeholder="날짜를 선택" :disabled="false" />
+                <label class="font-semibold text-xl block mb-2">점검주기</label>
+                <div class="flex items-center gap-2">
+                    <InputText 
+                        type="number" 
+                        class="w-full" 
+                        v-model="checkCycle"
+                        placeholder="30"
+                        min="1"
+                    />
+                    <span class="text-gray-700 font-medium">일</span>
+                </div>
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">점검주기</label>
-                <InputText type="text" class="w-full" />
+                <label class="font-semibold text-xl block mb-2">필수점검여부</label>
+                <div class="flex items-center gap-6">
+    <div class="flex items-center gap-2">
+        <RadioButton 
+            v-model="requiredCheck" 
+            inputId="required_yes" 
+            name="requiredCheck" 
+            value="yes" 
+        />
+        <label for="required_yes">필수</label>
+    </div>
+    <div class="flex items-center gap-2">
+        <RadioButton 
+            v-model="requiredCheck" 
+            inputId="required_no" 
+            name="requiredCheck" 
+            value="no" 
+        />
+        <label for="required_no">선택</label>
+    </div>
+</div>
             </div>
         </div>
 
         <!-- 인계일자 / 설비유형 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <LabeledDatePicker v-model="regdate" label="인계일자" placeholder="날짜를 선택" :disabled="false" />
-            </div>
-            <div>
                 <label class="font-semibold text-xl block mb-2">설비유형</label>
                 <Dropdown v-model="search.eq_opt" :options="eqOptions" optionLabel="label" optionValue="value" placeholder="" class="w-full" />
             </div>
-        </div>
-
-        <!-- 설치위치 / 사용여부 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-xl block mb-2">설치위치</label>
-                <InputText type="text" class="w-full" />
-            </div>
-            <div>
-                <label class="font-semibold text-xl block mb-2">사용여부</label>
-                <Dropdown v-model="search.is_used" :options="orderStatusOptions" optionLabel="label" optionValue="value" placeholder="" class="w-full" />
+                <LabeledDatePicker v-model="regdate" label="등록일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
         </div>
 
@@ -95,6 +113,7 @@
 import { ref } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
+import RadioButton from 'primevue/radiobutton';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
@@ -118,10 +137,12 @@ const openPopup = () => {
 // 팝업
 const dialogVisible = ref(false);
 
+const requiredCheck = ref('yes');
+
 // 상태 옵션 (예시 데이터)
-const orderStatusOptions = [
-    { label: '활성', value: 'a1' },
-    { label: '비활성', value: 'a2' }
+const chkOptions = [
+    { label: 'Y', value: 'a1' },
+    { label: 'N', value: 'a2' }
 ];
 
 const eqOptions = [

@@ -3,25 +3,25 @@
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <!-- 검색 조건 영역 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-            <!-- 설비코드 -->
+            <!-- 점검항목코드 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">점검항목코드</label>
                 <InputText v-model="search.prod_code" class="flex-1" />
             </div>
 
-            <!-- 설비명 -->
+            <!-- 설비유형 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">설비유형</label>
                 <InputText v-model="search.prod_name" class="flex-1" />
             </div>
 
-            <!-- 설비명 -->
+            <!-- 항목명 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">항목명</label>
                 <InputText type="text" class="w-full" />
             </div>
 
-            <!-- 상태 -->
+            <!-- 점검방법 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">점검방법</label>
                 <Dropdown v-model="search.is_used1" :options="orderStatusOptions" optionLabel="label"
@@ -38,14 +38,14 @@
 
     <!-- 📋 검색 조회 테이블 영역 -->
     <div class="flex flex-col lg:flex-row gap-6 mt-6">
-        <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
+        <!-- 좌측: 검색결과 구성 (50%) -->
         <div class="space-y-6" style="width: 55%">
             <!-- 검색결과 테이블 -->
-            <TableWDE style="margin-bottom:0px; height:730px" :data="products" :dataKey="'eq_code'"
-                :mapper="eqMapper" />
+            <TableWDE style="margin-bottom:0px; height:100%" :data="products" :dataKey="'eq_code'"
+                :mapper="eqstMapper" />
         </div>
 
-        <!-- 우측: 제품 등록 영역 (45%) -->
+        <!-- 우측: 점검항목 등록 영역 (45%) -->
         <StandardInputForm />
     </div>
 
@@ -65,7 +65,7 @@ import TableWDE from '@/components/form/TableWithDelExcel.vue';
 import TableWAD from '@/components/form/TableWithAddDel.vue';
 import bomMapper from '@/service/BOMMapping.js';
 import bomSubMapper from '@/service/BOMSubMapping.js';
-import eqMapper from '@/service/EquipmentMapping.js';
+import eqstMapper from '@/service/EquipSpecTypeMapping.js';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 
@@ -100,42 +100,53 @@ const fetchOrders = () => {
 // 초기화 버튼 기능
 const resetSearch = () => {
     search.value = {
-        eq_code: '',
-        eq_name: '',
-        eq_model: '',
-        eq_maker: '',
-        eq_make_date: '',
-        bring_date: '',
-        chk_cycle: '',
-        is_used: ''
+        chk_type_code: '',
+        eq_type: '',
+        chk_text: '',
+        chk_mth: '',
+        range_top: '',
+        range_bot: '',
+        unit: '',
+        jdg_mth: '',
+        regdate: '',
+        crrdate: ''
     };
 };
 
 // 테이블에 보여줄 제품 데이터 (예시 데이터)
 const products = ref([
     {
-        eq_code: 'EQ001',
-        eq_name: '자동면발기A',
-        eq_model: 'NOODLE-2023A',
-        eq_maker: '한국기계',
-        chk_cycle: '30',
-        is_used: '활성'
+        chk_type_code: '설비코드',
+        eq_type: '설비명',
+        chk_text: '모델명',
+        range_top: '제조일자',
+        range_bot: '도입일자',
+        unit: '점검주기',
+        jdg_mth: '판정방식',
+        regdate: '생성일',
+        crrdate: '수정일'
     },
     {
-        eq_code: 'EQ002',
-        eq_name: '자동면발기B',
-        eq_model: 'NOODLE-2023B',
-        eq_maker: '한국기계',
-        chk_cycle: '30',
-        is_used: '활성'
+        chk_type_code: '설비코드',
+        eq_type: '설비명',
+        chk_text: '모델명',
+        range_top: '제조일자',
+        range_bot: '도입일자',
+        unit: '점검주기',
+        jdg_mth: '판정방식',
+        regdate: '생성일',
+        crrdate: '수정일'
     },
     {
-        eq_code: 'EQ003',
-        eq_name: '자동면발기C',
-        eq_model: 'NOODLE-2023C',
-        eq_maker: '한국기계',
-        chk_cycle: '30',
-        is_used: '활성'
+        chk_type_code: '설비코드',
+        eq_type: '설비명',
+        chk_text: '모델명',
+        range_top: '제조일자',
+        range_bot: '도입일자',
+        unit: '점검주기',
+        jdg_mth: '판정방식',
+        regdate: '생성일',
+        crrdate: '수정일'
     }
 ]);
 

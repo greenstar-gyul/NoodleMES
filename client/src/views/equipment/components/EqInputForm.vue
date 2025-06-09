@@ -104,10 +104,9 @@ import LabeledDatePicker from '@/components/common/LabeledDatePicker.vue';
 
 // 검색조건 데이터 (v-model로 바인딩됨)
 const search = ref({
-    prod_code: '',
-    prod_name: '',
-    regdate_from: null,
-    regdate_to: null,
+    eq_code: '',
+    eq_name: '',
+    eq_maker: '',
     is_used: ''
 });
 
@@ -138,65 +137,13 @@ const fetchOrders = () => {
 // 초기화 버튼 기능
 const resetSearch = () => {
     search.value = {
-        prod_code: '',
-        prod_name: '',
+        eq_code: '',
+        eq_name: '',
         regdate_from: null,
         regdate_to: null,
         is_used: ''
     };
 };
-
-// 테이블에 보여줄 제품 데이터 (예시 데이터)
-const products = ref([
-    {
-        prod_code: 'WH001',
-        prod_name: '신라면',
-        edate: '150일',
-        regdate: '2025.06.06',
-        is_used: '활성'
-    },
-    {
-        prod_code: 'WH002',
-        prod_name: '짜파게티',
-        edate: '150일',
-        regdate: '2025.06.07',
-        is_used: '활성'
-    },
-    {
-        prod_code: 'WH001',
-        prod_name: '진진라면',
-        edate: '150일',
-        regdate: '2025.06.01',
-        is_used: '비활성'
-    }
-]);
-
-const mats = ref([
-    {
-        mat_code: 'RM001',
-        mat_name: '밀가루',
-        mat_type: '원자재',
-        req_qtt: 'EA',
-        unit: '100g',
-        loss_rate: '0.5%'
-    },
-    {
-        mat_code: 'RM002',
-        mat_name: '스프',
-        mat_type: '원자재',
-        req_qtt: 'EA',
-        unit: '20g',
-        loss_rate: '0.5%'
-    },
-    {
-        mat_code: 'RM003',
-        mat_name: '비닐포장지',
-        mat_type: '부자재',
-        req_qtt: 'EA',
-        unit: '100mm',
-        loss_rate: '-'
-    }
-]);
 
 // DataTable 선택된 행 (선택 모드)
 const selectedProducts = ref();
