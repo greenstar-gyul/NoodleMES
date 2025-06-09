@@ -67,6 +67,10 @@ const model = ref([
                         to: '/productions/manage'
                     },
                     {
+                        label: '생산계획조회',
+                        to: '/productions/list'
+                    },
+                    {
                         label: 'MRP관리',
                         to: '/mrp/manage'
                     },
@@ -80,15 +84,19 @@ const model = ref([
                 label: '품질',
                 items: [
                     {
-                        label: 'Login',
-                        to: '/auth/login'
+                        label: '품질기준정보',
+                        to: '/quality/QualityStandard'
                     },
                     {
-                        label: 'Error',
-                        to: '/auth/error'
+                        label: '품질검사지시',
+                        to: '/quality/QualityList'
                     },
                     {
-                        label: 'Access Denied',
+                        label: '품질검사결과',
+                        to: '/quality/QualityResults'
+                    },
+                    {
+                        label: '품질통계',
                         to: '/auth/access'
                     }
                 ]
@@ -97,12 +105,12 @@ const model = ref([
                 label: '자재',
                 items: [
                     {
-                        label: 'Login',
-                        to: '/auth/login'
+                        label: '자재구매요청목록',
+                        to: '/material/list'
                     },
                     {
-                        label: 'Error',
-                        to: '/auth/error'
+                        label: '자재구매요청관리',
+                        to: '/material/manage'
                     },
                     {
                         label: 'Access Denied',
