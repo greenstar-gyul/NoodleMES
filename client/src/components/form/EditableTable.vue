@@ -1,39 +1,9 @@
-<template>
-    <div class="space-y-4 mt-7">
-        <div class="card flex flex-col gap-4">
-            <!-- 🔽 타이틀 표시 -->
-            <div class="grid grid-cols-1 gap-4">
-                <div class="flex justify-between">
-                    <div>
-                        <div class="font-semibold text-2xl">{{ title }}</div>
-                    </div>
-                    <div class="flex justify-end gap-2">
-                        <Button label="선택 삭제" icon="pi pi-trash" severity="danger" @click="deleteSelected" />
-                        <Button label="행 추가" icon="pi pi-plus" @click="addRow" />
-                    </div>
-                </div>
-            </div>
-            <DataTable v-model:selection="selectedRows" :value="rows" :dataKey="dataKey" selectionMode="multiple"
-                showGridlines scrollable scrollHeight="600px" tableStyle="min-width: 50rem">
-                <Column selectionMode="multiple" headerStyle="width: 3rem" />
-
-                <Column v-for="field in fields" :key="field" :field="field" :header="mapper?.[field] ?? field">
-                    <template #body="slotProps">
-                        <InputText v-model="slotProps.data[field]" class="w-full" placeholder="입력" />
-                    </template>
-                </Column>
-            </DataTable>
-        </div>
-    </div>
-</template>
-
-
 <script setup>
-import { ref, reactive } from 'vue'
-import Button  from 'primevue/button'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import InputText from 'primevue/inputtext'
+import { ref } from 'vue';
+import Button  from 'primevue/button';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import InputText from 'primevue/inputtext';
 
 // Props
 const props = defineProps({
@@ -52,6 +22,10 @@ const props = defineProps({
   title: {
     type: String,
     default: ''
+  },
+  scrollHeight: {
+    type: String,
+    default: '400px' // 기본값 지정
   }
 })
 
@@ -77,3 +51,34 @@ const deleteSelected = () => {
   emit('update', rows.value)
 }
 </script>
+
+<template>
+    <div class="card">
+        <div class="flex flex-col gap-4">
+            <!-- 🔽 타이틀 표시 -->
+            <div class="grid grid-cols-1 gap-4">
+                <div class="flex justify-between">
+                    <div>
+                        <div class="font-semibold text-2xl">{{ title }}</div>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <Button label="선택 삭제" icon="pi pi-trash" severity="danger" @click="deleteSelected" />
+                        <Button label="행 추가" icon="pi pi-plus" @click="addRow" />
+                    </div>
+                </div>
+            </div>
+            <DataTable v-model:selection="selectedRows" :value="rows" :dataKey="dataKey" selectionMode="multiple"
+                showGridlines scrollable :scrollHeight="scrollHeight" tableStyle="min-width: 50rem">
+                <Column selectionMode="multiple" headerStyle="width: 3rem" />
+
+                <Column v-for="field in fields" :key="field" :field="field" :header="mapper?.[field] ?? field">
+                    <template #body="slotProps">
+                        <InputText v-model="slotProps.data[field]" class="w-full" placeholder="입력" />
+                    </template>
+                </Column>
+            </DataTable>
+        </div>
+    </div>
+</template>
+
+

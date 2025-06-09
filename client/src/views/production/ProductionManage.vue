@@ -32,7 +32,13 @@
         </div>
     </div>
     <div >
-        <EditableTable :fields="['prod_code', 'prod_name', 'quantity','unit','priority_rank','line_code']" :mapper="{ prod_code: '제품코드', prod_name: '제품명', quantity: '수량', unit: '단위',priority_rank : '우선순위',line_code : '생산라인' }" dataKey="id" @update="handleUpdate" title="생산계획상세" />
+        <EditableTable :fields="['prod_code', 'prod_name', 'quantity','unit','priority_rank','line_code']" 
+        :mapper="{ prod_code: '제품코드', prod_name: '제품명', quantity: '수량', unit: '단위',priority_rank : '우선순위',line_code : '생산라인' }" 
+        dataKey="id" 
+        @update="handleUpdate" 
+        title="생산계획상세"
+        scrollHeight="600px"
+         />
     </div>
     <!-- 팝업 -->
     <SinglePopup v-model:visible="dialogVisible" :items="products" @confirm="handleConfirm" :mapper="productionMapping" :dataKey="'prdp_code'"></SinglePopup>
