@@ -5,6 +5,11 @@ import { onMounted, ref } from 'vue';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
+import TableWithAddDel from '@/components/form/TableWithAddDel.vue';
+import mrpMapping from '@/service/MRPMapping';
+import MRPManageSearch from './mrp-sub/MRPManageSearch.vue';
+import bomSubMapping from '@/service/BOMSubMapping';
+import EditableTable from '@/components/form/EditableTable.vue';
 
 // 팝업 visible 상태
 const dialogVisible = ref(false);
@@ -16,28 +21,6 @@ const autoFilteredValue = ref([]);
 
 const treeSelectNodes = ref(null);
 const selectedProducts = ref([]);
-
-
-// const products = ref();
-const columns = ref([
-    { field: 'prodName', header: '제품명' },
-    { field: 'type', header: '유형' },
-    { field: 'quantity', header: '수량' },
-    { field: 'price', header: '단가' },
-    { field: 'deadline', header: '납기일' },
-    { field: 'priority', header: '우선순위' },
-    { field: 'totalPrice', header: '총액' },
-]);
-
-// 팝업시작
-const orders = ref([
-    { id: 1, ord_code: 'MES00123', ord_date: '2025.05.26', ord_name: '예담 신라면외 2건', client: '예담', delivery_date: '2025.05.26', priority: '1' },
-    { id: 2, ord_code: 'MES00123', ord_date: '2025.05.26', ord_name: '라면이조아 신라면외 1건', client: '라면이조아', delivery_date: '2025.05.26', priority: '2' },
-    { id: 3, ord_code: 'MES00124', ord_date: '2025.05.26', ord_name: '카모', client: '카모', delivery_date: '2025.05.26', priority: '3' },
-    { id: 4, ord_code: 'MES00125', ord_date: '2025.05.26', ord_name: '지니스라면', client: '지니스라면', delivery_date: '2025.05.26', priority: '1' },
-    { id: 5, ord_code: 'MES00126', ord_date: '2025.05.26', ord_name: '라면프레쉬', client: '라면프레쉬', delivery_date: '2025.05.26', priority: '3' },
-]);
-
 
 const selectedOrder = ref(null);
 //팝업 끝
@@ -95,30 +78,129 @@ const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 }
 
-const products = ref([
+const matsFields = ref([
+    "mat_code",
+    "mat_name",
+    "unit",
+    "req_qtt",
+    "cur_qtt",
+    "plan_date",
+    "proposal_date",
+    "mrp_status"
+]);
+
+const mats = ref([  {
+    mat_code: "MAT-001",
+    mat_name: "밀가루",
+    unit: "kg",
+    req_qtt: 150,
+    cur_qtt: 200,
+    plan_date: "2025-06-10",
+    proposal_date: "2025-06-08",
+    mrp_status: "충분"
+},
+{
+    mat_code: "MAT-002",
+    mat_name: "스프",
+    unit: "kg",
+    req_qtt: 80,
+    cur_qtt: 200,
+    plan_date: "2025-06-12",
+    proposal_date: "2025-06-09",
+    mrp_status: "충분"
+},
+{
+    mat_code: "MAT-003",
+    mat_name: "건더기 스프",
+    unit: "kg",
+    req_qtt: 120,
+    cur_qtt: 200,
+    plan_date: "2025-06-11",
+    proposal_date: "2025-06-08",
+    mrp_status: "충분"
+},
+{
+    mat_code: "MAT-004",
+    mat_name: "용기",
+    unit: "EA",
+    req_qtt: 1000,
+    cur_qtt: 200,
+    plan_date: "2025-06-13",
+    proposal_date: "2025-06-10",
+    mrp_status: "부족"
+},
+{
+    mat_code: "MAT-005",
+    mat_name: "뚜껑",
+    unit: "EA",
+    req_qtt: 1000,
+    cur_qtt: 200,
+    plan_date: "2025-06-13",
+    proposal_date: "2025-06-10",
+    mrp_status: "부족"
+}
+]);
+
+const popupMats = ref([
     {
-        prodName : '신라면',
-        type : '봉지라면',
-        quantity : 10,
-        price : 1000,
-        deadline: '2025.06.05',
-        priority : 1,
-        totalPrice : 10000,
+        mat_code: 'MAT-001',
+        mat_name: '밀가루',
+        mat_type: '원자재',
+        req_qtt: '1t',
+        spec: '100g',
+        loss_rate: '0.5%'
     },
     {
-        prodName : '진라면',
-        type : '봉지라면',
-        quantity : 20,
-        price : 900,
-        deadline: '2025.06.05',
-        priority : 1,
-        totalPrice : 18000,
+        mat_code: 'MAT-002',
+        mat_name: '스프',
+        mat_type: '원자재',
+        req_qtt: '660kg',
+        spec: '20g',
+        loss_rate: '0.5%'
     },
-])
+    {
+        mat_code: 'MAT-003',
+        mat_name: '비닐포장지',
+        mat_type: '부자재',
+        req_qtt: '1000EA',
+        spec: '100mm',
+        loss_rate: '-'
+    },
+    {
+        mat_code: 'MAT-004',
+        mat_name: '식용유',
+        mat_type: '원자재',
+        req_qtt: '50L',
+        spec: '500ml',
+        loss_rate: '0.5%'
+    },
+    {
+        mat_code: 'MAT-005',
+        mat_name: '컵용기',
+        mat_type: '부자재',
+        req_qtt: '1000EA',
+        spec: '60g',
+        loss_rate: '-'
+    },
+    {
+        mat_code: 'MAT-006',
+        mat_name: '포장박스',
+        mat_type: '부자재',
+        req_qtt: '200EA',
+        spec: '450mm x 300mm x 300mm',
+        loss_rate: '-'
+    }
+]);
+
+const openPopup = () => {
+    dialogVisible.value = true;
+}
+
 </script>
 
 <template>
     <div>
+        <!--
         <Fluid class="flex flex-col md:flex-row gap-8">
             <div class="md:w-full">
                 <div class="card flex flex-col gap-4">
@@ -174,47 +256,14 @@ const products = ref([
                 </div>
             </div>
         </Fluid>
-        <div class="card flex flex-col gap-4">
-            <div class="flex justify-between">
-                <div>
-                    <div class="font-semibold text-2xl">제품</div>
-                </div>
-                <div>
-                    <Button label="삭제" severity="danger" />
-                    <Button label="추가" severity="success" class="ml-3" />
-                </div>
-            </div>
-            <DataTable v-model:selection="selectedProducts" :value="products" editMode="cell"
-                @cell-edit-complete="onCellEditComplete" :pt="{
-                    table: { style: 'min-width: 50rem' },
-                    column: {
-                        bodycell: ({ state }) => ({
-                            class: [{ '!py-0': state['d_editing'] }]
-                        })
-                    }
-                }">
-                <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                <Column v-for="col of columns" :key="col.field" :field="col.field" :header="col.header"
-                    style="width: 13%">
-                    <template #body="{ data, field }">
-                        {{ field === 'price' ? formatCurrency(data[field]) : data[field] }}
-                    </template>
-                    <template #editor="{ data, field }">
-                        <template v-if="field !== 'price'">
-                            <InputText v-model="data[field]" autofocus fluid />
-                        </template>
-                        <template v-else>
-                            <InputNumber v-model="data[field]" mode="currency" currency="USD" locale="en-US" autofocus
-                                fluid />
-                        </template>
-                    </template>
-                </Column>
-            </DataTable>
-        </div>
+        -->
+        <MRPManageSearch></MRPManageSearch>
+        <TableWithAddDel :data="mats" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재"></TableWithAddDel>
+        <!-- <EditableTable :fields="matsFields" :dataKey="'mat_code'" :mapper="mrpMapping" title="자재"></EditableTable> -->
     </div>
 
     <!-- 팝업 -->
     <!-- <SinglePopup v-model:visible="dialogVisible" :orders="orders" @confirm="handleConfirm"></SinglePopup> -->
-    <MultiplePopup v-model:visible="dialogVisible" :items="orders" @confirm="handleConfirm" :mapper="orderMapping" :dataKey="'id'"></MultiplePopup>
+    <MultiplePopup v-model:visible="dialogVisible" :items="popupMats" @confirm="handleConfirm" :mapper="bomSubMapping" :dataKey="'mat_code'"></MultiplePopup>
     <!-- 팝업 끝 -->
 </template>

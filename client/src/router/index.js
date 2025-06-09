@@ -112,21 +112,6 @@ const router = createRouter({
                     name: 'documentation',
                     component: () => import('@/views/pages/Documentation.vue')
                 },
-                {
-                    path: '/releaseForm/management',
-                    name: 'releaseManagement',
-                    component: () => import('@/views/order/release-form/Management.vue')
-                },
-                {
-                    path: '/releaseForm/list',
-                    name: 'releaseList',
-                    component: () => import('@/views/order/release-form/List.vue')
-                },
-                {
-                    path: '/statistics/statis',
-                    name: 'statistics',
-                    component: () => import('@/views/order/statistics/Statistics.vue')
-                },
                 ...orderRoutes,
                 ...mrpRoutes,
                 ...prodRoutes,
