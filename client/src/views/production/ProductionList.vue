@@ -78,21 +78,29 @@ const resetSearch = () => {
   productiondata.value = [...ProductionData];
 };
 
-// 조회 필터링
+
 const fetchOrders = () => {
   productiondata.value = ProductionData.filter(item => {
     const matchCode = !search.value.prdp_code || item.prdp_code.includes(search.value.prdp_code);
     const matchName = !search.value.prdp_name || item.prdp_name.includes(search.value.prdp_name);
+
+    const prdpDate = new Date(item.prdp_date);
+    const dueDate = new Date(item.due_date);
+
     const matchDate =
       (!search.value.prdp_date_from && !search.value.prdp_date_to) ||
-      ((!search.value.prdp_date_from || item.prdp_date >= search.value.prdp_date_from) &&
-        (!search.value.prdp_date_to || item.prdp_date <= search.value.prdp_date_to));
+      ((!search.value.prdp_date_from || prdpDate >= search.value.prdp_date_from) &&
+        (!search.value.prdp_date_to || prdpDate <= search.value.prdp_date_to));
+
     const matchDueDate =
-  (!search.value.due_date_from && !search.value.due_date_to) ||
-  ((!search.value.due_date_from || item.due_date >= search.value.due_date_from) &&
-    (!search.value.due_date_to || item.due_date <= search.value.due_date_to));
+      (!search.value.due_date_from && !search.value.due_date_to) ||
+      ((!search.value.due_date_from || dueDate >= search.value.due_date_from) &&
+        (!search.value.due_date_to || dueDate <= search.value.due_date_to));
+
     return matchCode && matchName && matchDate && matchDueDate;
   });
 };
+
+
 
 </script>
