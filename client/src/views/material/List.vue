@@ -89,27 +89,18 @@ const fetchOrders = () => {
     orderdata.value = OrderData.filter(item => {
         // 주문코드 체크 (빈 값이면 통과, 아니면 포함되는지 확인)
         const matchCode = search.value.ord_code === '' || item.ord_code.includes(search.value.ord_code);
-
         // 주문명 체크
         const matchName = search.value.ord_name === '' || item.ord_name.includes(search.value.ord_name);
-
         // 거래처 체크
         const matchClient = search.value.client === '' || item.client === search.value.client;
-
         // 상태 체크
         const matchStatus = search.value.ord_status === '' || item.status === search.value.ord_status;
-
-        // 주문일자 체크 (범위)
+        // 요청일자 체크 (범위)
         const matchOrdDate = (!search.value.ord_date_from && !search.value.ord_date_to) || (
             (!search.value.ord_date_from || item.ord_date >= search.value.ord_date_from) &&
             (!search.value.ord_date_to || item.ord_date <= search.value.ord_date_to)
         );
 
-        // 납기일자 체크 (범위)
-        const matchDeliveryDate = (!search.value.delivery_date_from && !search.value.delivery_date_to) || (
-            (!search.value.delivery_date_from || item.delivery_date >= search.value.delivery_date_from) &&
-            (!search.value.delivery_date_to || item.delivery_date <= search.value.delivery_date_to)
-        );
 
         // 수량 체크 (item.quantity는 '50000개' 처럼 되어 있어서 숫자만 추출 필요)
         const itemQty = parseInt(item.quantity.replace(/[^\d]/g, '')) || 0;
