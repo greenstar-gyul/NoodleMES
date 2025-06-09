@@ -6,7 +6,6 @@ import orderMapping from '@/service/OrderMapping';
 import productMapping from '@/service/ProductMapping.js';
 import orders from '@/service/OrderService';
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
-import LabeledReadonlyInput from '@/components/registration-bar/LabeledReadonlyInput.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
 
@@ -16,6 +15,7 @@ import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import Calendar from 'primevue/calendar';
+import { Select } from 'primevue';
 
 /* ===== DATA ===== */
 // 주문 팝업
@@ -30,9 +30,10 @@ const ordersRef = ref(orders);
 
 // 제품 리스트 (예시 데이터)
 const productList = ref([
-    { id: 1, prod_code: 'MES00123', prod_name: '신라면', prod_type: '봉지'},
-    { id: 2, prod_code: 'MES00124', prod_name: '진라면', prod_type: '컵'},
-    { id: 3, prod_code: 'MES00125', prod_name: '너구리', prod_type: '봉지'}
+    { id: 1, prod_code: 'MES00123', prod_name: '신라면', prod_type: '봉지라면'},
+    { id: 2, prod_code: 'MES00124', prod_name: '진라면', prod_type: '컵라면(소)'},
+    { id: 3, prod_code: 'MES00125', prod_name: '너구리', prod_type: '봉지라면'},
+    { id: 4, prod_code: 'MES00126', prod_name: '스낵면', prod_type: '컵라면(대)'},
 ]);
 
 // 기본정보 폼 데이터
@@ -55,6 +56,23 @@ const managerOptions = ref([
     { label: '김철수', value: 'manager1' },
     { label: '이영희', value: 'manager2' },
     { label: '박민수', value: 'manager3' }
+]);
+
+// 규격 옵션 예시
+const specOptions = ref([
+    { label: '-', value: '-' },
+    { label: '40', value: '40' },
+    { label: '20', value: '20' },
+    { label: '16', value: '16' },
+    { label: '12', value: '12' },
+    { label: '8', value: '8' },
+    { label: '6', value: '6' },
+]);
+
+// 단위 옵션 예시
+const unitOptions = ref([
+    { label: '개', value: 'ea' },
+    { label: 'Box', value: 'box' },
 ]);
 
 // 제품 테이블 rows
@@ -113,17 +131,17 @@ const handleSave = () => {
         ord_code: ord_code.value,
         ord_name: ord_name.value,
         ord_date: ord_date.value,
-        client: selectedClient.value,
+        client_name: selectedClient.value,
         manager: selectedManager.value,
         note: note.value,
         products: productRows.value.map(row => ({
             prod_name: row.prod_name,
             prod_type: row.prod_type,
-            prod_amount: row.prod_amount,
+            prod_qtt: row.prod_qtt,
             prod_price: row.prod_price,
             delivery_date: row.delivery_date,
             priority: row.priority,
-            total_price: row.prod_amount * row.prod_price
+            total_price: row.prod_qtt * row.prod_price
         }))
     };
 
@@ -142,14 +160,14 @@ const handleConfirm = (selectedOrder) => {
     ord_date.value = selectedOrder.ord_date;
 
     // 거래처 처리
-    const clientOption = clientOptions.value.find(option => option.label === selectedOrder.client);
-    if (!clientOption && selectedOrder.client) {
+    const clientOption = clientOptions.value.find(option => option.label === selectedOrder.client_name);
+    if (!clientOption && selectedOrder.client_name) {
         clientOptions.value.push({
-            label: selectedOrder.client,
-            value: selectedOrder.client
+            label: selectedOrder.client_name,
+            value: selectedOrder.client_name
         });
     }
-    selectedClient.value = selectedOrder.client;
+    selectedClient.value = selectedOrder.client_name;
 
     // 거래처 담당자 처리
     if (selectedOrder.manager) {
@@ -191,7 +209,7 @@ const addRow = () => {
         id: Date.now() + productRows.value.length,
         prod_name: '',
         prod_type: '',
-        prod_amount: 0,
+        prod_qtt: 0,
         prod_price: 0,
         delivery_date: '',
         priority: '',
@@ -243,7 +261,7 @@ const formatNumber = (value) => {
 
         <!-- 입력 폼 영역 2 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledReadonlyInput label="주문일자" v-model="ord_date" />
+            <LabeledInput label="주문일자" v-model="ord_date" :disabled="true"/>
             <LabeledSelect
                 label="거래처"
                 v-model="selectedClient"
@@ -283,7 +301,7 @@ const formatNumber = (value) => {
             </div>
 
             <!-- 제품 테이블 -->
-            <DataTable v-model:selection="selectedProducts" :value="productRows" showGridlines dataKey="id">
+            <DataTable v-model:selection="selectedProducts" :value="productRows" showGridlines scrollable scrollHeight="400px" dataKey="id">
                 <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
                 <Column field="prod_name" header="제품명">
@@ -301,9 +319,21 @@ const formatNumber = (value) => {
                     </template>
                 </Column>
 
-                <Column field="prod_amount" header="수량">
+                <Column field="spec" header="규격">
                     <template #body="slotProps">
-                        <InputNumber v-model="slotProps.data.prod_amount" :min="0" showButtons />
+                        <Select v-model="slotProps.data.spec" :options="specOptions" optionLabel="label" optionValue="value" placeholder="규격" />
+                    </template>
+                </Column>
+
+                <Column field="unit" header="단위">
+                    <template #body="slotProps">
+                        <Select v-model="slotProps.data.unit" :options="unitOptions" optionLabel="label" optionValue="value" placeholder="단위" />
+                    </template>
+                </Column>
+
+                <Column field="prod_qtt" header="수량">
+                    <template #body="slotProps">
+                        <InputNumber v-model="slotProps.data.prod_qtt" :min="0" showButtons />
                     </template>
                 </Column>
 
@@ -327,7 +357,7 @@ const formatNumber = (value) => {
 
                 <Column field="total_price" header="총액">
                     <template #body="slotProps">
-                        <InputText :value="formatNumber(slotProps.data.prod_amount * slotProps.data.prod_price)" readonly />
+                        <InputText :value="formatNumber(slotProps.data.prod_qtt * slotProps.data.prod_price)" readonly />
                     </template>
                 </Column>
             </DataTable>
@@ -340,6 +370,7 @@ const formatNumber = (value) => {
         :items="ordersRef"
         @confirm="handleConfirm"
         :mapper="orderMapping"
+        :dataKey="'ord_code'"
     />
 
     <!-- ===== 제품명 팝업 ===== -->

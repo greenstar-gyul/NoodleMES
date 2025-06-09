@@ -16,11 +16,11 @@
             </SearchDateBetween>
 
             <!-- 거래처 -->
-            <SearchDropdown label="거래처" v-model="search.client" :options="clientOptions">
+            <SearchDropdown label="거래처" v-model="search.client_name" :options="clientOptions">
             </SearchDropdown>
 
             <!-- 수량 (범위) -->
-            <SearchCountBetween label="수량" v-model:from="search.qty_from" v-model:to="search.qty_to" />
+            <SearchCountBetween label="수량" v-model:from="search.prod_qtt_from" v-model:to="search.prod_qtt_to" />
 
             <!-- 납기일 (범위) -->
             <SearchDateBetween label="납기일" :from="search.delivery_date_from" :to="search.delivery_date_to" @update:from="search.delivery_date_from = $event" @update:to="search.delivery_date_to = $event">
@@ -71,9 +71,9 @@ const search = ref({
     ord_name: '',
     ord_date_from: null,
     ord_date_to: null,
-    client: '',
-    qty_from: null,
-    qty_to: null,
+    client_name: '',
+    prod_qtt_from: null,
+    prod_qtt_to: null,
     delivery_date_from: null,
     delivery_date_to: null,
     ord_status: ''
@@ -87,9 +87,9 @@ const resetSearch = () => {
         ord_name: '',
         ord_date_from: null,
         ord_date_to: null,
-        client: '',
-        qty_from: null,
-        qty_to: null,
+        client_name: '',
+        prod_qtt_from: null,
+        prod_qtt_to: null,
         delivery_date_from: null,
         delivery_date_to: null,
         ord_status: ''
@@ -103,63 +103,48 @@ const resetSearch = () => {
 const fetchOrders = () => {
     console.log('조회 실행:', search.value);
 
-    // 날짜를 안전하게 "YYYY-MM-DD" 형식으로 변환
-    const formatDate = (date) => {
-        if (!date) return '';
-        if (typeof date === 'string') return date;  // 이미 문자열이면 그대로 사용
-        const d = new Date(date);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    // 프론트에서 필터링
     orderdata.value = OrderData.filter(item => {
         // 주문코드 체크
-        const matchCode = search.value.ord_code === '' || item.ord_code.includes(search.value.ord_code);
+        const matchCode = !search.value.ord_code || item.ord_code.includes(search.value.ord_code);
 
         // 주문명 체크
-        const matchName = search.value.ord_name === '' || item.ord_name.includes(search.value.ord_name);
+        const matchName = !search.value.ord_name || item.ord_name.includes(search.value.ord_name);
 
         // 거래처 체크
-        const matchClient = search.value.client === '' || item.client === search.value.client;
+        const matchClient = !search.value.client_name || item.client_name === search.value.client_name;
 
         // 상태 체크
-        const matchStatus = search.value.ord_status === '' || item.status === search.value.ord_status;
+        const matchStatus = !search.value.ord_status || item.ord_status === search.value.ord_status;
 
-        // 주문일자 체크 (범위 → 안전한 방식)
-        const ordDate = formatDate(item.ord_date);
-        const ordDateFrom = formatDate(search.value.ord_date_from);
-        const ordDateTo = formatDate(search.value.ord_date_to);
-
+        // 주문일자 비교용 Date 객체로 변환
+        const ordDate = new Date(item.ord_date);
         const matchOrdDate = 
-            (!ordDateFrom || ordDate >= ordDateFrom) &&
-            (!ordDateTo || ordDate <= ordDateTo);
+            (!search.value.ord_date_from && !search.value.ord_date_to) ||
+            ((!search.value.ord_date_from || ordDate >= search.value.ord_date_from) &&
+             (!search.value.ord_date_to || ordDate <= search.value.ord_date_to));
 
-        // 납기일자 체크 (범위 → 안전한 방식)
-        const deliveryDate = formatDate(item.delivery_date);
-        const deliveryDateFrom = formatDate(search.value.delivery_date_from);
-        const deliveryDateTo = formatDate(search.value.delivery_date_to);
-
+        // 납기일자 비교용 Date 객체로 변환
+        const deliveryDate = new Date(item.delivery_date);
         const matchDeliveryDate = 
-            (!deliveryDateFrom || deliveryDate >= deliveryDateFrom) &&
-            (!deliveryDateTo || deliveryDate <= deliveryDateTo);
+            (!search.value.delivery_date_from && !search.value.delivery_date_to) ||
+            ((!search.value.delivery_date_from || deliveryDate >= search.value.delivery_date_from) &&
+             (!search.value.delivery_date_to || deliveryDate <= search.value.delivery_date_to));
 
         // 수량 체크 (item.quantity는 '50000개' 처럼 되어 있어서 숫자만 추출 필요)
-        const itemQty = parseInt(item.quantity.replace(/[^\d]/g, '')) || 0;
-        const qtyFrom = search.value.qty_from ? parseInt(search.value.qty_from) : null;
-        const qtyTo = search.value.qty_to ? parseInt(search.value.qty_to) : null;
+        const itemQty = parseInt(item.prod_qtt.replace(/[^\d]/g, '')) || 0;
+        const qtyFrom = search.value.prod_qtt_from ? parseInt(search.value.prod_qtt_from) : null;
+        const qtyTo = search.value.prod_qtt_to ? parseInt(search.value.prod_qtt_to) : null;
 
         const matchQty = (!qtyFrom && !qtyTo) || (
             (!qtyFrom || itemQty >= qtyFrom) &&
             (!qtyTo || itemQty <= qtyTo)
         );
 
-        // 최종 결과 → 모든 조건이 true여야 통과
+        // 최종 결과
         return matchCode && matchName && matchClient && matchStatus && matchOrdDate && matchDeliveryDate && matchQty;
     });
 };
+
 
 
 
