@@ -23,9 +23,8 @@
                 <label class="font-semibold text-xl block mb-2">검사대상</label>
                 <InputText type="text" class="w-full" />
             </div>
-            <SearchText v-model="search.ord_code" label="제품명" placeholder="제품명 입력하세요" />
-        </div>
-
+            </div>
+            
         <!-- 기준 / 검사항목 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -41,11 +40,11 @@
         <!-- 유통기한 / 등록일자 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-xl block mb-2">단위</label>
+                <label class="font-semibold text-xl block mb-2">기준(하한)</label>
                 <InputText type="text" class="w-full" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">기준(하한)</label>
+                <label class="font-semibold text-xl block mb-2">단위</label>
                 <InputText type="text" class="w-full" />
             </div>
         </div>
@@ -57,17 +56,23 @@
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">판정방식</label>
-                <InputText type="text" class="w-full" />
+               <div class="flex items-center">
+                    <RadioButton id="option1" name="option" value="자동" v-model="radioValue" />
+                    <label for="option1" class="leading-none ml-2 mr-7">자동</label>
+                    <RadioButton id="option2" name="option" value="수동" v-model="radioValue" />
+                    <label for="option2" class="leading-none ml-2">수동</label>
+                </div>
             </div>
         </div>
+        </div>
+</template>
 
-        <!-- 비고 -->
+
+        <!-- 비고
         <div>
             <label class="font-semibold text-xl block mb-2">비고</label>
             <Textarea placeholder="특이사항 입력" :autoResize="true" rows="5" class="w-full" />
-        </div>
-    </div>
-</template>
+        </div> -->
 
 <script setup>
 import { ref } from 'vue';
@@ -78,6 +83,8 @@ import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import SearchText from '@/components/search-bar/SearchText.vue';
+
+const radioValue = ref(null);
 
 // 검색조건 데이터 (v-model로 바인딩됨)
 const search = ref({

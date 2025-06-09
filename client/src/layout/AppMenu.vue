@@ -77,15 +77,15 @@ const model = ref([
                 items: [
                     {
                         label: '품질기준정보',
-                        to: '/qulity/QulityStandard'
+                        to: '/quality/QualityStandard'
                     },
                     {
                         label: '품질검사지시',
-                        to: '/auth/login'
+                        to: '/quality/QualityList'
                     },
                     {
                         label: '품질검사결과',
-                        to: '/auth/error'
+                        to: '/quality/QualityResults'
                     },
                     {
                         label: '품질통계',

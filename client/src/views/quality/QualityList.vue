@@ -5,26 +5,30 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
             <!-- 주문번호 -->
             <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">품질기준코드</label>
-                <InputText v-model="search.qcr_code" class="flex-1" />
+                <label class="font-semibold w-24">제품코드</label>
+                <InputText v-model="search.prod_code" class="flex-1" />
             </div>
 
             <!-- 주문명 -->
             <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">공정코드</label>
-                <InputText v-model="search.po_code" class="flex-1" />
+                <label class="font-semibold w-24">제품명</label>
+                <InputText v-model="search.prod_name" class="flex-1" />
             </div>
 
-            <!-- 검사항목명 -->
+            <!-- 납기일 (범위) -->
             <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">검사항목</label>
-                <InputText v-model="search.inspection_item" class="flex-1" />
+                <label class="font-semibold w-24">등록일자</label>
+                <div class="flex items-center flex-1 gap-2">
+                    <Calendar v-model="search.regdate_from" class="flex-1" dateFormat="yy-mm-dd" />
+                    <span>~</span>
+                    <Calendar v-model="search.regdate_to" class="flex-1" dateFormat="yy-mm-dd" />
+                </div>
             </div>
 
-            <!-- 판정방식 / 라디오버튼 -->
+            <!-- 상태 -->
             <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">판정방식</label>
-                <Dropdown v-model="search.check_method" :options="orderStatusOptions" optionLabel="label" optionValue="value" placeholder="" class="flex-1" />
+                <label class="font-semibold w-24">사용여부</label>
+                <Dropdown v-model="search.is_used1" :options="orderStatusOptions" optionLabel="label" optionValue="value" placeholder="" class="flex-1" />
             </div>
         </div>
 
@@ -38,16 +42,10 @@
     <!-- 📋 검색 조회 테이블 영역 -->
     <div class="flex flex-col lg:flex-row gap-6 mt-6">
         <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
-        <div class="space-y-6" style="width: 65%">
+        <div class="space-y-6" style="width: 55%">
             <!-- 검색결과 테이블 -->
-            <TableWDE :data="qulitys" :dataKey="'qcr_code'" :mapper="QulityMapper"/>
-
-            <!-- 하위자재 구성 테이블
-            <TableWAD :data="mats" :dataKey="'mat_code'" :mapper="bomSubMapper" @open-popup="openPopup()"></TableWAD> -->
+            <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
         </div>
-
-        <!-- 우측: 품질 등록 영역 (45%) -->
-        <QulityInputForm />
     </div>
 
     <!-- <MultiplePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></MultiplePopup> -->
@@ -60,9 +58,10 @@ import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
-import QulityInputForm from '@/components/form/QulityInputForm.vue';
+import QualityInputForm from './QualityInputForm.vue';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
-import QulityMapper from '@/service/QulityMapping.js';
+import TableWAD from '@/components/form/TableWithAddDel.vue';
+import QualityMapping from '@/service/QualityMapping';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 
@@ -101,7 +100,7 @@ const resetSearch = () => {
 };
 
 // 테이블에 보여줄 목록 데이터 (예시 데이터)
-const qulitys = ref([
+const qualitys = ref([
     {
         qcr_code: '품질기준코드',
         po_code: '공정코드',
