@@ -1,4 +1,5 @@
 <template>
+    <!-- Search-bar에 있는 컴포넌트 활용하기. 참고자료) 기준정보-BOM -->
     <!-- 🔍 검색바 영역 -->
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <!-- 검색 조건 영역 -->
@@ -39,6 +40,7 @@
     <div class="flex flex-col lg:flex-row gap-6 mt-6">
         <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
         <div class="space-y-6" style="width: 65%">
+            <!-- title 속성 추가해서 제목 추가 -->
             <!-- 검색결과 테이블 -->
             <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
 
@@ -78,6 +80,7 @@ const search = ref({
 // 팝업창 Open/Close 변수
 const dialogVisible = ref(false);
 
+// 변수 이름 명확히 하면 좋을듯..
 // 주문상태 옵션 (예시 데이터)
 const orderStatusOptions = [
     { label: '수동', value: 'a1' },
