@@ -1,7 +1,12 @@
 export default [
-    // {
-    //     path: '/productions/product',
-    //     name: 'productions',
-    //     component: () => import('@/views/order/production/production.vue')
-    // },
+    {
+        path: '/material/list',
+        name: 'matList',
+        component: () => import('@/views/material/List.vue')
+    },
+        {
+        path: '/material/manage',
+        name: 'matManage',
+        component: () => import('@/views/material/Manage.vue')
+    },
 ];
