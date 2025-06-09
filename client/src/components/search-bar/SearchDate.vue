@@ -25,7 +25,7 @@ watch(() => props.modelValue, (val) => internalValue.value = val);
     <div class="flex items-center gap-3 w-full">
         <label class="font-semibold w-24">{{ label }}</label>
         <div class="flex items-center flex-1 gap-2">
-            <Calendar v-model="internalValue" :placeholder="placeholder" class="flex-1" dateFormat="yy-mm-dd" />
+            <Calendar v-model="internalValue" :placeholder="placeholder" class="flex-1" dateFormat="yy-mm-dd" :showIcon="true"/>
         </div>
     </div>
 </template>
