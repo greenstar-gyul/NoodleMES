@@ -26,8 +26,9 @@ const selectedProducts = ref([]);
 const selectedOrder = ref(null);
 
 const mats = ref([]); 
-const popupMats = ref([]); // 하위자재 추가 팝업 내부 자재들
-const matList = ref([]);
+const popupMats = ref([]);  // 하위자재 추가 팝업 내부 자재들
+const matList = ref([]);    // 하위자재 필터 목록
+const selMatList = ref([]); // 하위자재 테이블 요소 목록
 //팝업 끝
 
 
@@ -37,6 +38,7 @@ onMounted(() => {
     // ProductService.getProductsMini().then((data) => (products.value = data));
 
     popupMats.value = MRPService.popupMats;
+    mats.value = MRPService.mats;
 });
 
 function searchCountry(event) {
@@ -94,8 +96,19 @@ const openPopup = () => {
 const popupMatsConfirm = (values) => {
     // console.log(values);
     values.forEach(element => {
-        mats.value.push(element);
+        console.log(element['mat_code']);
+        matList.value.push(element['mat_code']);
+        selMatList.value.push(mats.value.find(item => {
+            if (element['mat_code'] == item.mat_code) {
+                console.log(item);
+                return true;
+            }
+        }));
+
+        // mats.value.push(element);
     });
+
+    console.log(selMatList.value);
 }
 
 </script>
@@ -103,7 +116,7 @@ const popupMatsConfirm = (values) => {
 <template>
     <div>
         <MRPManageSearch></MRPManageSearch>
-        <TableWithAddDel :data="mats" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재"></TableWithAddDel>
+        <TableWithAddDel :data="selMatList" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재"></TableWithAddDel>
     </div>
 
     <!-- 팝업 -->
