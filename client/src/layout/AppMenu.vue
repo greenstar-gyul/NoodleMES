@@ -17,7 +17,7 @@ const model = ref([
                 label: '기준정보',
                 items: [
                     {
-                        label: 'BOM',
+                        label: '제품 및 BOM 등록',
                         to: '/standard/bom'
                     },
                     {
@@ -124,6 +124,10 @@ const model = ref([
                     {
                         label: '설비정보',
                         to: '/equipment/eqinfo'
+                    },
+                    {
+                        label: '설비점검지시서',
+                        to: '/equipment/eqiilist'
                     },
                     {
                         label: 'Error',
