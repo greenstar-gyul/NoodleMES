@@ -4,7 +4,7 @@
         <div class="grid grid-cols-1 gap-4">
             <div class="flex justify-between">
                 <div>
-                    <div class="font-semibold text-2xl">생산계획</div>
+                    <div class="font-semibold text-2xl"><b>MRP</b></div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit" />
@@ -16,19 +16,19 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- <LabeledInput label="생산계획코드" :value="prdp_code" placeholder="생산계획코드" :disabled="true" /> -->
-            <LabeledReadonlyInput label="생산계획코드" :value="prdp_code" />
-            <LabeledReadonlyInput label="작성자" :value="writer" />
+            <LabeledInput label="MRP코드" :model-value="mrp_code" :disabled="true" />
+            <LabeledInput label="생산계획코드" :model-value="prdp_code" :disabled="true" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledReadonlyInput label="계획수립일" :value="plan_date" />
-            <LabeledReadonlyInput label="생산시작일" :value="start_date" />
+            <LabeledInput label="계획수립일" :model-value="plan_date" :disabled="true" />
+            <LabeledInput label="생산시작일" :model-value="start_date" :disabled="true" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledReadonlyInput label="MRP번호" :value="mrp_code" />
-            <LabeledTextarea label="비고" v-model="note" placeholder="특이사항 입력" />
+            <LabeledInput label="작성자" :model-value="writer" :disabled="true" />
+            <LabeledTextarea label="비고" v-model="note" placeholder="특이사항 입력" :rows="1" />
         </div>
     </div>
-    <SinglePopup v-model:visible="dialogVisible" :items="prodPlans" @confirm="handleConfirm" :mapper="prodPlanMapping" :dataKey="'prdp_code'"></SinglePopup>
+    <SinglePopup v-model:visible="dialogVisible" :items="prodPlans" @confirm="prdpLoad" :mapper="prodPlanMapping" :dataKey="'prdp_code'" :placeholder="'테스트'"></SinglePopup>
 </template>
 
 <script setup>
@@ -36,6 +36,8 @@ import { ref } from 'vue';
 import Button from 'primevue/button';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import prodPlanMapping from '../../../service/ProductionPlanMapping';
+import LabeledTextarea from '../../../components/registration-bar/LabeledTextarea.vue';
+import LabeledInput from '../../../components/registration-bar/LabeledInput.vue';
 
 const props = defineProps({
     data: {
@@ -59,7 +61,7 @@ const dialogVisible = ref(false);
 
 const prodPlans = ref([
     {
-        prdp_code: "MES-00123",
+        prdp_code: "PRDP-202505-123",
         prdp_name: "생산계획1",
         plan_date: "2025-05-27",
         start_date: "2025-06-05",
@@ -67,7 +69,7 @@ const prodPlans = ref([
         note: "생산 빨리 해주세요",
     },
     {
-        prdp_code: "MES-00124",
+        prdp_code: "PRDP-202506-001",
         prdp_name: "생산계획2",
         plan_date: "2025-05-28",
         start_date: "2025-06-15",
@@ -75,7 +77,7 @@ const prodPlans = ref([
         note: "생산 빨리 해주세요@@@@",
     },
     {
-        prdp_code: "MES-00125",
+        prdp_code: "PRDP-202506-002",
         prdp_name: "생산계획3",
         plan_date: "2025-05-29",
         start_date: "2025-06-05",
@@ -83,7 +85,7 @@ const prodPlans = ref([
         note: "생산 빨리 해주세요@@",
     },
     {
-        prdp_code: "MES-00126",
+        prdp_code: "PRDP-202506-003",
         prdp_name: "생산계획4",
         plan_date: "2025-06-01",
         start_date: "2025-06-13",
@@ -91,7 +93,7 @@ const prodPlans = ref([
         note: "생산 빨리 해주세요@@@@",
     },
     {
-        prdp_code: "MES-00127",
+        prdp_code: "PRDP-202506-004",
         prdp_name: "생산계획5",
         plan_date: "2025-06-04",
         start_date: "2025-06-07",
@@ -99,6 +101,13 @@ const prodPlans = ref([
         note: "생산 빨리 해주세요@@@@@@@",
     },
 ])
+
+const prdpLoad = function(value) {
+    console.log(value);
+    prdp_code.value = value.prdp_code;
+    plan_date.value = value.plan_date; 
+    start_date.value = value.start_date;
+}
 
 </script>
 
