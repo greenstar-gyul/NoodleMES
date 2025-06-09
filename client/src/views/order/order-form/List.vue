@@ -103,9 +103,20 @@ const resetSearch = () => {
 const fetchOrders = () => {
     console.log('조회 실행:', search.value);
 
+    // 날짜를 안전하게 "YYYY-MM-DD" 형식으로 변환
+    const formatDate = (date) => {
+        if (!date) return '';
+        if (typeof date === 'string') return date;  // 이미 문자열이면 그대로 사용
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     // 프론트에서 필터링
     orderdata.value = OrderData.filter(item => {
-        // 주문코드 체크 (빈 값이면 통과, 아니면 포함되는지 확인)
+        // 주문코드 체크
         const matchCode = search.value.ord_code === '' || item.ord_code.includes(search.value.ord_code);
 
         // 주문명 체크
@@ -117,17 +128,23 @@ const fetchOrders = () => {
         // 상태 체크
         const matchStatus = search.value.ord_status === '' || item.status === search.value.ord_status;
 
-        // 주문일자 체크 (범위)
-        const matchOrdDate = (!search.value.ord_date_from && !search.value.ord_date_to) || (
-            (!search.value.ord_date_from || item.ord_date >= search.value.ord_date_from) &&
-            (!search.value.ord_date_to || item.ord_date <= search.value.ord_date_to)
-        );
+        // 주문일자 체크 (범위 → 안전한 방식)
+        const ordDate = formatDate(item.ord_date);
+        const ordDateFrom = formatDate(search.value.ord_date_from);
+        const ordDateTo = formatDate(search.value.ord_date_to);
 
-        // 납기일자 체크 (범위)
-        const matchDeliveryDate = (!search.value.delivery_date_from && !search.value.delivery_date_to) || (
-            (!search.value.delivery_date_from || item.delivery_date >= search.value.delivery_date_from) &&
-            (!search.value.delivery_date_to || item.delivery_date <= search.value.delivery_date_to)
-        );
+        const matchOrdDate = 
+            (!ordDateFrom || ordDate >= ordDateFrom) &&
+            (!ordDateTo || ordDate <= ordDateTo);
+
+        // 납기일자 체크 (범위 → 안전한 방식)
+        const deliveryDate = formatDate(item.delivery_date);
+        const deliveryDateFrom = formatDate(search.value.delivery_date_from);
+        const deliveryDateTo = formatDate(search.value.delivery_date_to);
+
+        const matchDeliveryDate = 
+            (!deliveryDateFrom || deliveryDate >= deliveryDateFrom) &&
+            (!deliveryDateTo || deliveryDate <= deliveryDateTo);
 
         // 수량 체크 (item.quantity는 '50000개' 처럼 되어 있어서 숫자만 추출 필요)
         const itemQty = parseInt(item.quantity.replace(/[^\d]/g, '')) || 0;
@@ -143,6 +160,8 @@ const fetchOrders = () => {
         return matchCode && matchName && matchClient && matchStatus && matchOrdDate && matchDeliveryDate && matchQty;
     });
 };
+
+
 
 </script>
 

@@ -3,17 +3,37 @@
 import { ref } from 'vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
+import productMapping from '@/service/ProductMapping.js';
 import orders from '@/service/OrderService';
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import LabeledReadonlyInput from '@/components/registration-bar/LabeledReadonlyInput.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
-import EditableTable from '@/components/form/EditableTable.vue';
+
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import InputNumber from 'primevue/inputnumber';
+import Calendar from 'primevue/calendar';
 
 /* ===== DATA ===== */
-// 팝업
-const dialogVisible = ref(false);
+// 주문 팝업
+const orderPopupVisible = ref(false);
+
+// 제품명 팝업
+const productPopupVisible = ref(false);
+const currentProductRow = ref(null);
+
+// 주문 데이터
 const ordersRef = ref(orders);
+
+// 제품 리스트 (예시 데이터)
+const productList = ref([
+    { id: 1, prod_code: 'MES00123', prod_name: '신라면', prod_type: '봉지'},
+    { id: 2, prod_code: 'MES00124', prod_name: '진라면', prod_type: '컵'},
+    { id: 3, prod_code: 'MES00125', prod_name: '너구리', prod_type: '봉지'}
+]);
 
 // 기본정보 폼 데이터
 const ord_code = ref('');
@@ -22,9 +42,6 @@ const ord_date = ref('');
 const note = ref('');
 const selectedClient = ref(null);
 const selectedManager = ref(null);
-
-// 🚀 수정 불가 상태 변수
-const isReadonly = ref(false);
 
 // 거래처 옵션 예시
 const clientOptions = ref([
@@ -40,8 +57,83 @@ const managerOptions = ref([
     { label: '박민수', value: 'manager3' }
 ]);
 
+// 제품 테이블 rows
+const productRows = ref([]);
+
+// 선택된 행
+const selectedProducts = ref([]);
+
 /* ===== FUNCTIONS ===== */
-// 팝업 Confirm 핸들러
+//초기화
+const handleReset = () => {
+    // 주문 기본정보 초기화
+    ord_code.value = '';
+    ord_name.value = '';
+    ord_date.value = '';
+    note.value = '';
+    selectedClient.value = null;
+    selectedManager.value = null;
+
+    // 제품 목록 초기화
+    productRows.value = [];
+    selectedProducts.value = [];
+
+    console.log('초기화 완료 (주문 + 제품 목록)');
+};
+
+//삭제
+const handleDelete = async () => {
+    if (!ord_code.value) {
+        alert('주문코드가 없습니다. 삭제할 주문을 먼저 선택하세요!');
+        return;
+    }
+
+    const confirmed = confirm('정말로 이 주문을 삭제하시겠습니까?');
+    if (!confirmed) return;
+
+    try {
+        // 여기서 실제 API 요청 보내기 (예시)
+        // await axios.delete(`/api/orders/${ord_code.value}`);
+
+        console.log(`주문 삭제 요청 완료: 주문코드=${ord_code.value}`);
+
+        // 삭제 성공 시 화면 초기화
+        handleReset();
+
+        alert('주문이 삭제되었습니다.');
+    } catch (error) {
+        console.error('주문 삭제 실패:', error);
+        alert('주문 삭제 중 오류가 발생했습니다.');
+    }
+};
+
+//저장
+const handleSave = () => {
+    const saveData = {
+        ord_code: ord_code.value,
+        ord_name: ord_name.value,
+        ord_date: ord_date.value,
+        client: selectedClient.value,
+        manager: selectedManager.value,
+        note: note.value,
+        products: productRows.value.map(row => ({
+            prod_name: row.prod_name,
+            prod_type: row.prod_type,
+            prod_amount: row.prod_amount,
+            prod_price: row.prod_price,
+            delivery_date: row.delivery_date,
+            priority: row.priority,
+            total_price: row.prod_amount * row.prod_price
+        }))
+    };
+
+    console.log('저장할 데이터:', saveData);
+
+    // 여기서 실제 서버로 저장 요청 보내면 됨 (ex. axios.post('/api/orders', saveData))
+};
+
+
+// 주문정보 팝업 Confirm 핸들러
 const handleConfirm = (selectedOrder) => {
     console.log('선택된 주문:', selectedOrder);
 
@@ -74,14 +166,49 @@ const handleConfirm = (selectedOrder) => {
     }
 
     note.value = selectedOrder.note || '';
-
-    // 🚀 기본정보 수정 불가 처리
-    isReadonly.value = true;
 };
 
-// EditableTable 업데이트 핸들러
-const handleUpdate = (updatedData) => {
-    console.log('EditableTable 업데이트:', updatedData);
+// 제품명 팝업 열기
+const openProductPopup = (row) => {
+    currentProductRow.value = row;
+    productPopupVisible.value = true;
+};
+
+// 제품명 팝업 Confirm 핸들러
+const handleProductConfirm = (selectedProduct) => {
+    console.log('선택된 제품:', selectedProduct);
+
+    if (currentProductRow.value) {
+        currentProductRow.value.prod_name = selectedProduct.prod_name;
+        currentProductRow.value.prod_type = selectedProduct.prod_type;
+        currentProductRow.value.priority = selectedProduct.priority;
+    }
+};
+
+// 행 추가
+const addRow = () => {
+    productRows.value.push({
+        id: Date.now() + productRows.value.length,
+        prod_name: '',
+        prod_type: '',
+        prod_amount: 0,
+        prod_price: 0,
+        delivery_date: '',
+        priority: '',
+        total_price: 0
+    });
+};
+
+// 선택 삭제
+const deleteSelected = () => {
+    productRows.value = productRows.value.filter(row => !selectedProducts.value.includes(row));
+    selectedProducts.value = [];
+};
+
+//숫자형식
+const formatNumber = (value) => {
+    if (!value) return '0';
+    return new Intl.NumberFormat().format(value);
 };
 </script>
 
@@ -95,14 +222,14 @@ const handleUpdate = (updatedData) => {
                     <div class="font-semibold text-2xl">기본정보</div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="삭제" severity="danger" class="min-w-fit" />
-                    <Button label="초기화" severity="contrast" class="min-w-fit" />
-                    <Button label="저장" severity="info" class="min-w-fit" />
+                    <Button label="삭제" severity="danger" class="min-w-fit" @click="handleDelete" />
+                    <Button label="초기화" severity="contrast" class="min-w-fit" @click="handleReset" />
+                    <Button label="저장" severity="info" class="min-w-fit" @click="handleSave" />
                     <Button
                         label="주문정보 불러오기"
                         severity="success"
                         class="min-w-fit whitespace-nowrap"
-                        @click="dialogVisible = true"
+                        @click="orderPopupVisible = true"
                     />
                 </div>
             </div>
@@ -110,19 +237,18 @@ const handleUpdate = (updatedData) => {
 
         <!-- 입력 폼 영역 1 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="주문번호" :value="ord_code" placeholder="주문번호" :disabled="true" />
-            <LabeledInput label="주문명" v-model="ord_name" :readonly="isReadonly" />
+            <LabeledInput label="주문코드" v-model="ord_code" placeholder="주문코드" :disabled="true" />
+            <LabeledInput label="주문명" v-model="ord_name" />
         </div>
 
         <!-- 입력 폼 영역 2 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledReadonlyInput label="주문일자" :value="ord_date" />
+            <LabeledReadonlyInput label="주문일자" v-model="ord_date" />
             <LabeledSelect
                 label="거래처"
                 v-model="selectedClient"
                 :options="clientOptions"
                 placeholder="거래처를 선택해주세요"
-                :disabled="isReadonly"
             />
         </div>
 
@@ -133,41 +259,94 @@ const handleUpdate = (updatedData) => {
                 v-model="selectedManager"
                 :options="managerOptions"
                 placeholder="거래처 담당자를 선택해주세요"
-                :disabled="isReadonly"
             />
             <LabeledTextarea
                 label="비고"
                 v-model="note"
                 placeholder="특이사항 입력"
-                :readonly="isReadonly"
             />
         </div>
     </div>
 
-    <!-- 제품 -->
-    <div>
-        <EditableTable
-            :fields="['prod_name', 'prod_option', 'prod_amount', 'prod_price', 'delivery_date', 'ord_priority', 'total_price']"
-            :mapper="{
-                prod_name: '제품명',
-                prod_option: '유형',
-                prod_amount: '수량',
-                prod_price: '단가',
-                delivery_date: '납기일',
-                ord_priority: '우선순위',
-                total_price: '총액'
-            }"
-            dataKey="id"
-            @update="handleUpdate"
-            title="제품"
-        />
+    <!-- ===== 제품 영역 ===== -->
+    <div class="space-y-4 mt-7">
+        <div class="card flex flex-col gap-4">
+            <!-- 헤더 -->
+            <div class="flex justify-between">
+                <div>
+                    <div class="font-semibold text-2xl">제품</div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <Button label="선택 삭제" icon="pi pi-trash" severity="danger" @click="deleteSelected" />
+                    <Button label="행 추가" icon="pi pi-plus" @click="addRow" />
+                </div>
+            </div>
+
+            <!-- 제품 테이블 -->
+            <DataTable v-model:selection="selectedProducts" :value="productRows" showGridlines dataKey="id">
+                <Column selectionMode="multiple" headerStyle="width: 3rem" />
+
+                <Column field="prod_name" header="제품명">
+                    <template #body="slotProps">
+                        <div class="flex gap-2">
+                            <InputText v-model="slotProps.data.prod_name" readonly />
+                            <Button icon="pi pi-search" @click="() => openProductPopup(slotProps.data)" />
+                        </div>
+                    </template>
+                </Column>
+
+                <Column field="prod_type" header="유형">
+                    <template #body="slotProps">
+                        <InputText v-model="slotProps.data.prod_type" readonly />
+                    </template>
+                </Column>
+
+                <Column field="prod_amount" header="수량">
+                    <template #body="slotProps">
+                        <InputNumber v-model="slotProps.data.prod_amount" :min="0" showButtons />
+                    </template>
+                </Column>
+
+                <Column field="prod_price" header="단가">
+                    <template #body="slotProps">
+                        <InputNumber v-model="slotProps.data.prod_price" />
+                    </template>
+                </Column>
+
+                <Column field="delivery_date" header="납기일">
+                    <template #body="slotProps">
+                        <Calendar v-model="slotProps.data.delivery_date" dateFormat="yy-mm-dd" showIcon />
+                    </template>
+                </Column>
+
+                <Column field="priority" header="우선순위">
+                    <template #body="slotProps">
+                        <InputNumber v-model="slotProps.data.priority" :min="0" showButtons/>
+                    </template>
+                </Column>
+
+                <Column field="total_price" header="총액">
+                    <template #body="slotProps">
+                        <InputText :value="formatNumber(slotProps.data.prod_amount * slotProps.data.prod_price)" readonly />
+                    </template>
+                </Column>
+            </DataTable>
+        </div>
     </div>
 
-    <!-- ===== 팝업 영역 ===== -->
+    <!-- ===== 주문정보 팝업 ===== -->
     <SinglePopup
-        v-model:visible="dialogVisible"
+        v-model:visible="orderPopupVisible"
         :items="ordersRef"
         @confirm="handleConfirm"
         :mapper="orderMapping"
+    />
+
+    <!-- ===== 제품명 팝업 ===== -->
+    <SinglePopup
+        v-model:visible="productPopupVisible"
+        :items="productList"
+        @confirm="handleProductConfirm"
+        :mapper="productMapping"
     />
 </template>
