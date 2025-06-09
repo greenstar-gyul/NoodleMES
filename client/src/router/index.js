@@ -8,6 +8,7 @@ import matRoutes from './materials';
 import qaRoutes from './quality';
 import stdRoutes from './standard';
 import auth from './auth';
+import test_router from './test_router';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -119,6 +120,7 @@ const router = createRouter({
                 ...matRoutes,
                 ...qaRoutes,
                 ...stdRoutes,
+                ...test_router,
             ]
         },
         {

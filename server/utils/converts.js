@@ -15,5 +15,4 @@ const convertObjToAry = (target, selected) => {
 
 module.exports = {
     convertObjToAry,
-
 }
