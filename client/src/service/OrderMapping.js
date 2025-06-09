@@ -4,11 +4,13 @@ export const orderMapping = {
     ord_name: '주문명',
     ord_date: '주문일자',
     prod_name: '제품명',
-    quantity: '수량',
-    client: '거래처',
+    prod_qtt: '수량',
+    client_name: '거래처',
     delivery_date: '납기일',
     status: '상태',
     note: '비고',
+    spec:'규격',
+    unit:'단위',
 };
 
 export default orderMapping;
