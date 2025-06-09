@@ -1,42 +1,3 @@
-<template>
-    <!-- 📋 검색 조회 테이블 영역 -->
-    <div class="card mt-6">
-        <!-- 테이블 상단 (타이틀 + 엑셀 다운로드 버튼) -->
-        <div class="grid grid-cols-1 gap-4 mb-4">
-            <div class="flex justify-between">
-                <div>
-                    <div class="font-semibold text-2xl">{{ title }}</div>
-                </div>
-                <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" />
-                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined />
-                </div>
-            </div>
-        </div>
-
-        <!-- DataTable (PrimeVue) -->
-        <DataTable
-            v-model:selection="selectedWDE"
-            :value="data"
-            :dataKey="dataKey"
-            showGridlines
-            scrollable
-            scrollHeight="400px"
-            tableStyle="min-width: 50rem"
-        >
-            <Column selectionMode="multiple" headerStyle="width: 3rem" />
-
-            <!-- 동적 컬럼 생성 -->
-            <Column
-                v-for="item in itemsWDE"
-                :key="item"
-                :field="item"
-                :header="mapper[item] ?? item"
-            />
-        </DataTable>
-    </div>
-</template>
-
 <script setup>
 import { ref, watch } from 'vue';
 import Button from 'primevue/button';
@@ -82,6 +43,46 @@ watch(
 const selectedWDE = ref([]);
 
 </script>
+
+<template>
+    <!-- 📋 검색 조회 테이블 영역 -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <!-- 테이블 상단 (타이틀 + 엑셀 다운로드 버튼) -->
+        <div class="grid grid-cols-1 gap-4 mb-4">
+            <div class="flex justify-between">
+                <div>
+                    <div class="font-semibold text-2xl">{{ title }}</div>
+                </div>
+                <div class="flex items-center gap-2 flex-nowrap">
+                    <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" />
+                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined />
+                </div>
+            </div>
+        </div>
+
+        <!-- DataTable (PrimeVue) -->
+        <DataTable
+            v-model:selection="selectedWDE"
+            :value="data"
+            :dataKey="dataKey"
+            showGridlines
+            scrollable
+            scrollHeight="400px"
+            tableStyle="min-width: 50rem"
+        >
+            <Column selectionMode="multiple" headerStyle="width: 3rem" />
+
+            <!-- 동적 컬럼 생성 -->
+            <Column
+                v-for="item in itemsWDE"
+                :key="item"
+                :field="item"
+                :header="mapper[item] ?? item"
+            />
+        </DataTable>
+    </div>
+</template>
+
 
 <style scoped>
 /* 필요시 커스텀 스타일 여기에 추가 */

@@ -1,17 +1,3 @@
-<template>
-  <div class="flex items-center gap-3">
-    <div class="font-semibold text-xl w-32">{{ label }}</div>
-    <Dropdown
-      v-model="internalValue"
-      :options="options"
-      :optionLabel="optionLabel"
-      :optionValue="optionValue"
-      :placeholder="placeholder"
-      class="flex-1"
-    />
-  </div>
-</template>
-
 <script setup>
 import { ref, watch } from 'vue'
 import Dropdown from 'primevue/dropdown'
@@ -37,3 +23,18 @@ watch(internalValue, (val) => {
   if (val !== props.modelValue) emit('update:modelValue', val)
 })
 </script>
+<template>
+  <div class="flex items-center gap-3">
+    <div class="font-semibold text-xl w-32">{{ label }}</div>
+    <Dropdown
+      v-model="internalValue"
+      :options="options"
+      :optionLabel="optionLabel"
+      :optionValue="optionValue"
+      :placeholder="placeholder"
+      class="flex-1"
+    />
+  </div>
+</template>
+
+
