@@ -35,19 +35,19 @@
         </div>
     </div>
 
-    <!-- 📋 검색 조회 테이블 영역 -->
+    📋 검색 조회 테이블 영역
     <div class="flex flex-col lg:flex-row gap-6 mt-6">
         <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
         <div class="space-y-6" style="width: 65%">
             <!-- 검색결과 테이블 -->
-            <TableWDE :data="qulitys" :dataKey="'qcr_code'" :mapper="QulityMapper"/>
+            <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapper"/>
 
             <!-- 하위자재 구성 테이블
             <TableWAD :data="mats" :dataKey="'mat_code'" :mapper="bomSubMapper" @open-popup="openPopup()"></TableWAD> -->
         </div>
 
         <!-- 우측: 품질 등록 영역 (45%) -->
-        <QulityInputForm />
+        <QualityInputForm />
     </div>
 
     <!-- <MultiplePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></MultiplePopup> -->
@@ -60,9 +60,9 @@ import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
-import QulityInputForm from '@/components/form/QulityInputForm.vue';
+import QualityMapping from '@/service/QualityMapping.js';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
-import QulityMapper from '@/service/QulityMapping.js';
+import QualityMapper from '@/service/QualityMapping.js';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 
@@ -101,7 +101,7 @@ const resetSearch = () => {
 };
 
 // 테이블에 보여줄 목록 데이터 (예시 데이터)
-const qulitys = ref([
+const qualitys = ref([
     {
         qcr_code: '품질기준코드',
         po_code: '공정코드',

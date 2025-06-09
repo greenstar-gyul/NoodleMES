@@ -1,7 +1,12 @@
 export default [
     {
-        path: '/qulity/qulityStandard',
-        name: 'qulityStandard',
-        component: () => import('@/views/qulity/QulityStandard.vue')
+        path: '/quality/QualityStandard',
+        name: 'QualityStandard',
+        component: () => import('@/views/quality/QualityStandard.vue')
+    },
+    {
+        path: '/quality/QualityList',
+        name: 'QualityStandard',
+        component: () => import('@/views/quality/QualityList.vue')
     },
 ];
