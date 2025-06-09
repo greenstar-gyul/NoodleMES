@@ -7,7 +7,7 @@ const props = defineProps({
     to: Date,
     dateFormat: {
         type: String,
-        default: 'yy-mm-dd'
+        default: 'yyyy-mm-dd'
     }
 });
 
@@ -27,9 +27,9 @@ watch(() => props.to, (val) => internalTo.value = val);
     <div class="flex items-center gap-3 w-full">
         <label class="font-semibold w-24">{{ label }}</label>
         <div class="flex items-center flex-1 gap-2">
-            <Calendar v-model="internalFrom" class="flex-1" dateFormat="yy-mm-dd" :showIcon="true"/>
+            <Calendar v-model="internalFrom" class="flex-1" dateFormat="yy.mm.dd" :showIcon="true"/>
             <span>~</span>
-            <Calendar v-model="internalTo" class="flex-1" dateFormat="yy-mm-dd" :showIcon="true"/>
+            <Calendar v-model="internalTo" class="flex-1" dateFormat="yy.mm.dd" :showIcon="true"/>
         </div>
     </div>
 </template>

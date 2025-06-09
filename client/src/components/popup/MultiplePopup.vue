@@ -2,7 +2,7 @@
   <Dialog :visible="visible" modal :header="title" :style="{ width: '70vw' }" :closable="false">
     <!-- 검색창 -->
     <div class="flex items-center gap-2 mb-4">
-      <InputText v-model="searchKeyword" placeholder="주문번호 또는 주문명 또는 거래처를 입력해주세요." class="flex-1" />
+      <InputText v-model="searchKeyword" :placeholder="props.placeholder" class="flex-1" />
       <Button label="검색" severity="info" @click="searchOrders" />
     </div>
 
@@ -62,7 +62,11 @@ const props = defineProps({
     title: {
     type: String,
     default: ''
-  }
+  },
+  placeholder: {
+    type: String,
+    default: '',
+  },
 });
 const emit = defineEmits(['update:visible', 'confirm']);
 
