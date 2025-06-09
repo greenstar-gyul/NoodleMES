@@ -1,7 +1,7 @@
 export default [
-    // {
-    //     path: '/productions/product',
-    //     name: 'productions',
-    //     component: () => import('@/views/order/production/production.vue')
-    // },
+    {
+        path: '/equipment/eqinfo',
+        name: 'eqinfo',
+        component: () => import('@/views/equipment/EqInfo.vue')
+    },
 ];

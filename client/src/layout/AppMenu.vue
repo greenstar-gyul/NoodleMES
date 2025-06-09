@@ -27,6 +27,10 @@ const model = ref([
                     {
                         label: '공정 정보',
                         to: '/auth/access'
+                    },
+                    {
+                        label: '설비 점검 항목 정보',
+                        to: '/standard/eqspectype'
                     }
                 ]
             },
@@ -110,8 +114,8 @@ const model = ref([
                 label: '설비',
                 items: [
                     {
-                        label: 'Login',
-                        to: '/auth/login'
+                        label: '설비정보',
+                        to: '/equipment/eqinfo'
                     },
                     {
                         label: 'Error',
