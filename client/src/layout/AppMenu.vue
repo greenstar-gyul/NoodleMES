@@ -63,6 +63,10 @@ const model = ref([
                         to: '/productions/manage'
                     },
                     {
+                        label: '생산계획조회',
+                        to: '/productions/list'
+                    },
+                    {
                         label: 'MRP관리',
                         to: '/mrp/manage'
                     },
@@ -93,12 +97,12 @@ const model = ref([
                 label: '자재',
                 items: [
                     {
-                        label: 'Login',
-                        to: '/auth/login'
+                        label: '자재구매요청목록',
+                        to: '/material/list'
                     },
                     {
-                        label: 'Error',
-                        to: '/auth/error'
+                        label: '자재구매요청관리',
+                        to: '/material/manage'
                     },
                     {
                         label: 'Access Denied',
