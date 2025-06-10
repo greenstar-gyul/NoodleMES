@@ -2,9 +2,9 @@
 /* ===== IMPORT ===== */
 import { ref } from 'vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
-import QualityMapping from '../../service/QualityMapping';
-import qio from '../../service/QualityInspectionOrder';
-import qir from '../../service/QualityResults';
+import QualityMapping from '../../../service/QualityMapping';
+import qio from '../../../service/QualityInspectionOrder';
+import qir from '../../../service/QualityResults';
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import LabeledReadonlyInput from '@/components/registration-bar/LabeledReadonlyInput.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
@@ -85,6 +85,58 @@ const handleConfirm = (qio) => {
 const handleUpdate = (updatedData) => {
     console.log('EditableTable 업데이트:', updatedData);
 };
+
+// 테이블에 보여줄 목록 데이터 (예시 데이터)
+const qualityResults = ref([
+    {
+        qcr_code: '품질기준코드1',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+    {
+        qcr_code: '품질기준코드2',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+    {
+        qcr_code: '품질기준코드3',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드4',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드5',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드6',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드7',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+        {
+        qcr_code: '품질기준코드8',
+        po_code: '공정코드',
+        inspection_item: '검사항목',
+        check_method: '수동'
+    },
+]);
 </script>
 
 <template>
@@ -184,25 +236,12 @@ const handleUpdate = (updatedData) => {
             <LabeledInput label="비고" :value="prod_code" placeholder="제품명" :disabled="true" />
         </div>
     </div>
-    <!-- 제품
-    <div>
-        <EditableTable
-            :fields="['prod_name', 'prod_option', 'prod_amount', 'prod_price', 'delivery_date', 'ord_priority', 'total_price']"
-            :mapper="{
-                prod_name: '제품명',
-                prod_option: '유형',
-                prod_amount: '수량',
-                prod_price: '단가',
-                delivery_date: '납기일',
-                ord_priority: '우선순위',
-                total_price: '총액'
-            }"
-            dataKey="id"
-            @update="handleUpdate"
-            title="제품"
-        />
-    </div> -->
-
+        <!-- 📋 검색 조회 테이블 영역 -->
+    <div class="flex flex-col lg:flex-row gap-6 mt-6">
+        <div class="space-y-6" style="width: 100%">
+            <TableWDE :data="qualityResults" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
+        </div>
+    </div>
     <!-- ===== 팝업 영역 ===== -->
     <SinglePopup
         v-model:visible=" qioVisible"
