@@ -70,7 +70,7 @@ const selectedWDE = ref([]);
             scrollHeight="400px"
             tableStyle="min-width: 50rem"
         >
-            <Column selectionMode="multiple" headerStyle="width: 3rem" />
+            <Column selectionMode="single" headerStyle="width: 3rem" />
 
             <!-- 동적 컬럼 생성 -->
             <Column
