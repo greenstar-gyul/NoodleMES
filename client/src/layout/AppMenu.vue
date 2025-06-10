@@ -85,19 +85,31 @@ const model = ref([
                 items: [
                     {
                         label: '품질기준정보',
-                        to: '/quality/QualityStandard'
+                        to: '/quality/qualityInspection/QualityStandard'
                     },
                     {
-                        label: '품질검사지시',
-                        to: '/quality/QualityList'
+                        label: '품질검사목록',
+                        to: '/quality/qualityInspection/QualityList'
+                    },
+                    {
+                        label: '품질검사관리',
+                        to: '/quality/qualityInspection/QualityManage'
                     },
                     {
                         label: '품질검사결과',
-                        to: '/quality/QualityResults'
+                        to: '/quality/qualityResults/QualityResults'
+                    },
+                    {
+                        label: '품질결과목록',
+                        to: '/quality/qualityResults/QualityRList'
+                    },
+                    {
+                        label: '품질후속조치',
+                        to: '/quality/quality_end/qualityAS'
                     },
                     {
                         label: '품질통계',
-                        to: '/auth/access'
+                        to: '/quality/quality_end/qualitySD'
                     }
                 ]
             },
