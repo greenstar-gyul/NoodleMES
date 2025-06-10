@@ -21,6 +21,7 @@
       scrollHeight="300px"
     >
       <Column selectionMode="single" headerStyle="width: 3rem" />
+      
       <Column
         v-for="field in visibleFields"
         :key="field"
@@ -63,6 +64,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  columns: {
+    type: Array,
+    default: [],
+  }
 });
 
 const emit = defineEmits(['update:visible', 'confirm']);
@@ -109,4 +114,5 @@ const searchOrders = () => {
   // 검색 로직은 emit 후 부모에서 처리 가능
   emit('search', searchKeyword.value);
 };
+
 </script>

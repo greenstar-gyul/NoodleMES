@@ -73,7 +73,7 @@ const selectedWDE = ref([]);
             scrollHeight="400px"
             tableStyle="min-width: 50rem"
         >
-            <Column selectionMode="multiple" headerStyle="width: 3rem" />
+            <Column selectionMode="single" headerStyle="width: 3rem" />
 
             <Column
                 v-for="col in columns"
