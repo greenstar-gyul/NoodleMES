@@ -9,12 +9,17 @@ export const QualityMapping = {
     //po_code: '공정코드',
     insp_emp_code: '지시자',
 
+    lot_code: 'LOT번호',
     result: '결과코드',
     qir_emp_code: '검사자',
     start_date: '시작일시',
     end_date: '종료일시',
     uppass_qtt: '불량수량',
-    note: '비고'
+    note: '비고',
+
+    pname: '공정명',
+    prod_name: '제품명',
+    qio_date: '지시일자'
 };
 
 export default QualityMapping;

@@ -20,7 +20,11 @@ app.listen(PORT, () => {
 
 // 라우팅 등록 영역
 const deptRouter = require('./routers/dept_router.js');
+
 const prdpRouter = require('./routers/prdp_router.js')
+
+const mrpRouter = require('./routers/mrp_router.js');
+
 // 기본 라우팅
 app.get('/', (req, res) => {
   res.send('Welcome!!');
@@ -28,3 +32,5 @@ app.get('/', (req, res) => {
 // 라우터 모듈 등록
 app.use('/dept', deptRouter);
 app.use('/prdp', prdpRouter);
+app.use('/mrp', mrpRouter);
+

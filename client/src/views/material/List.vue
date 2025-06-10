@@ -1,124 +1,111 @@
+<!--
+25.06.09 ~ 10
+made by KMS
+자재구매요청목록
+-->
+
 <template>
-    <!-- 🔍 검색바 영역 -->
-    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
-        <!-- 검색 조건 영역 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <!-- 자재명 -->
-            <SearchText v-model="search.mat_name" label="자재명" placeholder="자재명을 입력하세요">
-            </SearchText>
+  <!-- 🔍 검색바 영역 -->
+  <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+      <!-- 자재코드 -->
+      <SearchText v-model="search.mat_code" label="자재코드" placeholder="자재코드를 입력하세요" />
 
-            <!-- 자재코드 -->
-            <SearchText v-model="search.mat_code" label="자재코드" placeholder="자재코드를 입력하세요">
-            </SearchText>
+      <!-- 자재명 -->
+      <SearchText v-model="search.mat_name" label="자재명" placeholder="자재명을 입력하세요" />
 
-            <!-- 요청일자 (범위) -->
-            <SearchDateBetween label="요청일자" :from="search.req_date_from" :to="search.req_date_to" @update:from="search.req_date_from = $event" @update:to="search.req_date_to = $event">
-            </SearchDateBetween>
+      <!-- 요청일자 -->
+      <SearchDateBetween
+        label="요청일자"
+        :from="search.req_date_from"
+        :to="search.req_date_to"
+        @update:from="search.req_date_from = $event"
+        @update:to="search.req_date_to = $event"
+      />
 
-            <!-- 거래처 -->
-            <SearchDropdown label="거래처" v-model="search.client" :options="clientOptions">
-            </SearchDropdown>
-        </div>
+      <!-- 거래처 -->
+      <SearchText v-model="search.client_name" label="거래처" placeholder="거래처 이름을 입력하세요" />
 
-        <!-- 조회/초기화 버튼 영역 -->
-        <div class="flex justify-center gap-3 mt-4">
-            <Button label="초기화" severity="contrast" @click="resetSearch" />
-            <Button label="조회" severity="info" @click="fetchOrders" />
-        </div>
+      <!-- 요청자 -->
+      <SearchText v-model="search.req_name" label="요청자" placeholder="요청자 이름을 입력하세요" />
     </div>
 
-
-    <!-- 📋 검색 조회 테이블 영역 -->
-    <TableList :data="orderdata" :dataKey="'ord_code'" :mapper="orderMapper" title="검색결과"></TableList>
-    <!-- 빈 데이터일 때 메시지 표시 -->
-    <div v-if="orderdata.length === 0" class="text-center text-gray-500 mt-4">
-        조건에 맞는 데이터가 없습니다. 
-        <!-- 조건에 맞는? 입력한 데이터가 없습니다? -->
+    <!-- 조회/초기화 버튼 -->
+    <div class="flex justify-center gap-3 mt-4">
+      <Button label="초기화" severity="contrast" @click="resetSearch" />
+      <Button label="조회" severity="info" @click="fetchOrders" />
     </div>
+  </div>
+
+  <!-- 📋 결과 테이블 -->
+  <TableList :data="materialdata" :dataKey="'mat_code'" :mapper="MaterialMapper" title="검색결과" />
+
+  <!-- 조건 미일치 메시지 -->
+  <div v-if="materialdata.length === 0" class="text-center text-gray-500 mt-4">
+    조건에 맞는 데이터가 없습니다.
+  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import Button from 'primevue/button';
 import TableList from '@/components/form/TableWithExcel.vue';
 import SearchText from '@/components/search-bar/SearchText.vue';
 import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
-import SearchDropdown from '@/components/search-bar/SearchDropdown.vue';
-import SearchCountBetween from '@/components/search-bar/SearchCountBetween.vue';
 
-import orderMapper from '@/service/OrderMapping.js';
-import OrderData from '@/service/OrderData.js';
-import ClientOptions from '@/service/ClientOptions.js'; //
-import OrderStatusOptions from '@/service/OrderStatusOptions.js';
+import MaterialMapper from '@/service/MaterialMapping.js';
 
-const orderdata = ref(OrderData);
-const clientOptions = ref(ClientOptions); //
-const orderStatusOptions = ref(OrderStatusOptions);
+import MaterialData from '@/service/MaterialData.js';
 
+// 데이터 및 옵션
+const materialdata = ref(MaterialData);
 
-// 검색조건 데이터 (v-model로 바인딩됨)
+// 검색 조건 초기값
 const search = ref({
-    mat_name: '', //
-    mat_code: '', //
-    req_date_from: null, //
-    req_date_to: null, //
-    client: '', //
-    ord_status: ''
+  mat_code: '',
+  mat_name: '',
+  req_date_from: null,
+  req_date_to: null,
+  client_name: '',
+  req_name: '',
+  line: ''
 });
 
-
-// 초기화 버튼 기능
+// 초기화
 const resetSearch = () => {
-    search.value = {
-        mat_name: '', //
-        mat_code: '', //
-        req_date_from: null, //
-        req_date_to: null, //
-        client: '',
-        ord_status: ''
-    };
-
-    orderdata.value = OrderData;
+  search.value = {
+    mat_code: '',
+    mat_name: '',
+    req_date_from: null,
+    req_date_to: null,
+    client_name: '',
+    req_name: '',
+    line: ''
+  };
+  materialdata.value = [...MaterialData];
 };
 
 
-// 조회 버튼 기능 (API 호출 자리)
 const fetchOrders = () => {
-    console.log('조회 실행:', search.value);
+  materialdata.value = MaterialData.filter(item => {
+    const matchMatCode = !search.value.mat_code || item.mat_code.includes(search.value.mat_code);
+    const matchMatName = !search.value.mat_name || item.mat_name.includes(search.value.mat_name);
+    const matchClientName = !search.value.client_name || item.client_name.includes(search.value.client_name);
+    const matchReqName = !search.value.req_name || item.req_name.includes(search.value.req_name);
 
-    // 프론트에서 필터링
-    orderdata.value = OrderData.filter(item => {
-        // 주문코드 체크 (빈 값이면 통과, 아니면 포함되는지 확인)
-        const matchCode = search.value.ord_code === '' || item.ord_code.includes(search.value.ord_code);
-        // 주문명 체크
-        const matchName = search.value.ord_name === '' || item.ord_name.includes(search.value.ord_name);
-        // 거래처 체크
-        const matchClient = search.value.client === '' || item.client === search.value.client;
-        // 상태 체크
-        const matchStatus = search.value.ord_status === '' || item.status === search.value.ord_status;
-        // 요청일자 체크 (범위)
-        const matchOrdDate = (!search.value.ord_date_from && !search.value.ord_date_to) || (
-            (!search.value.ord_date_from || item.ord_date >= search.value.ord_date_from) &&
-            (!search.value.ord_date_to || item.ord_date <= search.value.ord_date_to)
-        );
+    const matchDate = new Date(item.req_date);
+
+    const matchReqDate =
+      (!search.value.req_date_from && !search.value.req_date_to) ||
+      ((!search.value.req_date_from || matDate >= search.value.req_date_from) &&
+        (!search.value.req_date_to || matDate <= search.value.req_date_to));
 
 
-        // 수량 체크 (item.quantity는 '50000개' 처럼 되어 있어서 숫자만 추출 필요)
-        const itemQty = parseInt(item.quantity.replace(/[^\d]/g, '')) || 0;
-        const qtyFrom = search.value.qty_from ? parseInt(search.value.qty_from) : null;
-        const qtyTo = search.value.qty_to ? parseInt(search.value.qty_to) : null;
-
-        const matchQty = (!qtyFrom && !qtyTo) || (
-            (!qtyFrom || itemQty >= qtyFrom) &&
-            (!qtyTo || itemQty <= qtyTo)
-        );
-
-        // 최종 결과 → 모든 조건이 true여야 통과
-        return matchCode && matchName && matchClient && matchStatus && matchOrdDate && matchDeliveryDate && matchQty;
-    });
+    console.log('테스트임' + matchMatCode);
+    return matchMatCode && matchMatName && matchDate && matchReqDate && matchClientName && matchReqName;
+  });
 };
+
+
 
 </script>
-
-<style scoped>
-/* 필요시 커스텀 스타일 여기에 추가 */
-</style>
