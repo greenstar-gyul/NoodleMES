@@ -116,7 +116,7 @@ const popupMatsConfirm = (values) => {
 <template>
     <div>
         <MRPManageSearch></MRPManageSearch>
-        <TableWithAddDel :data="selMatList" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재"></TableWithAddDel>
+        <TableWithAddDel v-model:data="selMatList" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재" :columns="['mat_code','mat_name','unit','req_qtt','cur_qtt','plan_date','proposal_date','mrp_status']"></TableWithAddDel>
     </div>
 
     <!-- 팝업 -->

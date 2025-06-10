@@ -5,8 +5,8 @@ export default [
         component: () => import('@/views/mrp/MRPManage.vue')
     },
     {
-        path: '/wko/manage',
-        name: 'wkoManage',
-        component: () => import('@/views/wko/WKOManage.vue')
+        path: '/mrp/list',
+        name: 'mrpList',
+        component: () => import('@/views/mrp/MRPList.vue')
     },
 ];
