@@ -138,17 +138,29 @@ const model = ref([
                         to: '/equipment/eqinfo'
                     },
                     {
-                        label: '설비점검지시서',
+                        label: '설비점검 지시서',
                         to: '/equipment/eqiilist'
                     },
                     {
-                        label: 'Error',
-                        to: '/auth/error'
+                        label: '점검 지시 목록',
+                        to: '/equipment/iilist'
                     },
                     {
-                        label: 'Access Denied',
-                        to: '/auth/access'
-                    }
+                        label: '설비점검 결과 조회',
+                        to: '/equipment/eqiires'
+                    },
+                    {
+                        label: '설비점검 결과 관리',
+                        to: '/equipment/eqiiresmg'
+                    },
+                    {
+                        label: '설비점검 조치관리',
+                        to: '/equipment/eqiima'
+                    },
+                    {
+                        label: '설비 가동현황',
+                        to: '/equipment/eqiilist'
+                    },
                 ]
             },
         ]
