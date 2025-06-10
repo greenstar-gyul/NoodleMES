@@ -13,6 +13,7 @@
         "axios": "^1.9.0",
         "chart.js": "3.3.2",
         "json-server": "^1.0.0-beta.3",
+        "jsonserver": "^0.1.6",
         "primeicons": "^7.0.0",
         "primevue": "^4.3.1",
         "tailwindcss-primeui": "^0.5.0",

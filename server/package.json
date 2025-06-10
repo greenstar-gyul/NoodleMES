@@ -8,11 +8,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev" : "nodemon app.js"
+    "dev": "nodemon app.js"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "jsonserver": "^0.1.6",
     "mariadb": "^3.4.2"
   },
   "devDependencies": {

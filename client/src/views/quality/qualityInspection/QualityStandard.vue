@@ -42,17 +42,18 @@
         <div class="space-y-6" style="width: 65%">
             <!-- title 속성 추가해서 제목 추가 -->
             <!-- 검색결과 테이블 -->
+
             <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
+
 
             <!-- 하위자재 구성 테이블
             <TableWAD :data="mats" :dataKey="'mat_code'" :mapper="bomSubMapper" @open-popup="openPopup()"></TableWAD> -->
         </div>
 
         <!-- 우측: 품질 등록 영역 (45%) -->
-        <QualityInputForm />
+        <QualitySTDForm />
     </div>
 
-    <!-- <MultiplePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></MultiplePopup> -->
     <SinglePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></SinglePopup>
 </template>
 
@@ -62,7 +63,7 @@ import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
-import QualityInputForm from '@/views/quality/QualityInputForm.vue';
+import QualityInputForm from '../../../components/form/QualityInputForm.vue';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
 import QualityMapping from '@/service/QualityMapping';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
@@ -106,49 +107,49 @@ const resetSearch = () => {
 // 테이블에 보여줄 목록 데이터 (예시 데이터)
 const qualitys = ref([
     {
-        qcr_code: '품질기준코드',
+        qcr_code: '품질기준코드1',
         po_code: '공정코드',
         inspection_item: '검사항목',
         check_method: '수동'
     },
     {
-        qcr_code: '품질기준코드',
+        qcr_code: '품질기준코드2',
         po_code: '공정코드',
         inspection_item: '검사항목',
         check_method: '수동'
     },
     {
-        qcr_code: '품질기준코드',
+        qcr_code: '품질기준코드3',
         po_code: '공정코드',
         inspection_item: '검사항목',
         check_method: '수동'
     },
         {
-        qcr_code: '품질기준코드',
+        qcr_code: '품질기준코드4',
         po_code: '공정코드',
         inspection_item: '검사항목',
         check_method: '수동'
     },
         {
-        qcr_code: '품질기준코드',
+        qcr_code: '품질기준코드5',
         po_code: '공정코드',
         inspection_item: '검사항목',
         check_method: '수동'
     },
         {
-        qcr_code: '품질기준코드',
+        qcr_code: '품질기준코드6',
         po_code: '공정코드',
         inspection_item: '검사항목',
         check_method: '수동'
     },
         {
-        qcr_code: '품질기준코드',
+        qcr_code: '품질기준코드7',
         po_code: '공정코드',
         inspection_item: '검사항목',
         check_method: '수동'
     },
         {
-        qcr_code: '품질기준코드',
+        qcr_code: '품질기준코드8',
         po_code: '공정코드',
         inspection_item: '검사항목',
         check_method: '수동'

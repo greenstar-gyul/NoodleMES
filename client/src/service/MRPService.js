@@ -114,6 +114,7 @@ export const prodPlans = [
     plan_date: "2025-05-27",
     start_date: "2025-06-05",
     end_date: "2025-06-06",
+    reg: "Elia",
     note: "생산 빨리 해주세요",
   },
   {
@@ -122,6 +123,7 @@ export const prodPlans = [
     plan_date: "2025-05-28",
     start_date: "2025-06-15",
     end_date: "2025-06-30",
+    reg: "Reciel",
     note: "생산 빨리 해주세요@@@@",
   },
   {
@@ -130,6 +132,7 @@ export const prodPlans = [
     plan_date: "2025-05-29",
     start_date: "2025-06-05",
     end_date: "2025-06-06",
+    reg: "Daren",
     note: "생산 빨리 해주세요@@",
   },
   {
@@ -138,6 +141,7 @@ export const prodPlans = [
     plan_date: "2025-06-01",
     start_date: "2025-06-13",
     end_date: "2025-06-26",
+    reg: "Riannel",
     note: "생산 빨리 해주세요@@@@",
   },
   {
@@ -146,8 +150,52 @@ export const prodPlans = [
     plan_date: "2025-06-04",
     start_date: "2025-06-07",
     end_date: "2025-06-11",
+    reg: "Ein",
     note: "생산 빨리 해주세요@@@@@@@",
   },
 ];
 
-export default { popupMats, mats, prodPlans };
+export const mrpList = [
+  {
+    mrp_code: "MRP-20250527-001",
+    prdp_code: "PRDP-202505-123",
+    prdp_name: "생산계획1",
+    plan_date: "2025-05-27",
+    start_date: "2025-06-05",
+    end_date: "2025-06-06",
+    reg: "Elia",
+    note: "생산 빨리 해주세요",
+  },
+  {
+    mrp_code: "MRP-20250528-001",
+    prdp_code: "PRDP-202506-001",
+    prdp_name: "생산계획2",
+    plan_date: "2025-05-28",
+    start_date: "2025-06-15",
+    end_date: "2025-06-30",
+    reg: "Reciel",
+    note: "생산 빨리 해주세요@@@@",
+  },
+  {
+    mrp_code: "MRP-20250601-001",
+    prdp_code: "PRDP-202506-002",
+    prdp_name: "생산계획3",
+    plan_date: "2025-05-29",
+    start_date: "2025-06-05",
+    end_date: "2025-06-06",
+    reg: "Daren",
+    note: "생산 빨리 해주세요@@",
+  },
+  {
+    mrp_code: "MRP-20250601-002",
+    prdp_code: "PRDP-202506-003",
+    prdp_name: "생산계획4",
+    plan_date: "2025-06-01",
+    start_date: "2025-06-13",
+    end_date: "2025-06-26",
+    reg: "Riannel",
+    note: "생산 빨리 해주세요@@@@",
+  },
+];
+
+export default { popupMats, mats, prodPlans, mrpList };

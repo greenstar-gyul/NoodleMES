@@ -18,8 +18,11 @@ const props = defineProps({
         required: true
     },
     title: {
-    type: String,
-    default: ''
+        type: String,
+        default: ''
+    },
+    columns: {
+        type: Array,
     }
 });
 // 테이블에 보여줄 제품 데이터 (예시 데이터)
@@ -70,7 +73,14 @@ const selectedWDE = ref([]);
             scrollHeight="400px"
             tableStyle="min-width: 50rem"
         >
-            <Column selectionMode="multiple" headerStyle="width: 3rem" />
+            <Column selectionMode="single" headerStyle="width: 3rem" />
+
+            <Column
+                v-for="col in columns"
+                :key="col"
+                :field="col"
+                :header="mapper[col] ?? col"
+            />
 
             <!-- 동적 컬럼 생성 -->
             <Column
