@@ -54,3 +54,5 @@ server/.env.local
 server/.env.*.local
 
 **/*.env
+
+db.json
