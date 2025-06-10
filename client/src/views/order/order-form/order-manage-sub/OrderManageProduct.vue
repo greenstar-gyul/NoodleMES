@@ -133,63 +133,63 @@ onMounted(async () => {
         </div>
 
         <!-- 제품 테이블 -->
-        <DataTable v-model:selection="selectedProducts" :value="props.productRows" showGridlines scrollable scrollHeight="400px" dataKey="id">
+        <DataTable v-model:selection="selectedProducts" :value="props.productRows" showGridlines scrollable scrollHeight="400px" dataKey="id" class="w-full fixed-table">
             <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-            <Column field="prod_name" header="제품명">
+            <Column field="prod_name" header="제품명" style="width: 220px">
                 <template #body="slotProps">
                     <div class="flex gap-2">
-                        <InputText v-model="slotProps.data.prod_name" readonly />
-                        <Button icon="pi pi-search" @click="() => openProductPopup(slotProps.data)" />
+                        <InputText v-model="slotProps.data.prod_name" style="width: 100%" readonly />
+                        <Button icon="pi pi-search" style="width: 32px; min-width: 32px;" @click="() => openProductPopup(slotProps.data)" />
                     </div>
                 </template>
             </Column>
 
-            <Column field="prod_type" header="유형">
+            <Column field="prod_type" header="유형" style="width: 120px">
                 <template #body="slotProps">
-                    <InputText v-model="slotProps.data.prod_type" readonly />
+                    <InputText v-model="slotProps.data.prod_type" style="width: 100%" readonly />
                 </template>
             </Column>
 
-            <Column field="spec" header="규격">
+            <Column field="spec" header="규격" style="width: 130px">
                 <template #body="slotProps">
-                    <Select v-model="slotProps.data.spec" :options="specOptions" optionLabel="label" optionValue="value" placeholder="규격" />
+                    <Select v-model="slotProps.data.spec" :options="specOptions" optionLabel="label" optionValue="value" placeholder="규격"  style="width: 100%"/>
                 </template>
             </Column>
 
-            <Column field="unit" header="단위">
+            <Column field="unit" header="단위" style="width: 100px">
                 <template #body="slotProps">
-                    <Select v-model="slotProps.data.unit" :options="unitOptions" optionLabel="label" optionValue="value" placeholder="단위" />
+                    <Select v-model="slotProps.data.unit" :options="unitOptions" optionLabel="label" optionValue="value" placeholder="단위"  style="width: 100%"/>
                 </template>
             </Column>
 
-            <Column field="prod_qtt" header="수량">
+            <Column field="prod_qtt" header="수량" style="width: 60px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.prod_qtt" :min="0" showButtons />
+                    <InputNumber v-model="slotProps.data.prod_qtt" :min="0" showButtons  style="width: 100%"/>
                 </template>
             </Column>
 
-            <Column field="prod_price" header="단가">
+            <Column field="prod_price" header="단가" style="width: 100px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.prod_price" />
+                    <InputNumber v-model="slotProps.data.prod_price" style="width: 100%"/>
                 </template>
             </Column>
 
-            <Column field="delivery_date" header="납기일">
+            <Column field="delivery_date" header="납기일" style="width: 140px">
                 <template #body="slotProps">
-                    <Calendar v-model="slotProps.data.delivery_date" dateFormat="yy-mm-dd" showIcon />
+                    <Calendar v-model="slotProps.data.delivery_date" dateFormat="yy-mm-dd" showIcon style="width: 100%"/>
                 </template>
             </Column>
 
-            <Column field="priority" header="우선순위">
+            <Column field="priority" header="우선순위" style="width: 60px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.priority" :min="0" showButtons/>
+                    <InputNumber v-model="slotProps.data.priority" :min="0" showButtons style="width: 100%"/>
                 </template>
             </Column>
 
-            <Column field="total_price" header="총액">
+            <Column field="total_price" header="총액" style="width: 100px">
                 <template #body="slotProps">
-                    <InputText :value="formatNumber(slotProps.data.prod_qtt * slotProps.data.prod_price)" readonly />
+                    <InputText :value="formatNumber(slotProps.data.prod_qtt * slotProps.data.prod_price)" readonly style="width: 100%"/>
                 </template>
             </Column>
         </DataTable>
