@@ -6,33 +6,33 @@
             <!-- 설비코드 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">설비코드</label>
-                <InputText v-model="search.eq_code" class="flex-1" />
+                <InputText v-model="search.eq_code" class="flex-1" placeholder="설비코드 입력" />
             </div>
 
             <!-- 설비명 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">설비명</label>
-                <InputText v-model="search.eq_name" class="flex-1" />
+                <InputText v-model="search.eq_name" class="flex-1" placeholder="설비명 입력" />
             </div>
 
             <!-- 제조사 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">제조사</label>
-                <InputText type="text" class="w-full" />
+                <InputText v-model="search.eq_maker" class="flex-1" placeholder="제조사명 입력" />
             </div>
 
             <!-- 상태 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">사용여부</label>
-                <Dropdown v-model="search.is_used1" :options="orderStatusOptions" optionLabel="label"
-                    optionValue="value" placeholder="" class="flex-1" />
+                <Dropdown v-model="search.is_used" :options="StatusOptions" optionLabel="label"
+                    optionValue="value" placeholder="전체" class="flex-1" />
             </div>
         </div>
 
         <!-- 조회/초기화 버튼 영역 -->
         <div class="flex justify-center gap-3 mt-4">
             <Button label="초기화" severity="contrast" @click="resetSearch" />
-            <Button label="조회" severity="info" @click="fetchOrders" />
+            <Button label="조회" severity="info" @click="fetchEquipment" />
         </div>
     </div>
 
@@ -41,33 +41,28 @@
         <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
         <div class="space-y-6" style="width: 55%">
             <!-- 검색결과 테이블 -->
-            <TableWDE   style="margin-bottom:0px; height:730px" :data="products" :dataKey="'eq_code'"
-                :mapper="eqMapper" />
+            <EqWDETable  style="margin-bottom:0px; height:730px" :data="eqs" :dataKey="'eq_code'"
+                :columns="tableColumns" :mapper="eqMapper" title="설비 목록" @selection-change="onSelectionChange" />
         </div>
 
         <!-- 우측: 설비 등록 영역 (45%) -->
-        <EqInputForm />
+        <EqInputForm :selectedData="selectedEquipment" @data-updated="onDataUpdated" />
     </div>
 
     <!-- <MultiplePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></MultiplePopup> -->
-    <SinglePopup v-model:visible="dialogVisible" :items="clients" @confirm="handleConfirm" :mapper="clientMapper"
-        :dataKey="'client_code'"></SinglePopup>
+    <!-- <SinglePopup v-model:visible="dialogVisible" :items="clients" @confirm="handleConfirm" :mapper="clientMapper"
+        :dataKey="'client_code'"></SinglePopup> -->
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
-import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
 import EqInputForm from '@/views/equipment/components/EqInputForm.vue';
-import TableWDE from '@/components/form/TableWithDelExcel.vue';
-import TableWAD from '@/components/form/TableWithAddDel.vue';
-import bomMapper from '@/service/BOMMapping.js';
-import bomSubMapper from '@/service/BOMSubMapping.js';
+import EqWDETable from './components/EqWDETable.vue';
 import eqMapper from '@/service/EquipmentMapping.js';
-import MultiplePopup from '@/components/popup/MultiplePopup.vue';
-import SinglePopup from '@/components/popup/SinglePopup.vue';
+import axios from 'axios';
 
 // 검색조건 데이터 (v-model로 바인딩됨)
 const search = ref({
@@ -81,117 +76,96 @@ const openPopup = () => {
     dialogVisible.value = true;
 }
 
+const eqs = ref([]);
+const tableColumns = ['eq_code', 'eq_name', 'eq_maker', 'is_used'];
+
 // 팝업
 const dialogVisible = ref(false);
+const selectedEquipment = ref(null);
 
 // 주문상태 옵션 (예시 데이터)
-const orderStatusOptions = [
-    { label: '활성', value: 'a1' },
-    { label: '비활성', value: 'a2' }
+const StatusOptions = [
+    { label: '아니요/미사용', value: 'f1' },
+    { label: '예/사용', value: 'f2' },
+    { label: '전체', value: '' }
 ];
 
+// 이 함수가 없어서 에러날 거야!
+const onSelectionChange = (selectedItems) => {
+    console.log('선택 변경:', selectedItems);
+    
+    if (selectedItems.length === 1) {
+        selectedEquipment.value = selectedItems[0];
+        console.log('수정 모드:', selectedItems[0]);
+    } else {
+        selectedEquipment.value = null;
+        console.log('등록 모드');
+    }
+};
+
 // 조회 버튼 기능 (API 호출 자리)
-const fetchOrders = () => {
-    console.log('조회 실행:', search.value);
-    // TODO: 실제 API 호출로 데이터 갱신
+const fetchEquipment = async () => {
+    try {
+        const response = await axios.get('/api/eq/search', {
+            params: search.value
+        });
+        if (response.data && response.data.success) {
+            eqs.value = response.data.data || [];
+        } else if (Array.isArray(response.data)) {
+            // 서버가 배열 형태로 직접 반환하는 경우
+            eqs.value = response.data;
+        } else {
+            console.error('검색 실패:', response.data);
+            eqs.value = [];
+        }
+    } catch (error) {
+        console.error('검색 API 호출 실패:', error);
+        eqs.value = [];
+    }
+};
+
+const loadAll = async () => {
+    try {
+        
+        const response = await axios.get('/api/eq/all');
+        
+        if (response.data && response.data.success) {
+            eqs.value = response.data.data || [];
+        } else if (Array.isArray(response.data)) {
+            // 서버가 배열 형태로 직접 반환하는 경우
+            eqs.value = response.data;
+        } else {
+            eqs.value = [];
+        }
+    } catch (error) {
+        console.error('전체 데이터 로드 실패:', error);
+        eqs.value = [];
+    }
 };
 
 // 초기화 버튼 기능
-const resetSearch = () => {
+const resetSearch = async () => {
     search.value = {
         eq_code: '',
         eq_name: '',
-        eq_model: '',
         eq_maker: '',
-        eq_make_date: '',
-        bring_date: '',
-        chk_cycle: '',
         is_used: ''
     };
+    await loadAll();
 };
 
-// 테이블에 보여줄 제품 데이터 (예시 데이터)
-const products = ref([
-    {
-        eq_code: 'EQ001',
-        eq_name: '자동면발기A',
-        eq_model: 'NOODLE-2023A',
-        eq_maker: '한국기계',
-        chk_cycle: '30',
-        is_used: '활성'
-    },
-    {
-        eq_code: 'EQ002',
-        eq_name: '자동면발기B',
-        eq_model: 'NOODLE-2023B',
-        eq_maker: '한국기계',
-        chk_cycle: '30',
-        is_used: '활성'
-    },
-    {
-        eq_code: 'EQ003',
-        eq_name: '자동면발기C',
-        eq_model: 'NOODLE-2023C',
-        eq_maker: '한국기계',
-        chk_cycle: '30',
-        is_used: '활성'
-    }
-]);
+onMounted(async () => {
+    await loadAll();
+})
 
-const mats = ref([
-    {
-        mat_code: 'RM001',
-        mat_name: '밀가루',
-        mat_type: '원자재',
-        req_qtt: '1t',
-        spec: '100g',
-        loss_rate: '0.5%'
-    },
-    {
-        mat_code: 'RM002',
-        mat_name: '스프',
-        mat_type: '원자재',
-        req_qtt: '660kg',
-        spec: '20g',
-        loss_rate: '0.5%'
-    },
-    {
-        mat_code: 'RM003',
-        mat_name: '비닐포장지',
-        mat_type: '부자재',
-        req_qtt: '1000EA',
-        spec: '100mm',
-        loss_rate: '-'
-    }
-]);
+const onRowSelect = (rowData) => {
+    selectedEquipment.value = rowData;
+};
 
-const submats = ref([
-    {
-        mat_code: 'RM004',
-        mat_name: '식용유',
-        mat_type: '원자재',
-        req_qtt: '50L',
-        spec: '500ml',
-        loss_rate: '0.5%'
-    },
-    {
-        mat_code: 'RM005',
-        mat_name: '컵용기',
-        mat_type: '부자재',
-        req_qtt: '1000EA',
-        spec: '60g',
-        loss_rate: '-'
-    },
-    {
-        mat_code: 'RM006',
-        mat_name: '포장박스',
-        mat_type: '부자재',
-        req_qtt: '200EA',
-        spec: '450mm x 300mm x 300mm',
-        loss_rate: '-'
-    }
-]);
-
+const onDataUpdated = async () => {
+    await loadAll();
+    selectedEquipment.value = null;
+}
 
 </script>
 

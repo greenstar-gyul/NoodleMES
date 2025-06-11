@@ -34,6 +34,20 @@ const query = async (alias, values)=>{
   }
 };
 
+const queryDirect = async (sql, values = []) => {
+  let conn;
+  try {
+    conn = await connectionPool.getConnection();
+    let res = await conn.query(sql, values);
+    return res;
+  } catch (err) {
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 module.exports = {
   query,
+  queryDirect
 }
