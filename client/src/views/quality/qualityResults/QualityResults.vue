@@ -5,6 +5,8 @@ import SinglePopup from '@/components/popup/SinglePopup.vue';
 import QualityMapping from '../../../service/QualityMapping';
 import qio from '../../../service/QualityInspectionOrder';
 import qir from '../../../service/QualityResults';
+import TableWithExcel from '../../../components/form/TableWithExcel.vue';
+import TableWithDelExcel from '../../../components/form/TableWithDelExcel.vue';
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import LabeledReadonlyInput from '@/components/registration-bar/LabeledReadonlyInput.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
@@ -87,7 +89,7 @@ const handleUpdate = (updatedData) => {
 };
 
 // 테이블에 보여줄 목록 데이터 (예시 데이터)
-const qualityResults = ref([
+const qualitys = ref([
     {
         qcr_code: '품질기준코드1',
         po_code: '공정코드',
@@ -137,6 +139,7 @@ const qualityResults = ref([
         check_method: '수동'
     },
 ]);
+
 </script>
 
 <template>
@@ -176,13 +179,6 @@ const qualityResults = ref([
                 v-model="selectedInsp"
                 :options="PoOptions"
                 placeholder="공정명을 선택해주세요"
-                :disabled="isReadonly"
-            />
-            <LabeledSelect
-                label="지시자"
-                v-model="selectedInsp"
-                :options="InspOptions"
-                placeholder="지시자를 선택해주세요"
                 :disabled="isReadonly"
             />
         </div>
@@ -236,10 +232,10 @@ const qualityResults = ref([
             <LabeledInput label="비고" :value="prod_code" placeholder="제품명" :disabled="true" />
         </div>
     </div>
-        <!-- 📋 검색 조회 테이블 영역 -->
-    <div class="flex flex-col lg:flex-row gap-6 mt-6">
-        <div class="space-y-6" style="width: 100%">
-            <TableWDE :data="qualityResults" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
+<!-- 📋 검색 조회 테이블 영역 -->
+    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
+        <div class="grid grid-cols-1 gap-4">
+            <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
         </div>
     </div>
     <!-- ===== 팝업 영역 ===== -->
