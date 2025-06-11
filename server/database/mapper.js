@@ -46,6 +46,8 @@ const queryDirect = async (sql, values = []) => {
     throw err;
   } finally {
     if (conn) conn.release();
+  }
+};
 
 
 const runTransaction = async (queries) =>{  
@@ -67,6 +69,6 @@ const runTransaction = async (queries) =>{
 
 module.exports = {
   query,
-  queryDirect
+  queryDirect,
   runTransaction
 }
