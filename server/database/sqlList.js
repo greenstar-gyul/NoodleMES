@@ -5,6 +5,8 @@ const prdps = require('./sqls/prdps.js');
 
 const mrp = require('./sqls/mrp.js');
 
+const eq = require('./sqls/eq.js');
+
 const orders = require('./sqls/orders.js');
 
 const mpr = require('./sqls/mpr.js');
@@ -15,6 +17,7 @@ const mpr = require('./sqls/mpr.js');
     ...mrp,
     ...mpr,
     ...prdps,
+    ...eq,
     ...orders,
  }
 

@@ -35,6 +35,19 @@ const query = async (alias, values)=>{
   }
 };
 
+
+const queryDirect = async (sql, values = []) => {
+  let conn;
+  try {
+    conn = await connectionPool.getConnection();
+    let res = await conn.query(sql, values);
+    return res;
+  } catch (err) {
+    throw err;
+  } finally {
+    if (conn) conn.release();
+
+
 const runTransaction = async (queries) =>{  
   for (const {alias, values} of queries) {
     let executeSql = sqlList[alias];
@@ -54,5 +67,6 @@ const runTransaction = async (queries) =>{
 
 module.exports = {
   query,
+  queryDirect
   runTransaction
 }
