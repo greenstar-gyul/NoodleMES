@@ -4,4 +4,9 @@ export default [
         name: 'dbtest1',
         component: () => import('@/views/dbtest/TestView.vue')
     },
+    {
+        path: '/test/mrptest1',
+        name: 'mrptest1',
+        component: () => import('@/views/dbtest/MRPTestView.vue')
+    },
 ];

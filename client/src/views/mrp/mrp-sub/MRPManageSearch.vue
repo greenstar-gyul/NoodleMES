@@ -10,17 +10,33 @@ import axios from 'axios';
 
 
 onMounted(async () => {
+    loadPlansData();
     loadDatas();
     resetData(); // 조회 폼 초기화
 })
 
 // 데이터 불러오기
 const loadDatas = async () => {
-    prodPlans.value = MRPService.prodPlans;
+    // prodPlans.value = MRPService.prodPlans; // 백 서버 없이 테스트 용
     mrpList.value = MRPService.mrpList; // 백 서버 없이 테스트 용
 
     const response = await axios.get(`/api/mrp/all`);
     testList.value = await response.data;
+
+    
+}
+
+/**
+ * 생산 계획 불러오기 팝업 데이터 불러오기
+ */
+const loadPlansData = async () => {
+    try {
+        const response = await axios.get(`/api/mrp/plan-list`);
+        prodPlans.value = await response.data;
+    }
+    catch(err) {
+        console.error(err);
+    }
 }
 
 const props = defineProps({
@@ -39,7 +55,7 @@ const resetData = () => {
     mrpData.value = {
         prdp_code: '',
         reg: '동',
-        plan_date: '',
+        prdp_date: '',
         start_date: '',
         mrp_code: `MRP-${fulldate}-001`,
     };
@@ -51,17 +67,21 @@ const resetData = () => {
  * 생산 계획 조회해서 기존 등록된 mrp가 있으면 mrp를 불러오고
  * 없다면 새로운 mrp 생성
  */
-const prdpLoad = (value) => {
+const prdpLoad = async (value) => {
     console.log(value);
     const prdpCode = value.prdp_code;
-    const isFind = mrpList.value.findIndex((mrp) => mrp.prdp_code === prdpCode);
+    //  const isFind = mrpList.value.findIndex((mrp) => mrp.prdp_code === prdpCode);
 
-    if (isFind > -1) {
-        const findMRP = mrpList.value.find((mrp) => mrp.prdp_code === prdpCode);
+    const mrpCodeRes = axios.get(`/api/mrp/mrpcode/${prdpCode}`);
+    const mrpCode = mrpCodeRes.data;
+
+    if (mrpCode != null || mrpCode != '') {
+        const mrpRes = axios.get(`/api/mrp/${mrpCode}`);
+        const findMRP = mrpRes.data;
 
         mrpData.value.mrp_code = findMRP.mrp_code;
         mrpData.value.prdp_code = findMRP.prdp_code;
-        mrpData.value.plan_date = findMRP.plan_date;
+        mrpData.value.prdp_date = findMRP.prdp_date;
         mrpData.value.start_date = findMRP.start_date;
         mrpData.value.reg = findMRP.reg;
         mrpData.value.note = findMRP.note;
@@ -69,16 +89,22 @@ const prdpLoad = (value) => {
     else {
         resetData();
         mrpData.value.prdp_code = value.prdp_code;
-        mrpData.value.plan_date = value.plan_date;
+        mrpData.value.prdp_date = value.prdp_date;
         mrpData.value.start_date = value.start_date;
+        mrpData.value.reg = value.reg;
     }
+}
+
+const openPopup = async () => {
+    await loadPlansData();
+    mrpPopupVisible.value = true;
 }
 
 // 조회 폼 데이터
 const mrpData = ref({
     prdp_code: '',
     reg: '',
-    plan_date: '',
+    prdp_date: '',
     start_date: '',
     mrp_code: '',
 });
@@ -116,7 +142,7 @@ const fulldate = `${currentDate.getFullYear()}${month}${date}`;
                     <Button label="초기화" severity="contrast" class="min-w-fit" v-on:click="resetData" />
                     <Button label="저장" severity="info" class="min-w-fit" />
                     <Button label="생산계획 불러오기" severity="success" class="min-w-fit whitespace-nowrap"
-                        @click="mrpPopupVisible = true" />
+                        @click="openPopup" />
                 </div>
             </div>
         </div>
@@ -125,7 +151,7 @@ const fulldate = `${currentDate.getFullYear()}${month}${date}`;
             <LabeledInput label="생산계획코드" :model-value="mrpData.prdp_code" :disabled="true" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="계획수립일" :model-value="mrpData.plan_date" :disabled="true" />
+            <LabeledInput label="계획수립일" :model-value="mrpData.prdp_date" :disabled="true" />
             <LabeledInput label="생산시작일" :model-value="mrpData.start_date" :disabled="true" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,7 +160,7 @@ const fulldate = `${currentDate.getFullYear()}${month}${date}`;
         </div>
     </div>
 
-    <p>{{ testList }}</p>
+    <!-- <p>{{ testList }}</p> -->
 
     <SinglePopup v-model:visible="mrpPopupVisible" :items="prodPlans" @confirm="prdpLoad" :mapper="prodPlanMapping"
         :dataKey="'prdp_code'" :placeholder="'생산계획 불러오기'"></SinglePopup>
