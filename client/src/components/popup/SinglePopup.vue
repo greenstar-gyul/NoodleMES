@@ -1,43 +1,3 @@
-<template>
-  <Dialog :visible="visible" modal :header="title" :style="{ width: '70vw' }" :closable="false">
-    <!-- 검색창 -->
-    <div class="flex items-center gap-2 mb-4">
-      <InputText
-        v-model="searchKeyword"
-        :placeholder="props.placeholder"
-        class="flex-1"
-      />
-      <Button label="검색" severity="info" @click="searchOrders" />
-    </div>
-
-    <!-- 데이터 테이블 -->
-    <DataTable
-      :value="items"
-      v-model:selection="selectedItem"
-      selectionMode="single"
-      :dataKey="dataKey"
-      showGridlines
-      scrollable
-      scrollHeight="300px"
-    >
-      <Column selectionMode="single" headerStyle="width: 3rem" />
-      
-      <Column
-        v-for="field in visibleFields"
-        :key="field"
-        :field="field"
-        :header="mapper[field] ?? field"
-      />
-    </DataTable>
-
-    <!-- 버튼 영역 -->
-    <div class="flex justify-center gap-3 mt-4">
-      <Button label="취소" severity="contrast" @click="cancel" />
-      <Button label="확인" severity="warning" :disabled="!selectedItem" @click="confirm" />
-    </div>
-  </Dialog>
-</template>
-
 <script setup>
 import { ref, watch } from 'vue';
 
@@ -115,4 +75,63 @@ const searchOrders = () => {
   emit('search', searchKeyword.value);
 };
 
+const rowClass = (data) => {
+  return data.disabled ? 'p-disabled-row' : '';
+};
+
+const handleRowSelect = (event) => {
+  if (event.data.disabled) {
+    // 선택 취소
+    selectedItem.value = null;
+  }
+};
 </script>
+
+<template>
+  <Dialog :visible="visible" modal :header="title" :style="{ width: '70vw' }" :closable="false">
+    <!-- 검색창 -->
+    <div class="flex items-center gap-2 mb-4">
+      <InputText
+        v-model="searchKeyword"
+        :placeholder="props.placeholder"
+        class="flex-1"
+      />
+      <Button label="검색" severity="info" @click="searchOrders" />
+    </div>
+
+    <!-- 데이터 테이블 -->
+    <DataTable
+      :value="items"
+      v-model:selection="selectedItem"
+      selectionMode="single"
+      :dataKey="dataKey"
+      showGridlines
+      scrollable
+      scrollHeight="300px"
+      :rowClass="rowClass"
+      @rowSelect="handleRowSelect"
+    >
+      <Column selectionMode="single" headerStyle="width: 3rem" />
+      
+      <Column
+        v-for="field in visibleFields"
+        :key="field"
+        :field="field"
+        :header="mapper[field] ?? field"
+      />
+    </DataTable>
+
+    <!-- 버튼 영역 -->
+    <div class="flex justify-center gap-3 mt-4">
+      <Button label="취소" severity="contrast" @click="cancel" />
+      <Button label="확인" severity="warning" :disabled="!selectedItem" @click="confirm" />
+    </div>
+  </Dialog>
+</template>
+<style scoped>
+  .p-disabled-row {
+  pointer-events: none;
+  opacity: 0.5;
+  }
+</style>
+
