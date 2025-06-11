@@ -89,7 +89,6 @@ const handleUpdate = (updatedData) => {
 // 테이블에 보여줄 목록 데이터 (예시 데이터)
 const qualityResults = ref([
     {
-        ord_code: 'dd',
         qcr_code: '품질기준코드1',
         po_code: '공정코드',
         inspection_item: '검사항목',
@@ -166,12 +165,19 @@ const qualityResults = ref([
         <!-- 입력 폼 영역 1 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <LabeledInput label="지시코드" v-model="qio_code" :readonly="isReadonly" />    
-            <LabeledInput label="지시일자" :value="prod_code" placeholder="제품명" :disabled="true" />
+            <LabeledInput label="제품명" :value="prod_code" placeholder="제품명" :disabled="true" />
         </div>
 
         <!-- 입력 폼 영역 2 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+            <!-- 공정코드po_code -->
+            <LabeledSelect
+                label="공정명"
+                v-model="selectedInsp"
+                :options="PoOptions"
+                placeholder="공정명을 선택해주세요"
+                :disabled="isReadonly"
+            />
             <LabeledSelect
                 label="지시자"
                 v-model="selectedInsp"
@@ -187,11 +193,11 @@ const qualityResults = ref([
         <div class="grid grid-cols-1 gap-4">
             <div class="flex justify-between">
                 <div>
-                    <div class="font-semibold text-2xl">검사대상</div>
+                    <div class="font-semibold text-2xl">결과정보</div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button
-                        label="생산실적 불러오기"
+                        label="검사결과 불러오기"
                         severity="success"
                         class="min-w-fit whitespace-nowrap"
                         @click="qirVisible = true"
@@ -202,39 +208,39 @@ const qualityResults = ref([
 
         <!-- 입력 폼 영역 1 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledSelect
-                label="공정명"
-                v-model="selectedInsp"
-                :options="InspOptions"
-                placeholder="공정명 선택해주세요"
-                :disabled="isReadonly"
-            />    
-            <LabeledSelect
-                label="제품명"
-                v-model="selectedInsp"
-                :options="InspOptions"
-                placeholder="제품명을 선택해주세요"
-                :disabled="isReadonly"
-            />
+            <LabeledInput label="공정명" v-model="qio_code" :readonly="isReadonly" />    
+            <LabeledInput label="검사자" :value="prod_code" placeholder="제품명" :disabled="true" />
         </div>
 
         <!-- 입력 폼 영역 2 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- 공정코드po_code -->
             <LabeledSelect
-                label="검사예정일"
+                label="시작일시"
                 v-model="selectedInsp"
                 :options="InspOptions"
-                placeholder="날짜를 선택해주세요"
+                placeholder="공정명을 선택해주세요"
+                :disabled="isReadonly"
+            />
+            <LabeledSelect
+                label="종료일시"
+                v-model="selectedInsp"
+                :options="InspOptions"
+                placeholder="지시자를 선택해주세요"
                 :disabled="isReadonly"
             />
         </div>
+        <!-- 입력 폼 영역 3 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledInput label="불량수량" v-model="qio_code" :readonly="isReadonly" />    
+            <LabeledInput label="비고" :value="prod_code" placeholder="제품명" :disabled="true" />
+        </div>
     </div>
-    <!-- 📋 검색 조회 테이블 영역 -->
-    <TableList :data="qualityResults" :dataKey="'ord_code'" :mapper="QualityMapping" title="검색결과"></TableList>
-    <!-- 빈 데이터일 때 메시지 표시 -->
-    <div v-if="qualityResults.length === 0" class="text-center text-gray-500 mt-4">
-        조건에 맞는 데이터가 없습니다.
+        <!-- 📋 검색 조회 테이블 영역 -->
+    <div class="flex flex-col lg:flex-row gap-6 mt-6">
+        <div class="space-y-6" style="width: 100%">
+            <TableWDE :data="qualityResults" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
+        </div>
     </div>
     <!-- ===== 팝업 영역 ===== -->
     <SinglePopup

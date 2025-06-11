@@ -31,24 +31,27 @@
 
   // 🔍 팝업이 열릴 때 데이터 조회
   watch(dialogVisible, async (visible) => {
-    if (visible) {
-      try {
-        const response = await axios.get('http://localhost:3001/prdp_tbl');
-        products.value = response.data.map(item => ({
-          prdp_code: item.prdp_code,
-          prdp_name: item.prdp_name,
-          prdp_date: item.prdp_date,
-          start_date: item.start_date,
-          end_date: item.end_date,
-          due_date: item.due_date,
-          note: item.note,
-          reg: item.reg
-        }));
-      } catch (error) {
-        console.error('생산계획 목록 조회 실패:', error);
-      }
+  if (visible) {
+    try {
+      const response = await axios.get('/api/prdp/all');
+
+      products.value = response.data.map(item => ({
+        prdp_code: item.prdp_code,
+        prdp_name: item.prdp_name,
+        prdp_date: item.prdp_date,
+        start_date: item.start_date,
+        end_date: item.end_date,
+        due_date: item.due_date,
+        note: item.note,
+        reg: item.reg,
+        // ✅ 이미 선택된 코드와 같다면 비활성화 처리
+        disabled: item.prdp_code === prdp_code.value
+      }));
+    } catch (error) {
+      console.error('생산계획 목록 조회 실패:', error);
     }
-  });
+  }
+});
 
   // ✅ 팝업에서 항목 선택 시 해당 데이터를 입력폼에 바인딩
   const handleConfirm = async (selectedItem) => {
@@ -88,13 +91,12 @@
         <div class="flex items-center gap-2 flex-nowrap">
           <Button label="삭제" severity="danger" class="min-w-fit" />
           <Button label="초기화" severity="contrast" class="min-w-fit" @click="resetForm"/>
-          <Button label="저장" severity="info" class="min-w-fit" />
+          <Button label="저장" severity="info" class="min-w-fit" @click=""/>
           <Button label="생산계획 불러오기" severity="success" class="min-w-fit whitespace-nowrap"
             @click="dialogVisible = true" />
         </div>
       </div>
     </div>
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="생산계획코드" v-model="prdp_code" placeholder="생산계획코드" :disabled="true" />
       <LabeledInput label="계획명" v-model="prdp_name" />

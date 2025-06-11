@@ -1,37 +1,45 @@
 <script setup>
-  import { ref } from 'vue';
-  import Button from 'primevue/button';
-  import SearchText from '@/components/search-bar/SearchText.vue';
-  import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
+import { ref } from 'vue';
+import Button from 'primevue/button';
+import SearchText from '@/components/search-bar/SearchText.vue';
+import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
-  const emit = defineEmits(['search', 'reset']);
+const emit = defineEmits(['search', 'reset']);
+
+// 📌 오늘 기준 월의 1일과 말일 계산
+const today = new Date();
+const year = today.getFullYear();
+const month = today.getMonth(); // 0-based (6월이면 5)
+const firstDay = new Date(year, month, 1);
+const lastDay = new Date(year, month + 1, 0); // 다음 달 0일 = 말일
 
 // 검색 조건을 저장할 반응형 객체
-  const search = ref({
+const search = ref({
+  prdp_code: '',
+  prdp_name: '',
+  prdp_date_from: firstDay.toISOString().slice(0, 10),
+  prdp_date_to: lastDay.toISOString().slice(0, 10),
+  due_date_from: null,
+  due_date_to: null,
+});
+
+// 조회 버튼 클릭 시 emit
+const fetchOrders = () => {
+  emit('search', search.value);
+};
+
+// 초기화 버튼 클릭 시 emit
+const resetSearch = () => {
+  search.value = {
     prdp_code: '',
     prdp_name: '',
-    prdp_date_from: null,
-    prdp_date_to: null,
+    prdp_date_from: firstDay.toISOString().slice(0, 10),
+    prdp_date_to: lastDay.toISOString().slice(0, 10),
     due_date_from: null,
     due_date_to: null,
-  });
-
-  // 조회 버튼 클릭 시 emit
-  const fetchOrders = () => {
-    emit('search', search.value);
   };
-  // 초기화 버튼 클릭 시 emit
-  const resetSearch = () => {
-    search.value = {
-      prdp_code: '',
-      prdp_name: '',
-      prdp_date_from: null,
-      prdp_date_to: null,
-      due_date_from: null,
-      due_date_to: null,
-    };
-    emit('reset');
-  };
+  emit('reset');
+};
 </script>
 
 <template>

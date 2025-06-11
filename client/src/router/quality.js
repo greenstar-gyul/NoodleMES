@@ -29,4 +29,9 @@ export default [
         name: '품질후속조치',
         component: () => import('@/views/quality/quality_end/QualityAS.vue')
     },
+    {
+        path: '/quality/quality_end/QualitySD',
+        name: '품질통계',
+        component: () => import('@/views/quality/quality_end/QualitySD.vue')
+    },
 ];

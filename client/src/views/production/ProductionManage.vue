@@ -2,18 +2,12 @@
   <!-- 상단 영역: 생산계획 조회 및 초기화 등을 담당하는 컴포넌트 -->
   <!-- 조회된 계획(prdp_code)은 @load-planed 이벤트로 전달 -->
   <!-- 초기화 버튼 클릭 시 @reset 이벤트 발생 -->
-  <ProductionTopzone 
-    @load-planed="loadPlaned" 
-    @reset="handleReset"
-  />
+  <ProductionTopzone @load-planed="loadPlaned" @reset="handleReset" />
 
   <!-- 하단 영역: 제품 및 생산라인 입력을 담당하는 컴포넌트 -->
   <!-- 상단에서 전달받은 prdp_code를 props로 전달 -->
   <!-- 하단 컴포넌트에 ref를 연결하여 메서드 접근 가능 -->
-  <ProductionBottomzone 
-    :prdp="prdp_code" 
-    ref="bottomRef"
-  />
+  <ProductionBottomzone :prdp="prdp_code" ref="bottomRef" />
 </template>
 
 <script setup>
