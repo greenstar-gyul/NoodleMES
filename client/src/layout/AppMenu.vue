@@ -122,11 +122,11 @@ const model = ref([
                 items: [
                     {
                         label: '자재구매요청목록',
-                        to: '/material/list'
+                        to: '/mpr/list'
                     },
                     {
                         label: '자재구매요청관리',
-                        to: '/material/manage'
+                        to: '/mpr/manage'
                     },
                     {
                         label: 'Access Denied',
