@@ -27,6 +27,9 @@ const mrpRouter = require('./routers/mrp_router.js');
 
 const orderRouter = require('./routers/order_router.js');
 
+const mprRouter = require('./routers/mpr_router.js');
+
+
 // 기본 라우팅
 app.get('/', (req, res) => {
   res.send('Welcome!!');
@@ -36,4 +39,5 @@ app.use('/dept', deptRouter);
 app.use('/prdp', prdpRouter);
 app.use('/mrp', mrpRouter);
 app.use('/order', orderRouter);
+app.use('/mpr', mprRouter);
 
