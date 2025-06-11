@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
+import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
 import productMapping from '@/service/ProductMapping.js';
@@ -33,14 +34,18 @@ const orderPopupVisible = ref(false);
 // 주문 데이터
 const ordersRef = ref([]);
 
-//거래처
+// 전체 거래처 목록
+const allClients = ref([]);
+
+//거래처 셀렉트박스
 const clientOptions = ref([]);
 
-//거래처담당자
+//거래처담당자 셀렉트박스
 const managerOptions = ref([]);
 
 
 /* ===== FUNCTIONS ===== */
+
 //초기화
 const handleReset = () => {
     // 주문 기본정보 초기화
@@ -50,6 +55,9 @@ const handleReset = () => {
     props.note.value = '';
     props.selectedClient.value = null;
     props.selectedManager.value = null;
+
+    // 제품 목록 초기화
+    props.productRows.value = [];
 
     console.log('초기화 완료 (주문 + 제품 목록)');
 };
@@ -65,97 +73,114 @@ const handleDelete = async () => {
     if (!confirmed) return;
 
     try {
-        // 여기서 실제 API 요청 보내기 (예시)
-        // await axios.delete(`/api/orders/${ord_code.value}`);
-
-        console.log(`주문 삭제 요청 완료: 주문코드=${ord_code.value}`);
-
-        // 삭제 성공 시 화면 초기화
-        handleReset();
-
-        alert('주문이 삭제되었습니다.');
+      await axios.delete(`/api/order/${props.ordCode.value}`);
+      handleReset(); // 초기화 함수 호출
+      alert('주문이 삭제되었습니다.');
     } catch (error) {
-        console.error('주문 삭제 실패:', error);
-        alert('주문 삭제 중 오류가 발생했습니다.');
+      console.error('주문 삭제 실패:', error);
+      alert('주문 삭제 중 오류가 발생했습니다.');
     }
 };
 
 //저장
-const handleSave = () => {
-    const saveData = {
-      ord_code: props.ordCode.value,
-      ord_name: props.ordName.value,
-      ord_date: props.ordDate.value,
-      client_name: props.selectedClient.value,
-      manager: props.selectedManager.value,
-      note: props.note.value,
-      products: [] // 제품은 상위에서 받으면 같이 붙이면 됨
-    };
+const handleSave = async () => {
+  if (!props.ordName.value || !props.selectedClient.value) {
+    alert('주문명과 거래처는 필수입니다.');
+    return;
+  }
+  if (props.productRows.value.length === 0) {
+    alert('제품 목록이 비어 있습니다. 최소 하나의 제품을 추가해주세요.');
+    return;
+  }
 
-    console.log('저장할 데이터:', saveData);
+  // 주문 본문의 데이터 객체
+  const order = {
+    ord_code: props.ordCode.value,
+    ord_name: props.ordName.value,
+    ord_date: props.ordDate.value,
+    ord_stat: 'a1',
+    note: props.note.value,
+    mcode: props.selectedManager.value,
+    client_code: props.selectedClient.value
+  };
 
-    // 여기서 실제 서버로 저장 요청 보내면 됨 (ex. axios.post('/api/orders', saveData))
+  const details = props.productRows.value.map(item => ({
+    ord_code: item.ord_code,
+    prod_code: item.prod_code,
+    prod_amount: item.prod_amount,
+    prod_price: item.prod_price,
+    delivery_date: item.delivery_date,
+    ord_priority: item.ord_priority,
+    total_price: item.total_price
+  }));
+
+  try {
+    await axios.post('/api/order', {
+      order,
+      details
+    });
+    alert('주문이 등록되었습니다.');
+  } catch (err) {
+    console.error('주문 저장 실패:', err);
+    alert('주문 저장 중 오류 발생');
+  }
 };
 
 
 // 주문정보 팝업 Confirm 핸들러
-const handleConfirm = (selectedOrder) => {
-    console.log('선택된 주문:', selectedOrder);
+const handleConfirm = async (selectedOrder) => {
+  console.log('선택된 주문:', selectedOrder);
 
-    // 제품 정보 조회
-    axios.get(`http://localhost:3000/ord_d_tbl?ord_code=${selectedOrder.ord_code}`)
-      .then(async (res) => {
-        const orderDetails = res.data;
+  try {
+    // 주문 상세 조회
+    // 서버에서 JOIN으로 prod_name, unit 등도 같이 내려줘야 함
+    const detailRes = await axios.get(`/api/order/${selectedOrder.ord_code}/details`);
+    props.productRows.value = detailRes.data;
 
-        // 제품 상세 정보까지 조합 (prod_tbl에서 조회)
-        const products = await Promise.all(orderDetails.map(async (detail) => {
-          const prodRes = await axios.get(`http://localhost:3000/prod_tbl?prod_code=${detail.prod_code}`);
-          const prodInfo = prodRes.data[0];
-          return {
-            ...detail,
-            prod_name: prodInfo?.prod_name || '',
-            unit: prodInfo?.unit || '',
-            spec: prodInfo?.spec || '',
-            note: prodInfo?.note || ''
-          };
-        }));
-
-        props.productRows.value = products;
-      });
-
-    // 주문 기본정보 입력
+    // 주문 기본 정보 설정
     props.ordCode.value = selectedOrder.ord_code;
     props.ordName.value = selectedOrder.ord_name;
-    props.ordDate.value = selectedOrder.ord_date;
+    props.ordDate.value = moment(selectedOrder.ord_date).format("YYYY.MM.DD");
     props.note.value = selectedOrder.note || '';
+    props.selectedClient.value = selectedOrder.client_code;
+    props.selectedManager.value = selectedOrder.mcode;
+  } catch (err) {
+    console.error('주문 상세 조회 실패:', err);
+  }
+};
 
-    // 거래처 정보 입력
-    axios.get(`http://localhost:3000/client_tbl?client_code=${selectedOrder.client_code}`)
-      .then(res => {
-        const clientInfo = res.data[0];
-        if (clientInfo) {
-          props.selectedClient.value = clientInfo.client_code;
-          props.selectedManager.value = clientInfo.client_mname;
-        }
-      });
-};   
-
+// 최초 로딩 시 주문 목록과 거래처 목록 조회
 onMounted(async () => {
   try {
-    const orderRes = await axios.get('http://localhost:3000/ord_tbl');
-    ordersRef.value = orderRes.data;
+    // 주문 목록 조회
+    const res = await axios.get('/api/order/all');
+    //ordersRef.value = res.data;
 
-    const clientRes = await axios.get('http://localhost:3000/client_tbl');
+    //moment 패키지 사용
+    //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들어주는 함수
+    ordersRef.value = res.data.map(order => ({
+      //기존 order 객체를 그대로 복사하면서 ord_date 값만 YYYY-MM-DD 포맷으로 변환해서 덮어쓰기
+      ...order,
+      ord_date: moment(order.ord_date).format('YYYY-MM-DD')
+    }));
+
+    // 전체 거래처 목록 조회
+    const clientRes = await axios.get('/api/order/orders/clients');
     const clientList = clientRes.data;
 
+    // 전체 목록 저장
+    allClients.value = clientList;
+
+    // 거래처 셀렉트 박스에 사용될 label + value 구성
     clientOptions.value = clientList.map(client => ({
       label: client.client_name,
       value: client.client_code
     }));
 
+    // 거래처 담당자 셀렉트 박스도 따로 구성 (담당자 이름만 쓰는 구조면 이렇게)
     managerOptions.value = clientList.map(client => ({
       label: client.client_mname,
-      value: client.client_mname  // 또는 client_code로 해도 됨
+      value: client.client_mname
     }));
 
   } catch (err) {
@@ -163,7 +188,23 @@ onMounted(async () => {
   }
 });
 
+// 거래처 변경 시 담당자 목록 업데이트
+watch(() => props.selectedClient.value, (newClientCode) => {
+  const target = allClients.value.find(c => c.client_code === newClientCode);
+
+  if (target) {
+    managerOptions.value = [{
+      label: target.client_mname,
+      value: target.client_mname
+    }];
+    props.selectedManager.value = target.client_mname;
+  } else {
+    managerOptions.value = [];
+    props.selectedManager.value = null;
+  }
+});
 </script>
+
 <template>
   <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
       <!-- 헤더 영역 -->

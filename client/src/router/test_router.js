@@ -5,6 +5,11 @@ export default [
         component: () => import('@/views/dbtest/TestView.vue')
     },
     {
+        path: '/test/dbtestJy',
+        name: 'dbtestJy',
+        component: () => import('@/views/dbtest/TestViewJY.vue')
+    },
+    {
         path: '/test/mrptest1',
         name: 'mrptest1',
         component: () => import('@/views/dbtest/MRPTestView.vue')

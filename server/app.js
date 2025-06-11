@@ -25,6 +25,8 @@ const prdpRouter = require('./routers/prdp_router.js')
 
 const mrpRouter = require('./routers/mrp_router.js');
 
+const orderRouter = require('./routers/order_router.js');
+
 const mprRouter = require('./routers/mpr_router.js');
 
 
@@ -36,5 +38,6 @@ app.get('/', (req, res) => {
 app.use('/dept', deptRouter);
 app.use('/prdp', prdpRouter);
 app.use('/mrp', mrpRouter);
+app.use('/order', orderRouter);
 app.use('/mpr', mprRouter);
 

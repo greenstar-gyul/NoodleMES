@@ -14,6 +14,7 @@ const connectionPool = mariadb.createPool({
   permitSetMultiParamEntries:true,
   insertIdAsNumber:true,
   bigIntAsNumber:true,
+  multipleStatements: true,
   logger:{
     query : console.log,
     error : console.log,
@@ -34,6 +35,24 @@ const query = async (alias, values)=>{
   }
 };
 
+const runTransaction = async (queries) =>{  
+  for (const {alias, values} of queries) {
+    let executeSql = sqlList[alias];
+    let conn;
+    try{
+      conn = await connectionPool.getConnection();    
+      let res = await conn.query(executeSql, values);
+
+      res;
+    }catch(err){
+      throw err;
+    }finally{
+      if(conn) conn.release();
+    }
+  }
+};
+
 module.exports = {
   query,
+  runTransaction
 }
