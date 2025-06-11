@@ -27,7 +27,7 @@
                 <InputText v-model="search.prod_code" class="flex-1" />
             </div>
             
-            <!-- 지시일자 -->
+            <!-- 검사기간 -->
             <div class="flex items-center gap-3 w-full">
                 <SearchDateBetween label="검사기간" :from="search.start_date" :to="search.start_date"
                     @update:from="search.end_date = $event" @update:to="search.end_date = $event">
@@ -51,7 +51,7 @@
     <div class="flex flex-col lg:flex-row gap-6 mt-6">
         <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
         <div class="space-y-6" style="width: 100%">
-            <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
+            <TableWDE :data="qualitys" :dataKey="'qio_code'" :mapper="QualityMapping"/>
         </div>
 
 
