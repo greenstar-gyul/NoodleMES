@@ -12,7 +12,7 @@ const tableData = ref([])
 
 const loadTableData = async () => {
   try {
-    const res = await axios.get('/api/prdp/selectMonth') // 실제 경로에 맞게 조정
+    const res = await axios.get('/api/prdp/selectMonth')
     tableData.value = res.data
     console.log('✅ 조회된 리스트:', tableData.value)
   } catch (err) {
