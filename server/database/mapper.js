@@ -67,8 +67,20 @@ const runTransaction = async (queries) =>{
   }
 };
 
+const queryConn = async (conn, alias, values = []) => {
+  const executeSql = sqlList[alias];
+  try {
+    const res = await conn.query(executeSql, values);
+    return res;
+  } catch (err) {
+    throw err;
+  }
+};
+
 module.exports = {
+  connectionPool,
   query,
   queryDirect,
-  runTransaction
+  runTransaction,
+  queryConn
 }

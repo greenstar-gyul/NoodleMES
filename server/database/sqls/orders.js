@@ -113,6 +113,16 @@ const selectProductList = `
   ORDER BY ord_code
 `;
 
+// SELECT ord_code for new insert
+const selectOrdCodeForUpdate = `
+SELECT CONCAT(
+              CONCAT('ORD-', DATE_FORMAT( CURDATE(), '%Y')), 
+              LPAD(IFNULL(MAX(SUBSTR(ord_code, -4)), 0) + 1, 4, '0')
+             )
+FROM ord_tbl
+WHERE SUBSTR(ord_code, 5, 4) = DATE_FORMAT( CURDATE(), '%Y')
+`;
+
 module.exports = {
     selectOrderList,
     selectOrderDetailList,
@@ -121,5 +131,6 @@ module.exports = {
     deleteOrder,
     deleteOrderDetail,
     selectClientList,
-    selectProductList
+    selectProductList,
+    selectOrdCodeForUpdate,
 }
