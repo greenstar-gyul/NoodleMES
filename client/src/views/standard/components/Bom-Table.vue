@@ -118,7 +118,7 @@ const handleProductConfirm = (selectedItem) => {
           <!-- 소요수량 -->
           <Column field="req_qtt" header="소요수량" style="width: 100px">
               <template #body="slotProps">
-                  <InputNumber v-model="slotProps.data.req_qtt" :min="0" inputStyle="width: 100%" />
+                  <InputNumber v-model="slotProps.data.req_qtt" :min="0" inputStyle="width: 100%" showButtons/>
               </template>
           </Column>
 

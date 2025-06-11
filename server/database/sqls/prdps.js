@@ -11,9 +11,47 @@ const selectPrdpList =
         , end_date
         , due_date
         , note
+        , reg
+
 FROM prdp_tbl
 ORDER BY prdp_code`;
 
+const selectPrdpDOne = `
+SELECT d.prdp_d_code,
+       d.planned_qtt,
+       d.priority,
+       d.prod_code,
+       p.prod_name,
+       d.emp_code,
+       d.prdp_code,
+       d.line_code
+FROM prdp_d_tbl d
+JOIN prod_tbl p ON d.prod_code = p.prod_code
+WHERE d.prdp_code = ?
+`;
+
+const selectLineList = 
+`SELECT line_code,
+        line_name,
+        is_used
+
+FROM line_tbl
+ORDER BY line_code`;
+
+const selectProdList = 
+`SELECT prod_code,
+        prod_name,
+        prod_type,
+        is_used,
+        unit
+        
+FROM prod_tbl
+ORDER BY prod_code`;
+
+
 module.exports = {
     selectPrdpList,
+    selectPrdpDOne,
+    selectLineList,
+    selectProdList
 }

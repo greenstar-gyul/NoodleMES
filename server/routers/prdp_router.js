@@ -20,6 +20,31 @@ router.get('/all', async (req, res)=>{
     // res.send()는 데이터를 반환하는 응답 메소드며 객체로 반환되므로 JSON으로 자동 변환
     res.send(prdpList); 
 });
+// 라인전체조회
+router.get('/line', async (req, res)=>{
+    let lineList = await prdpService.findLine()
+                                    .catch(err => console.log(err));
+    res.send(lineList); 
+});
+
+// 제품전체조회
+router.get('/product', async (req, res)=>{
+    let prodList = await prdpService.findProd()
+                                    .catch(err => console.log(err));
+    res.send(prodList); 
+});
+
+router.get('/detail/one', async (req, res) => {
+  try {
+    const prdpCode = req.query.prdp_code;
+    const result = await prdpService.findDetail(prdpCode);
+    res.json(result);
+  } catch (err) {
+    console.error('상세 데이터 조회 실패:', err);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 // 해당 javascript 파일의 마지막 코드, 모듈화
 // 위에 선언한 기능(변수, 함수 등)들 중 외부로 노출할 대상을 설정 
