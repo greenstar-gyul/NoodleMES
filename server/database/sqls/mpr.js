@@ -6,7 +6,7 @@ const selectMprList =
 `SELECT mpr_code
         , reqdate
         , deadline
-        , mpr_code
+        , mrp_code
         , mcode
 FROM mpr_tbl
 ORDER BY mpr_code`;

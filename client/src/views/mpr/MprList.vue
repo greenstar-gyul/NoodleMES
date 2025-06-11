@@ -7,7 +7,6 @@ made by KMS
 <script setup>
 import MprListSearch from './mpr-list-sub/MprListSearch.vue';
 import MprListTable from './mpr-list-sub/MprListTable.vue';
-import MprMapper from '@/service/MprMapping';
 import { ref } from 'vue';
 import MprData from '@/service/MprData.js';
 
@@ -43,7 +42,6 @@ const handleSearch = (search) => {
 
 <template>
   <MprListSearch @search="handleSearch" @reset="resetSearch"/>
-  <!-- <MprListTable :data="mprdata" :dataKey="'mpr_code'" :mapper="MprMapper" title="검색결과"/> -->
   <MprListTable/>
  
   <!-- 조건 미일치 메시지 -->
