@@ -20,6 +20,12 @@ router.get('/all', async (req, res)=>{
     // res.send()는 데이터를 반환하는 응답 메소드며 객체로 반환되므로 JSON으로 자동 변환
     res.send(prdpList); 
 });
+// 해당하는 달 조회
+router.get('/selectMonth', async (req, res)=>{
+    let monthList = await prdpService.selectMonth()
+                                    .catch(err => console.log(err));
+    res.send(monthList); 
+});
 // 라인전체조회
 router.get('/line', async (req, res)=>{
     let lineList = await prdpService.findLine()

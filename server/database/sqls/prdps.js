@@ -10,11 +10,27 @@ const selectPrdpList =
         , start_date
         , end_date
         , due_date
-        , note
         , reg
+        , note
 
 FROM prdp_tbl
 ORDER BY prdp_code`;
+
+// 오늘날짜를 기준으로 해당하는 달에 내용만 조회
+const getCurrentMonthPlans = `
+SELECT prdp_code
+     , prdp_name 
+     , prdp_date
+     , start_date
+     , end_date
+     , due_date
+     , reg
+     , note
+FROM prdp_tbl
+WHERE YEAR(prdp_date) = YEAR(CURDATE())
+  AND MONTH(prdp_date) = MONTH(CURDATE())
+ORDER BY prdp_code`;
+
 
 const selectPrdpDOne = `
 SELECT d.prdp_d_code,
@@ -27,8 +43,7 @@ SELECT d.prdp_d_code,
        d.line_code
 FROM prdp_d_tbl d
 JOIN prod_tbl p ON d.prod_code = p.prod_code
-WHERE d.prdp_code = ?
-`;
+WHERE d.prdp_code = ?`;
 
 const selectLineList = 
 `SELECT line_code,
@@ -51,6 +66,7 @@ ORDER BY prod_code`;
 
 module.exports = {
     selectPrdpList,
+    getCurrentMonthPlans,
     selectPrdpDOne,
     selectLineList,
     selectProdList
