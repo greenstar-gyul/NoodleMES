@@ -75,6 +75,10 @@ const model = ref([
                         to: '/mrp/manage'
                     },
                     {
+                        label: 'MRP조회',
+                        to: '/mrp/list'
+                    },
+                    {
                         label: 'Access Denied',
                         to: '/auth/access'
                     }
