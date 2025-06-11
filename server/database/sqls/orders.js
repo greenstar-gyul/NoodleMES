@@ -8,7 +8,6 @@ const selectOrderList = `
   SELECT ord_code
        , ord_name
        , ord_date
-       , ord_stat
        , note
        , mcode
        , client_code
@@ -58,6 +57,25 @@ const insertOrderDetail = `
   VALUES (?, ?, ?, ?, ?, ?, ?)
 `;
 
+// //
+// DECLARE
+//   my_variable NUMBER;
+//   another_variable VARCHAR2(20);
+//   date_value DATE;
+// BEGIN
+
+//   my_variable := 10;
+//   another_variable := 'Hello, world!';
+//   date_value := SYSDATE;
+
+//   DBMS_OUTPUT.PUT_LINE('my_variable: ' || my_variable);
+//   DBMS_OUTPUT.PUT_LINE('another_variable: ' || another_variable);
+//   DBMS_OUTPUT.PUT_LINE('date_value: ' || date_value);
+
+// END;
+// /
+
+
 // 주문 삭제
 const deleteOrder = `
   DELETE FROM ord_tbl WHERE ord_code = ?
@@ -77,6 +95,24 @@ const selectClientList = `
   ORDER BY client_name
 `;
 
+// 제품 조회
+//제품명, 유형, 규격, 단위, 수량, 단가, 납기일, 우선순위, 총액
+//주문상세 테이블: 
+const selectProductList = `
+  SELECT ord_d_code
+       , 제품명
+       , 유형
+       , unit
+       , spec
+       , prod_amount
+       , prod_price
+       , delivery_date,
+       , ord_priority,
+       , total_price
+  FROM ord_d_tbl
+  ORDER BY ord_code
+`;
+
 module.exports = {
     selectOrderList,
     selectOrderDetailList,
@@ -84,5 +120,6 @@ module.exports = {
     insertOrderDetail,
     deleteOrder,
     deleteOrderDetail,
-    selectClientList
+    selectClientList,
+    selectProductList
 }

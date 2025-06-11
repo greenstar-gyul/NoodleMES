@@ -36,12 +36,14 @@ const insertOrder = async (orderData) => {
   return result;
 };
 
-// 주문 상세 등록
+// 주문 상세(제품) 등록
 const insertOrderDetail = async (detailData) => {
   const result = await mariadb.query("insertOrderDetail", detailData)
     .catch(err => console.log(err));
   return result;
 };
+
+
 
 // 주문 삭제
 const deleteOrder = async (ordCode) => {

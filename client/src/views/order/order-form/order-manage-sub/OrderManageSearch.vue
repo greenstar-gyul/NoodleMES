@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
+import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
 import productMapping from '@/service/ProductMapping.js';
@@ -44,6 +45,7 @@ const managerOptions = ref([]);
 
 
 /* ===== FUNCTIONS ===== */
+
 //초기화
 const handleReset = () => {
     // 주문 기본정보 초기화
@@ -71,7 +73,7 @@ const handleDelete = async () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`http://localhost:3001/order/${props.ordCode.value}`);
+      await axios.delete(`/api/order/${props.ordCode.value}`);
       handleReset(); // 초기화 함수 호출
       alert('주문이 삭제되었습니다.');
     } catch (error) {
@@ -113,7 +115,7 @@ const handleSave = async () => {
   }));
 
   try {
-    await axios.post('http://localhost:3001/order', {
+    await axios.post('/api/order', {
       order,
       details
     });
@@ -132,13 +134,13 @@ const handleConfirm = async (selectedOrder) => {
   try {
     // 주문 상세 조회
     // 서버에서 JOIN으로 prod_name, unit 등도 같이 내려줘야 함
-    const detailRes = await axios.get(`http://localhost:3001/order/${selectedOrder.ord_code}/details`);
+    const detailRes = await axios.get(`/api/order/${selectedOrder.ord_code}/details`);
     props.productRows.value = detailRes.data;
 
     // 주문 기본 정보 설정
     props.ordCode.value = selectedOrder.ord_code;
     props.ordName.value = selectedOrder.ord_name;
-    props.ordDate.value = selectedOrder.ord_date;
+    props.ordDate.value = moment(selectedOrder.ord_date).format("YYYY.MM.DD");
     props.note.value = selectedOrder.note || '';
     props.selectedClient.value = selectedOrder.client_code;
     props.selectedManager.value = selectedOrder.mcode;
@@ -151,11 +153,19 @@ const handleConfirm = async (selectedOrder) => {
 onMounted(async () => {
   try {
     // 주문 목록 조회
-    const res = await axios.get('http://localhost:3001/order/all');
-    ordersRef.value = res.data;
+    const res = await axios.get('/api/order/all');
+    //ordersRef.value = res.data;
+
+    //moment 패키지 사용
+    //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들어주는 함수
+    ordersRef.value = res.data.map(order => ({
+      //기존 order 객체를 그대로 복사하면서 ord_date 값만 YYYY-MM-DD 포맷으로 변환해서 덮어쓰기
+      ...order,
+      ord_date: moment(order.ord_date).format('YYYY-MM-DD')
+    }));
 
     // 전체 거래처 목록 조회
-    const clientRes = await axios.get('http://localhost:3001/order/clients');
+    const clientRes = await axios.get('/api/order/orders/clients');
     const clientList = clientRes.data;
 
     // 전체 목록 저장

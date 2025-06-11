@@ -4,4 +4,12 @@ export default [
         name: 'dbtest1',
         component: () => import('@/views/dbtest/TestView.vue')
     },
+
+
+
+    {
+        path: '/test/dbtestJy',
+        name: 'dbtestJy',
+        component: () => import('@/views/dbtest/TestViewJY.vue')
+    },
 ];
