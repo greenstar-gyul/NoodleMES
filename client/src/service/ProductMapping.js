@@ -10,6 +10,9 @@ export const productMapping = {
     com_value: '제품유형',
     note: '비고',
     reg: '등록자',
+    com_value: '유형',
+    is_used: '사용여부',
+    unit: '단위',
 };
 
 export default productMapping;

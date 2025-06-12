@@ -31,12 +31,11 @@ const resetSearch = () => {
     };
 };
 
-// 주문상태 옵션 (예시 데이터)
-const orderStatusOptions = [
-    { label: '활성', value: 'a1' },
-    { label: '비활성', value: 'a2' }
+const comValueOptions = [
+    { label: '봉지라면', value: 'a1' },
+    { label: '컵라면(대)', value: 'a2' },
+    { label: '컵라면(소)', value: 'a3' },
 ];
-
 
 </script>
 <template>
@@ -51,14 +50,15 @@ const orderStatusOptions = [
           <SearchText v-model="search.prod_name" label="제품명">
           </SearchText>
 
+          <!-- 상태 -->
+          <SearchDropdown label="제품유형" v-model="search.com_value" :options="comValueOptions">
+          </SearchDropdown>
+
           <!-- 납기일 (범위) -->
           <SearchDateBetween label="등록일자" :from="search.regdate_from" :to="search.regdate_to"
               @update:from="search.regdate_from = $event" @update:to="search.regdate_to = $event">
           </SearchDateBetween>
 
-          <!-- 상태 -->
-          <SearchDropdown label="사용여부" v-model="search.is_used" :options="orderStatusOptions">
-          </SearchDropdown>
       </div>
 
       <!-- 조회/초기화 버튼 영역 -->

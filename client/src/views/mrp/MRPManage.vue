@@ -3,13 +3,10 @@ import { CountryService } from '@/service/CountryService';
 import { NodeService } from '@/service/NodeService';
 import { onMounted, ref } from 'vue';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
-import SinglePopup from '@/components/popup/SinglePopup.vue';
-import orderMapping from '@/service/OrderMapping';
 import TableWithAddDel from '@/components/form/TableWithAddDel.vue';
 import mrpMapping from '@/service/MRPMapping';
 import MRPManageSearch from './mrp-sub/MRPManageSearch.vue';
 import bomSubMapping from '@/service/BOMSubMapping';
-import EditableTable from '@/components/form/EditableTable.vue';
 import MRPService from '../../service/MRPService';
 
 // 팝업 visible 상태
@@ -17,20 +14,16 @@ const dialogVisible = ref(false);
 // 팝업 visible 상태 끝
 
 const autoValue = ref(null);
-const selectedAutoValue = ref(null);
-const autoFilteredValue = ref([]);
 
 const treeSelectNodes = ref(null);
-const selectedProducts = ref([]);
-
-const selectedOrder = ref(null);
 
 const mats = ref([]); 
 const popupMats = ref([]);  // 하위자재 추가 팝업 내부 자재들
 const matList = ref([]);    // 하위자재 필터 목록
-const selMatList = ref([]); // 하위자재 테이블 요소 목록
+const selMatList = ref([]); // 하위자재 테이블 요소 선택 목록
 //팝업 끝
-
+const mrpDetailList = ref([]); // 하위자재 테이블 요소 목록
+const prdpCode = ref(null);
 
 onMounted(() => {
     CountryService.getCountries().then((data) => (autoValue.value = data));
@@ -41,66 +34,23 @@ onMounted(() => {
     mats.value = MRPService.mats;
 });
 
-function searchCountry(event) {
-    setTimeout(() => {
-        if (!event.query.trim().length) {
-            autoFilteredValue.value = [...autoValue.value];
-        } else {
-            autoFilteredValue.value = autoValue.value.filter((country) => {
-                return country.name.toLowerCase().startsWith(event.query.toLowerCase());
-            });
-        }
-    }, 250);
-}
-
-const onCellEditComplete = (event) => {
-    let { data, newValue, field } = event;
-
-    switch (field) {
-        case 'quantity':
-        case 'price':
-            if (isPositiveInteger(newValue)) data[field] = newValue;
-            else event.preventDefault();
-            break;
-
-        default:
-            if (newValue.trim().length > 0) data[field] = newValue;
-            else event.preventDefault();
-            break;
-    }
-};
-
-const isPositiveInteger = (val) => {
-    let str = String(val);
-
-    str = str.trim();
-
-    if (!str) {
-        return false;
-    }
-
-    str = str.replace(/^0+/, '') || '0';
-    var n = Math.floor(Number(str));
-
-    return n !== Infinity && String(n) === str && n >= 0;
-};
-
-const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-}
-
 const openPopup = () => {
+    if (prdpCode.value == null || prdpCode.value == '') {
+        alert('생산계획을 먼저 불러오삼.');
+        return;
+    }
+    console.log(prdpCode.value);
     dialogVisible.value = true;
 }
 
 const popupMatsConfirm = (values) => {
     // console.log(values);
     values.forEach(element => {
-        console.log(element['mat_code']);
+        // console.log(element['mat_code']);
         matList.value.push(element['mat_code']);
         selMatList.value.push(mats.value.find(item => {
             if (element['mat_code'] == item.mat_code) {
-                console.log(item);
+                // console.log(item);
                 return true;
             }
         }));
@@ -108,15 +58,29 @@ const popupMatsConfirm = (values) => {
         // mats.value.push(element);
     });
 
-    console.log(selMatList.value);
+    // console.log(selMatList.value);
+}
+
+const updateMRPDetailList = (values) => {
+    // console.log(values);
+    selMatList.value = values;
+}
+
+const updatePrdpCode = (value) => {
+    prdpCode.value = value;
+}
+
+const resetData = () => {
+    selMatList.value = [];
 }
 
 </script>
 
 <template>
     <div>
-        <MRPManageSearch></MRPManageSearch>
-        <TableWithAddDel v-model:data="selMatList" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재" :columns="['mat_code','mat_name','unit','req_qtt','cur_qtt','plan_date','proposal_date','mrp_status']"></TableWithAddDel>
+        <MRPManageSearch v-on:update-list="updateMRPDetailList" @update-prdp="updatePrdpCode" @reset-list="resetData"></MRPManageSearch>
+        <!-- <TableWithAddDel v-model:data="selMatList" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재" :columns="['mat_code','mat_name','unit','req_qtt','cur_qtt','plan_date','proposal_date','mrp_status']"></TableWithAddDel> -->
+        <TableWithAddDel v-model:data="selMatList" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재"></TableWithAddDel>
     </div>
 
     <!-- 팝업 -->

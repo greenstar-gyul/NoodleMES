@@ -43,7 +43,7 @@ router.get('/:mrpCode', async (req, res) => {
 // MRP 코드로 MRP 상세 조회
 router.get('/detail/:mrpCode', async (req, res) => {
     const mrpCode = req.params.mrpCode;
-    const mrpDetails = await mrpService.findMRPDetail([mrpCode])
+    const mrpDetails = await mrpService.findMRPDetail(mrpCode)
         .catch(err => console.log(err));
     res.send(mrpDetails);
 });

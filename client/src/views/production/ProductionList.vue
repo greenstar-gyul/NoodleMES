@@ -20,6 +20,37 @@ const loadTableData = async () => {
   }
 }
 
+const handleSearch = async (searchParams) => {
+  // 🔽 빈 문자열을 null로 변환
+  const cleanParams = Object.fromEntries(
+    Object.entries(searchParams).map(([key, val]) => [key, val === '' ? null : val])
+  );
+
+  console.log('👉 정제된 검색 파라미터:', cleanParams);
+
+  try {
+    const response = await axios.get('/api/prdp/search', {
+      params: cleanParams,
+    });
+
+    if (response.data && response.data.success) {
+      tableData.value = response.data.data || [];
+    } else if (Array.isArray(response.data)) {
+      tableData.value = response.data;
+    } else {
+      console.error('검색 실패:', response.data);
+      tableData.value = [];
+    }
+  } catch (error) {
+    console.error('검색 API 호출 실패:', error);
+    tableData.value = [];
+  }
+};
+
+const resetSearch = async () => {
+  await loadTableData(); // 초기 리스트 재조회
+};
+
 // Mounted
 onMounted(() => {
   loadTableData()
