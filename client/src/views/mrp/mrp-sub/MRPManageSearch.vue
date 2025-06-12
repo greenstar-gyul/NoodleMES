@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import Button from 'primevue/button';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import prodPlanMapping from '../../../service/ProductionPlanMapping';
@@ -8,6 +8,7 @@ import LabeledInput from '../../../components/registration-bar/LabeledInput.vue'
 import MRPService from '../../../service/MRPService';  // 백 서버 없이 테스트 용
 import axios from 'axios';
 
+const emit = defineEmits(['updateList', 'updatePrdp', 'resetList']);
 
 onMounted(async () => {
     loadPlansData();
@@ -20,10 +21,8 @@ const loadDatas = async () => {
     // prodPlans.value = MRPService.prodPlans; // 백 서버 없이 테스트 용
     mrpList.value = MRPService.mrpList; // 백 서버 없이 테스트 용
 
-    const response = await axios.get(`/api/mrp/all`);
-    testList.value = await response.data;
-
-    
+    // const response = await axios.get(`/api/mrp/all`);
+    // testList.value = await response.data;
 }
 
 /**
@@ -32,6 +31,9 @@ const loadDatas = async () => {
 const loadPlansData = async () => {
     try {
         const response = await axios.get(`/api/mrp/plan-list`);
+        response.result_code = "SUCCESS";
+        response.message = "조회성공";
+        // console.log(response);
         prodPlans.value = await response.data;
     }
     catch(err) {
@@ -57,8 +59,10 @@ const resetData = () => {
         reg: '동',
         prdp_date: '',
         start_date: '',
-        mrp_code: `MRP-${fulldate}-001`,
+        mrp_code: `저장 시 자동으로 생성됩니다.`,
     };
+
+    emit('resetList');
 }
 
 /**
@@ -68,30 +72,35 @@ const resetData = () => {
  * 없다면 새로운 mrp 생성
  */
 const prdpLoad = async (value) => {
-    console.log(value);
+    // console.log(value.prdp_code);
     const prdpCode = value.prdp_code;
+    // console.log(prdpCode);
     //  const isFind = mrpList.value.findIndex((mrp) => mrp.prdp_code === prdpCode);
 
-    const mrpCodeRes = axios.get(`/api/mrp/mrpcode/${prdpCode}`);
-    const mrpCode = mrpCodeRes.data;
+    const mrpCodeRes = await axios.get(`/api/mrp/mrpcode/${prdpCode}`);
+    // console.log(mrpCodeRes);
+    const mrpCode = await mrpCodeRes.data[0].mrp_code;
+    // console.log(mrpCode);
 
-    if (mrpCode != null || mrpCode != '') {
-        const mrpRes = axios.get(`/api/mrp/${mrpCode}`);
-        const findMRP = mrpRes.data;
+    // 선택된 값으로 채우기,, (생산 계획과 관련된 부분)
+    mrpData.value.prdp_code = value.prdp_code;
+    mrpData.value.prdp_date = value.prdp_date;
+    mrpData.value.start_date = value.start_date;
+    mrpData.value.reg = value.reg;
 
-        mrpData.value.mrp_code = findMRP.mrp_code;
-        mrpData.value.prdp_code = findMRP.prdp_code;
-        mrpData.value.prdp_date = findMRP.prdp_date;
-        mrpData.value.start_date = findMRP.start_date;
-        mrpData.value.reg = findMRP.reg;
-        mrpData.value.note = findMRP.note;
-    }
-    else {
-        resetData();
-        mrpData.value.prdp_code = value.prdp_code;
-        mrpData.value.prdp_date = value.prdp_date;
-        mrpData.value.start_date = value.start_date;
-        mrpData.value.reg = value.reg;
+    if (mrpCode != undefined || mrpCode != null || mrpCode != '') {
+        // mrp 조회
+        const mrpRes = await axios.get(`/api/mrp/${mrpCode}`);
+        const findMRP = await mrpRes.data[0];
+
+        // console.log(findMRP);
+
+        mrpData.value.mrp_code = mrpCode;
+        mrpData.value.note = findMRP.mrp_note;
+
+        // mrp 상세 목록 조회
+        const mrpDetailResponse = await axios.get(`/api/mrp/detail/${mrpCode}`);
+        mrpDetailList.value = await mrpDetailResponse.data;
     }
 }
 
@@ -112,16 +121,26 @@ const mrpData = ref({
 const mrpPopupVisible = ref(false);
 const prodPlans = ref([]);
 const mrpList = ref([]);
-const testList = ref([]);
+const mrpDetailList = ref([]);
+// const testList = ref([]);
 
-const currentDate = new Date();
-const tMonth = currentDate.getMonth() + 1;
-const month = tMonth < 10 ? `0${tMonth}` : tMonth;
+// const currentDate = new Date();
+// const tMonth = currentDate.getMonth() + 1;
+// const month = tMonth < 10 ? `0${tMonth}` : tMonth;
 
-const tDate = currentDate.getDate();
-const date = tDate < 10 ? `0${tDate}` : tDate;
+// const tDate = currentDate.getDate();
+// const date = tDate < 10 ? `0${tDate}` : tDate;
 
-const fulldate = `${currentDate.getFullYear()}${month}${date}`;
+watch(() => mrpDetailList.value, (newVal) => {
+    emit('updateList', newVal);
+    // console.log(newVal);
+    // updateMRPDetailList();
+})
+
+watch(() => mrpData.value.prdp_code, (newVal) => {
+    console.log(newVal);
+    emit('updatePrdp', newVal);
+})
 
 </script>
 
