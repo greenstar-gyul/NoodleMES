@@ -43,7 +43,53 @@ const insertOrderDetail = async (detailData) => {
   return result;
 };
 
+/**
+ * 주문 등록 with 트랜잭션
+ * @param {Object} data
+ * Object
+ * {
+ *   orderData: order_data,
+ *   detailData: [
+ *      ...detail_data,
+ *   ]
+ * }
+ */
+const insertOrderTx = async (data) => {
+  const conn = await mariadb.connectionPool.getConnection();
 
+  try {
+    await conn.beginTransaction(); // 트랜잭션 BEGIN;
+
+    // 주문 코드 새로 생성해 가져오기.
+    const ordCodeRes = await mariadb.queryConn(conn, "selectOrdCodeForUpdate"); // 트랜잭션 발생 및 잠그기
+
+    const ordCode = ordCodeRes[0].ord_code;
+
+    // 주문 저장
+    data.orderData.ord_code = ordCode;
+    const result = await mariadb.queryConn(conn, "insertOrder", data.orderData); // 메인 등록: 주문서
+
+    // 트랜잭션 내에서 실행
+    for (const values of data.detailData) { // 주문서 상세
+      values.ord_code = ordCode;
+      await mariadb.queryConn(conn, "insertOrderDetail", detailData);
+    }
+
+    // 커밋 수행
+    await conn.commit();
+
+    return result;
+  }
+  catch (err) {
+    await conn.rollback();
+    console.error('트랜잭션 실패:', err);
+
+    throw err;
+  }
+  finally {
+    conn.release();
+  }
+};
 
 // 주문 삭제
 const deleteOrder = async (ordCode) => {
@@ -78,5 +124,6 @@ module.exports ={
     insertOrderDetail,
     deleteOrder,
     deleteOrderDetail,
-    findClientList
+    findClientList,
+    insertOrderTx
 };
