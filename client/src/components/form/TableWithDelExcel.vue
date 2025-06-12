@@ -14,7 +14,7 @@ const props = defineProps({
         default: 'id'
     },
     mapper: {
-        type: Array,
+        type: Object,
         required: true
     },
     title: {
@@ -23,22 +23,41 @@ const props = defineProps({
     },
     columns: {
         type: Array,
+        default: []
     }
 });
 // 테이블에 보여줄 제품 데이터 (예시 데이터)
 const itemsWDE = ref([]);
 
-// 데이터가 바뀔 때마다 열 추출
+// 타입 검증과 값 존재 검증을 해서 값이 있을 때 데이터 추가..
+// 문제 있으면 바로 빈배열..
 watch(
-    () => props.data,
-    (newVal) => {
-        if (newVal?.length > 0) {
-            itemsWDE.value = Object.keys(newVal[0]);
-        } else {
-            itemsWDE.value = [];
-        }
-    },
-    { immediate: true }
+  () => props.data,
+  (newVal) => {
+    if(props.columns.length > 0) return; // columns가 있을 경우 watch 종료하고 존재하는 컬럼 사용..
+    
+    if (Array.isArray(newVal) && newVal.length > 0) {
+      itemsWDE.value = Object.keys(newVal[0]);
+    } else  {
+      itemsWDE.value = [];
+    }
+  },
+  { immediate: true }
+);
+
+// 컬럼이 바뀌면 해당 컬럼 목록으로 바꾸기..?
+watch(
+  () => props.columns,
+  (newVal) => {
+    if (newVal.length > 0 ) {
+      itemsWDE.value = newVal;
+    } else if(Array.isArray(props.data) && props.data.length > 0){
+      itemsWDE.value = Object.keys(props.data[0]);
+    }else {
+      itemsWDE.value = [];
+    }
+  },
+  { immediate: true }
 );
 
 
@@ -74,13 +93,6 @@ const selectedWDE = ref([]);
             tableStyle="min-width: 50rem"
         >
             <Column selectionMode="single" headerStyle="width: 3rem" />
-
-            <Column
-                v-for="col in columns"
-                :key="col"
-                :field="col"
-                :header="mapper[col] ?? col"
-            />
 
             <!-- 동적 컬럼 생성 -->
             <Column

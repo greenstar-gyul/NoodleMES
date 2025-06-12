@@ -61,6 +61,56 @@ const findMRPDetail = async (mrpCode) => {
   return list;
 };
 
+/**
+ * MRP 등록 with 트랜잭션
+ * @param {Object} data
+ * Object
+ * {
+ *   mrpData: mrp_data,
+ *   detailData: details
+ * }
+ */
+const insertMRPTx = async (data) => {
+  //Node.js가 MariaDB에 SQL을 실행하기 위해 열어놓는 통신 연결 통로
+  const conn = await mariadb.connectionPool.getConnection();
+
+  // 트랜잭션 내에서 실행
+  try {
+    await conn.beginTransaction(); // 트랜잭션 BEGIN;
+
+    // MRP 코드 새로 생성해 가져오기
+    const mrpCodeRes = await mariadb.queryConn(conn, "selectMRPCodeForUpdate"); // 트랜잭션 발생 및 잠그기
+    const mrpCode = mrpCodeRes[0].mrp_code;
+
+    // MRP 코드 저장
+    data.mrpData.mrp_code = mrpCode;
+    const result = await mariadb.queryConn(conn, "insertMRP", data.mrpData); // MRP 등록
+    
+    // MRP 상세
+    for (const values of data.detailData) {
+      const mrpDCodeRes = await mariadb.queryConn(conn, "selectMRPDetailCode"); // MRP 상세 코드 가져오기
+      const mrpDCode = mrpDCodeRes[0].mrp_d_code;
+      values.mrp_d_code = mrpDCode;
+
+      await mariadb.queryConn(conn, "insertMRPDetail", values); // MRP 상세 등록
+    }
+
+    // 커밋 수행
+    await conn.commit();
+
+    return result;
+  }
+  catch (err) {
+    await conn.rollback(); // 트랜잭션 실패 시 롤백 후 오류 알림
+    console.error('트랜잭션 실패:', err);
+
+    throw err;
+  }
+  finally {
+    conn.release(); // 컨넥션 풀 반납
+  }
+};
+
 module.exports = {
   findAll,
   findDetailsAll,
@@ -68,4 +118,5 @@ module.exports = {
   findMRPCode,
   findMRPDetail,
   findMRP,
+  insertMRPTx,
 };

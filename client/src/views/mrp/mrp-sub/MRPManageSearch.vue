@@ -8,7 +8,17 @@ import LabeledInput from '../../../components/registration-bar/LabeledInput.vue'
 import MRPService from '../../../service/MRPService';  // 백 서버 없이 테스트 용
 import axios from 'axios';
 
-const emit = defineEmits(['updateList', 'updatePrdp', 'resetList']);
+const emit = defineEmits(['updateList', 'updatePrdp', 'resetList', 'saveData']);
+const props = defineProps({
+    data: {
+        type: Array,
+        required: true
+    },
+    dataKey: {
+        type: String,
+        default: 'id'
+    }
+});
 
 onMounted(async () => {
     loadPlansData();
@@ -19,7 +29,7 @@ onMounted(async () => {
 // 데이터 불러오기
 const loadDatas = async () => {
     // prodPlans.value = MRPService.prodPlans; // 백 서버 없이 테스트 용
-    mrpList.value = MRPService.mrpList; // 백 서버 없이 테스트 용
+    // mrpList.value = MRPService.mrpList; // 백 서버 없이 테스트 용
 
     // const response = await axios.get(`/api/mrp/all`);
     // testList.value = await response.data;
@@ -41,17 +51,6 @@ const loadPlansData = async () => {
     }
 }
 
-const props = defineProps({
-    data: {
-        type: Array,
-        required: true
-    },
-    dataKey: {
-        type: String,
-        default: 'id'
-    }
-});
-
 // 조회 폼 초기화
 const resetData = () => {
     mrpData.value = {
@@ -63,6 +62,8 @@ const resetData = () => {
     };
 
     emit('resetList');
+    emit('updateList', []);
+    emit('updatePrdp', '');
 }
 
 /**
@@ -88,19 +89,24 @@ const prdpLoad = async (value) => {
     mrpData.value.start_date = value.start_date;
     mrpData.value.reg = value.reg;
 
+    emit('updatePrdp', value.prdp_code);
+
     if (mrpCode != undefined || mrpCode != null || mrpCode != '') {
+        mrpData.value.mrp_code = mrpCode;
+        
         // mrp 조회
         const mrpRes = await axios.get(`/api/mrp/${mrpCode}`);
         const findMRP = await mrpRes.data[0];
 
         // console.log(findMRP);
 
-        mrpData.value.mrp_code = mrpCode;
         mrpData.value.note = findMRP.mrp_note;
 
         // mrp 상세 목록 조회
         const mrpDetailResponse = await axios.get(`/api/mrp/detail/${mrpCode}`);
         mrpDetailList.value = await mrpDetailResponse.data;
+
+        emit('updateList', mrpDetailList.value);
     }
 }
 
@@ -120,7 +126,7 @@ const mrpData = ref({
 
 const mrpPopupVisible = ref(false);
 const prodPlans = ref([]);
-const mrpList = ref([]);
+// const mrpList = ref([]);
 const mrpDetailList = ref([]);
 // const testList = ref([]);
 
@@ -131,6 +137,7 @@ const mrpDetailList = ref([]);
 // const tDate = currentDate.getDate();
 // const date = tDate < 10 ? `0${tDate}` : tDate;
 
+/* 무한 루프 발생? 왜? 데이터가 계속 순환 참조 중;;
 watch(() => mrpDetailList.value, (newVal) => {
     emit('updateList', newVal);
     // console.log(newVal);
@@ -141,6 +148,7 @@ watch(() => mrpData.value.prdp_code, (newVal) => {
     console.log(newVal);
     emit('updatePrdp', newVal);
 })
+*/
 
 </script>
 
@@ -159,7 +167,7 @@ watch(() => mrpData.value.prdp_code, (newVal) => {
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit" />
                     <Button label="초기화" severity="contrast" class="min-w-fit" v-on:click="resetData" />
-                    <Button label="저장" severity="info" class="min-w-fit" />
+                    <Button label="저장" severity="info" class="min-w-fit" v-on:click="emit('saveData')"/>
                     <Button label="생산계획 불러오기" severity="success" class="min-w-fit whitespace-nowrap"
                         @click="openPopup" />
                 </div>
