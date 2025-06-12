@@ -97,7 +97,7 @@ const handleSave = async () => {
   const order = {
     ord_code: props.ordCode.value,
     ord_name: props.ordName.value,
-    ord_date: props.ordDate.value,
+    ord_date: moment().format('YYYY-MM-DD'),
     ord_stat: 'a1',
     note: props.note.value,
     mcode: props.selectedManager.value,
@@ -115,11 +115,9 @@ const handleSave = async () => {
   }));
 
   try {
-    await axios.post('/api/order', {
-      order,
-      details
-    });
+    await axios.post('/api/order', { order, details });
     alert('주문이 등록되었습니다.');
+    handleReset();
   } catch (err) {
     console.error('주문 저장 실패:', err);
     alert('주문 저장 중 오류 발생');
@@ -135,7 +133,7 @@ const handleConfirm = async (selectedOrder) => {
     // 주문 상세 조회
     // 서버에서 JOIN으로 prod_name, unit 등도 같이 내려줘야 함
     const detailRes = await axios.get(`/api/order/${selectedOrder.ord_code}/details`);
-    props.productRows.value = detailRes.data;
+    props.productRows.value = detailRes.data.data;
 
     // 주문 기본 정보 설정
     props.ordCode.value = selectedOrder.ord_code;
@@ -158,7 +156,7 @@ onMounted(async () => {
 
     //moment 패키지 사용
     //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들어주는 함수
-    ordersRef.value = res.data.map(order => ({
+    ordersRef.value = res.data.data.map(order => ({
       //기존 order 객체를 그대로 복사하면서 ord_date 값만 YYYY-MM-DD 포맷으로 변환해서 덮어쓰기
       ...order,
       ord_date: moment(order.ord_date).format('YYYY-MM-DD')
@@ -166,7 +164,7 @@ onMounted(async () => {
 
     // 전체 거래처 목록 조회
     const clientRes = await axios.get('/api/order/orders/clients');
-    const clientList = clientRes.data;
+    const clientList = clientRes.data.data;
 
     // 전체 목록 저장
     allClients.value = clientList;
