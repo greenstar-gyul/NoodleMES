@@ -1,11 +1,16 @@
 const selectList =
-`SELECT mpr_code
-        , reqdate
-        , deadline
-        , mrp_code
-        , mcode
-FROM mpr_tbl
-ORDER BY mpr_code`;
+`SELECT 
+    qio.qio_code,
+    qio.prod_name,
+    qio.qio_date,
+    qio.insp_emp_code,
+    qi.note
+FROM 
+    quality_inspection_order qio
+JOIN 
+    quality_inspection qi ON qio.qi_code = qi.qi_code
+WHERE 
+    qio.pname = ?;`;
 
 module.exports = {
     selectList,
