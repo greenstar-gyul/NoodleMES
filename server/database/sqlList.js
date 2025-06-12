@@ -11,7 +11,7 @@ const orders = require('./sqls/orders.js');
 
 const mpr = require('./sqls/mpr.js');
 
-const qls = require('./sqls/quality.js');
+const qlt = require('./sqls/qlt.js');
 
  module.exports ={
     // 펼침연산자(spread operator, ...)을 활용해 객체의 필드를 다른 객체로 쉽게 복사
@@ -21,7 +21,7 @@ const qls = require('./sqls/quality.js');
     ...prdps,
     ...eq,
     ...orders,
-    ...qualitys,
+    ...qlt,
  }
 
 /*
