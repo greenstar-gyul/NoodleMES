@@ -46,20 +46,59 @@ FROM   mrp_tbl mrp
 WHERE  mrp_code = ?
 `;
 
+// const selectMRPDetail = `
+// SELECT mat.mat_name,
+//        mrp_d.req_qtt,
+//        mstock.cur_qtt,
+//        comm_name(mrp_d.unit) as "unit",
+//        mrp_d.plan_date,
+//        mrp_d.proposal_date,
+//        comm_name(mrp_d.mrp_stat) as "mrp_stat"
+// FROM   mrp_d_tbl mrp_d JOIN mat_tbl mat
+//                          ON mrp_d.mat_code = mat.mat_code
+//                        JOIN mat_stock_v mstock
+//                          ON mrp_d.mat_code = mstock.mat_code
+// WHERE  mrp_d.mrp_code = ?
+// `;
 const selectMRPDetail = `
 SELECT mat.mat_name,
        mrp_d.req_qtt,
        mstock.cur_qtt,
-       comm_name(mrp_d.unit) as "unit",
-       mrp_d.plan_date,
-       mrp_d.proposal_date,
-       comm_name(mrp_d.mrp_stat) as "mrp_stat"
+       comm_name(mrp_d.unit) as "unit"
 FROM   mrp_d_tbl mrp_d JOIN mat_tbl mat
                          ON mrp_d.mat_code = mat.mat_code
                        JOIN mat_stock_v mstock
                          ON mrp_d.mat_code = mstock.mat_code
 WHERE  mrp_d.mrp_code = ?
 `;
+
+const selectMRPCodeForUpdate = `
+SELECT CONCAT(
+              CONCAT('MRP-', DATE_FORMAT( CURDATE(), '%Y%m%d-')), 
+              LPAD(IFNULL(MAX(SUBSTR(mrp_code, -3)), 0) + 1, 3, '0')
+             )
+FROM mrp_tbl
+WHERE SUBSTR(mrp_code, 5, 8) = DATE_FORMAT( CURDATE(), '%Y%M%D')
+FOR UPDATE
+`
+
+const selectMRPDetailCode = `
+SELECT CONCAT(
+              'MRP-D-',
+              LPAD(IFNULL(MAX(SUBSTR(mrp_d_code, -4)), 0) + 1, 4, '0')
+             )
+FROM mrp_d_tbl
+`
+
+const insertMRP = `
+INSERT INTO mrp_tbl(mrp_code, plan_date, start_date, mrp_note, prdp_code, emp_code)
+VALUES (?, ?, ?, ?, ?, ?)
+`
+
+const insertMRPDetail = `
+INSERT INTO mrp_d_tbl(mrp_d_code, unit, req_qtt, mrp_code, mat_code)
+VALUES (?, ?, ?, ?, ?)
+`
 
 module.exports = {
     selectMRPList,
@@ -68,4 +107,8 @@ module.exports = {
     selectMRPCode,
     selectMRP,
     selectMRPDetail,
+    selectMRPCodeForUpdate,
+    selectMRPDetailCode,
+    insertMRP,
+    insertMRPDetail,
 }

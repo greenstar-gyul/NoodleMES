@@ -19,7 +19,7 @@
 
     <!-- 동적 컬럼 생성 -->
     <Column
-        v-for="item in multiplePopupItems"
+        v-for="item in visibleFields"
         :key="item"
         :field="item"
         :header="mapper[item] ?? item"
@@ -67,13 +67,18 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  selectedHeader : {
+    type : Array,
+    default : [],
+  }
 });
 const emit = defineEmits(['update:visible', 'confirm']);
 
 const selectedItems = ref([]);
 const searchKeyword = ref('');
 
-const multiplePopupItems = ref();
+// const multiplePopupItems = ref([]);
+const visibleFields = ref([]);
 
 // visible 상태 양방향 바인딩
 watch(() => props.visible, (val) => {

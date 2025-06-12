@@ -48,4 +48,10 @@ router.get('/detail/:mrpCode', async (req, res) => {
     res.send(mrpDetails);
 });
 
+// MRP 신규 등록
+router.post('/create', async (req, res) => {
+    const data = req.body;
+    console.log(data);
+});
+
 module.exports = router;
