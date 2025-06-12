@@ -27,7 +27,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">설비코드</label>
-                <InputText v-model="eqForm.eq_code" type="text" placeholder="설비코드" :disabled="isEditMode"
+                <InputText v-model="eqForm.eq_code" type="text" placeholder="자동 생성" :disabled="true"
                     class="w-full" />
             </div>
             <div>
@@ -232,8 +232,8 @@ const saveEquipment = async () => {
         console.log('설비 등록:', eqForm.value);
 
         // 필수 필드 검증
-        if (!eqForm.value.eq_code || !eqForm.value.eq_name) {
-            alert('설비코드와 설비명은 필수입니다.');
+        if (!eqForm.value.eq_type||!eqForm.value.eq_name) {
+            alert('설비명은 필수입니다.');
             return;
         }
 

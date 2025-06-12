@@ -24,10 +24,16 @@ const findByCode = async (eqCode) => {
 };
 
 const insertEq = async (eqData) => {
+  const conn = await mariadb.connectionPool.getConnection();
+
   try {
+    await conn.beginTransaction();
     // 1단계: 설비 정보 등록
+    const eqCodeRes = await mariadb.queryConn(conn, "selectEqCodeForUpdate", [eqData.eq_type, eqData.eq_type, eqData.eq_type]);
+    console.log('SQL 결과:', eqCodeRes);
+    const generatedCode = eqCodeRes[0].next_eq_code;
     const eqValues = [
-      eqData.eq_code,
+      generatedCode,
       eqData.eq_name,
       eqData.eq_model,
       eqData.eq_maker,
@@ -42,12 +48,16 @@ const insertEq = async (eqData) => {
       eqData.chk_cycle
     ];
 
-    const eqResult = await mariadb.query("insertEq", eqValues);
-    
+    const eqResult = await mariadb.queryConn(conn, "insertEq", eqValues);
+    await conn.commit();
     return eqResult;
   } catch (err) {
+    await conn.rollback();
     console.log(err);
     throw err;
+  }
+  finally {
+    conn.release();
   }
 };
 
@@ -87,13 +97,28 @@ const deleteEq = async (eqCode) => {
 };
 
 const deleteMultiple = async (eqCodes) => {
-  const results = [];
-  for(const eqCode of eqCodes) {
-    const result = await mariadb.query("deleteEq", [eqCode])
-                                .catch(err => console.log(err));
-    results.push(result);
+  const conn = await mariadb.connectionPool.getConnection();
+
+  try{
+    await conn.beginTransaction();
+
+    const results = [];
+    for(const eqCode of eqCodes) {
+      const result = await mariadb.query("deleteEq", [eqCode])
+                                  .catch(err => console.log(err));
+      results.push(result);
+    }
+    await conn.commit();
+    return results;
   }
-  return results;
+  catch (err) {
+    await conn.rollback();
+    console.error('트랜잭션 실패:', err);
+    throw err;
+  }
+  finally {
+    conn.release();
+  }
 }
 
 module.exports = {

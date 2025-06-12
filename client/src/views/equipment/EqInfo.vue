@@ -164,64 +164,22 @@ const resetSearch = async (selectedItems) => {
 };
 
 const handleDelete = async (selectedItems) => {
-    console.log('삭제할 항목들:', selectedItems);
-    
-    // 확인 다이얼로그
     const confirmDelete = confirm(`정말로 ${selectedItems.length}개의 설비를 삭제하시겠습니까?`);
-    if (!confirmDelete) {
-        return;
-    }
+    if (!confirmDelete) return;
     
     try {
-        let successCount = 0;
-        let failedItems = [];
+        const codes = selectedItems.map(item => item.eq_code);
         
-        // 하나씩 삭제 요청
-        for (const item of selectedItems) {
-            try {
-                const response = await axios.delete(`/api/eq/${item.eq_code}`);
-                
-                if (response.data && response.data.success) {
-                    successCount++;
-                    console.log(`${item.eq_code} 삭제 성공`);
-                } else {
-                    failedItems.push(item.eq_code);
-                    console.error(`${item.eq_code} 삭제 실패:`, response.data);
-                }
-            } catch (error) {
-                failedItems.push(item.eq_code);
-                console.error(`${item.eq_code} 삭제 오류:`, error);
-            }
+        // 한 번의 API 호출로 끝! 🎉
+        const response = await axios.delete('/api/eq/multiple/delete', {
+            data: { codes }
+        });
+        
+        if (response.data && response.data.success) {
+            alert(`${selectedItems.length}개의 설비가 모두 삭제되었습니다.`);
+            await loadAll(); // 목록 새로고침
         }
-        
-        // 결과 메시지
-        if (failedItems.length === 0) {
-            // 전체 성공
-            alert(`${successCount}개의 설비가 모두 삭제되었습니다.`);
-        } else if (successCount > 0) {
-            // 일부 성공
-            alert(`${successCount}개 삭제 성공, ${failedItems.length}개 실패\n실패한 설비: ${failedItems.join(', ')}`);
-        } else {
-            // 전체 실패
-            alert('모든 삭제 요청이 실패했습니다.');
-        }
-        
-        // 성공한 게 하나라도 있으면 목록 새로고침
-        if (successCount > 0) {
-            // 테이블 선택 초기화
-            if (eqTableRef.value) {
-                eqTableRef.value.clearSelection();
-            }
-            
-            // 선택된 장비 초기화  
-            selectedEquipment.value = null;
-            
-            // 목록 다시 로드
-            await loadAll();
-        }
-        
     } catch (error) {
-        console.error('삭제 처리 중 예상치 못한 오류:', error);
         alert('삭제 중 오류가 발생했습니다.');
     }
 };
