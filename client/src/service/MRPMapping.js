@@ -6,7 +6,7 @@ export const mrpMapping = {
     cur_qtt: '현재고',
     plan_date: '투입예정일',
     proposal_date: '발주제안일',
-    mrp_status: '상태'
+    mrp_stat: '상태'
 };
 
 export default mrpMapping;

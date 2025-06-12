@@ -56,3 +56,4 @@ server/.env.*.local
 **/*.env
 
 db.json
+dummy_data.sql

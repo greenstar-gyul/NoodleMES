@@ -67,4 +67,5 @@ module.exports = {
   findPlansAll,
   findMRPCode,
   findMRPDetail,
+  findMRP,
 };
