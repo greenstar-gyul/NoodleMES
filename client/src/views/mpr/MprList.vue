@@ -5,44 +5,53 @@ made by KMS
 -->
 
 <script setup>
+import axios from 'axios';
 import MprListSearch from './mpr-list-sub/MprListSearch.vue';
 import MprListTable from './mpr-list-sub/MprListTable.vue';
-import { ref } from 'vue';
-import MprData from '@/service/MprData.js';
-
+import { onMounted, ref } from 'vue';
+import MprMapper from '@/service/MRPMapping.js';
 
 // 데이터 및 옵션
-const mprdata = ref([...MprData]); // 검색 결과
-const originalData = ref([...MprData]);   // 전체 원본 데이터
+const mprdata = ref([]); // 검색 결과
+const originalData = ref([]);   // 전체 원본 데이터
 
+
+
+const initData = async () => {
+  try{
+    const res = await axios.get('/api/mpr/all');
+    originalData.value = await res.data; 
+  } catch (err) {
+    console.error('리스트 조회 실패', err)
+  } 
+}
+
+// 검색(조회 이벤트)
+const handleSearch = async (search) => {
+  // axios로 서버에 요청
+  // 임시로 전체 데이터 조회
+  console.log(search);
+  let result = await axios.get(`/api/mpr/search`, {
+    params:search
+  });
+  console.log(result.data);
+  mprdata.value = await result.data;
+};
 
 // 초기화
 const resetSearch = () => {
   mprdata.value = [...originalData.value];
 };
-const handleSearch = (search) => {
-  materialdata.value = MaterialData.filter(item => {
-    const matchMatCode = !search.value.mat_code || item.mat_code.includes(search.value.mat_code);
-    const matchMatName = !search.value.mat_name || item.mat_name.includes(search.value.mat_name);
-    const matchClientName = !search.value.client_name || item.client_name.includes(search.value.client_name);
-    const matchReqName = !search.value.req_name || item.req_name.includes(search.value.req_name);
 
-    const matchDate = new Date(item.req_date);
-
-    const matchReqDate =
-      (!search.value.req_date_from && !search.value.req_date_to) ||
-      ((!search.value.req_date_from || matDate >= search.value.req_date_from) &&
-        (!search.value.req_date_to || matDate <= search.value.req_date_to));
-
-    return matchMatCode && matchMatName && matchDate && matchReqDate && matchClientName && matchReqName;
-  });
-};
+onMounted(() => {
+  initData();
+})
 
 </script>
 
 <template>
-  <MprListSearch @search="handleSearch" @reset="resetSearch"/>
-  <MprListTable/>
+  <MprListSearch @searchOption="handleSearch" @resetSearch="resetSearch"/>
+  <MprListTable :data="mprdata" :mapper="MprMapper"/>
  
   <!-- 조건 미일치 메시지 -->
   <div v-if="mprdata.length === 0" class="text-center text-gray-500 mt-4">

@@ -6,11 +6,20 @@ const { convertObjToAry } = require('../utils/converts.js');
 
 // 실제 제공할 서비스 등록 영역
 
-// 조건 없이 전체조회
+// 자재구매요청 (MPR) 전체조회
 const findAll = async () => {
   // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
   // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
-  let list = await mariadb.query("selectMprList")
+  let list = await mariadb.query("selectAllMprList")
+                          .catch(err => console.log(err));
+  return list;
+};
+
+// 검색 결과 조회
+const findSearch = async (values) => {  
+  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
+  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
+  let list = await mariadb.query("selectSearchMprList", values)
                           .catch(err => console.log(err));
   return list;
 };
@@ -18,4 +27,5 @@ const findAll = async () => {
 module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
     findAll,
+    findSearch,
 };
