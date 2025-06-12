@@ -1,15 +1,17 @@
 <script setup>
   // Vue 기본 기능 import
-  import { ref, watch } from 'vue';
+  import { ref, watch, defineExpose} from 'vue';
   import Button from 'primevue/button';
   import SinglePopup from '@/components/popup/SinglePopup.vue';
   import productMapping from '@/service/ProductMapping.js';
   import lineMapping from '@/service/LineMapping.js';
   import axios from 'axios';
 
-  // 부모 컴포넌트에서 사용할 수 있도록 메서드 노출
-  defineExpose({ resetAll });
-
+  // 부모에서 호출할 메서드 노출
+  defineExpose({
+    resetAll,
+    getDetails: () => productRows.value  // 하단에서 현재 상태 반환
+  });
   // 🔄 테이블 내용 초기화 함수 (부모에서 접근 가능)
   function resetAll() {
     productRows.value = [];
@@ -160,7 +162,7 @@
       products.value = response.data.map(item => ({
         prod_code: item.prod_code,
         prod_name: item.prod_name,
-        prod_type: item.prod_type,
+        com_value: item.com_value,
         is_used: item.is_used,
         unit: item.unit,
         disabled: selectedCodes.includes(item.prod_code) // 이미 선택된 경우 선택 불가
@@ -194,6 +196,8 @@
       console.error('상세 데이터 조회 실패:', err);
     }
   };
+
+  
 </script>
 
 <template>

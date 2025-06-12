@@ -10,16 +10,11 @@ const prdpService = require('../services/prdp_service.js');
 
 // 전체조회 : 자원(데이터) -> books / 조회 -> GET
 router.get('/all', async (req, res)=>{
-    // 해당 엔드포인트(URL+METHOD)로 접속할 경우 제공되는 서비스를 실행
-    // -> 서비스가 DB에 접속하므로 비동기 작업, await/async를 활용해서 동기식으로 동작하도록 진행
     let prdpList = await prdpService.findAll()
                                     .catch(err => console.log(err));
-
-    // res(Http Response에 대응되는 변수)의 응답메소드를 호출해 데이터를 반환하거나 통신을 종료함 
-    // 주의사항) res(Http Response에 대응되는 변수)의 응답메소드를 호출하지 않으면 통신이 종료되지 않음                   
-    // res.send()는 데이터를 반환하는 응답 메소드며 객체로 반환되므로 JSON으로 자동 변환
     res.send(prdpList); 
 });
+
 // 해당하는 달 조회
 router.get('/selectMonth', async (req, res)=>{
     let monthList = await prdpService.selectMonth()
@@ -40,6 +35,8 @@ router.get('/product', async (req, res)=>{
     res.send(prodList); 
 });
 
+
+// 특정 계획의 상세 목록 조회
 router.get('/detail/one', async (req, res) => {
   try {
     const prdpCode = req.query.prdp_code;
@@ -48,6 +45,72 @@ router.get('/detail/one', async (req, res) => {
   } catch (err) {
     console.error('상세 데이터 조회 실패:', err);
     res.status(500).send('Internal Server Error');
+  }
+});
+
+// 3. 생산계획 등록
+router.post('/', async (req, res) => {
+  try{
+    const { production, details } = req.body;
+    const datas = {
+      prdpData: production,
+      detailData: details
+    }
+    const result = await prdpService.insertProductionTx(datas)
+    res.json({ success: true, data: result });
+  }catch (error){
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 4. 생산계획 수정
+router.put('/:prdpcode', async (req, res) => {
+  try{
+    const { production, details } = req.body;
+    production.prdp_code = req.params.prdpcode;
+
+    const datas = {
+      prdpData: production,
+      detailData: details
+    }
+    
+    const result = await prdpService.updateProductionTx(datas)
+    res.json({ success: true, data: result });
+  }catch (error){
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 5. 생산계획 삭제 (기본정보 + 상세정보 같이 삭제)
+router.delete('/:prdpCode', async (req, res) => {
+  try {
+    const prdpCode = req.params.prdpCode;
+
+    await prdpService.deleteProductionTx(prdpCode); // 트랜잭션으로 한번에 처리
+
+    res.json({ success: true, message: '생산계획 삭제 완료' });
+  } catch (err) {
+    console.error("생산계획 삭제 실패:", err);
+    res.status(500).json({ success: false, message: '삭제 중 오류 발생', error: err.message });
+  }
+});
+
+router.get('/search', async (req, res) => {
+  console.log('[search] 요청 쿼리:', req.query);  // 요청 데이터 로그
+
+  try {
+    const data = await prdpService.searchPrdp(req.query);
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('❌ 검색 오류 발생:', err.message);
+    console.error(err.stack);
+
+    // 클라이언트에게도 에러 메시지와 상세 내용 전달 (개발용)
+    res.status(500).json({
+      success: false,
+      message: '검색 실패',
+      error: err.message
+    });
   }
 });
 

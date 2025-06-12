@@ -1,50 +1,41 @@
 <script setup>
-  import { ref, watch } from 'vue';
-  import axios from 'axios';
-  import Button from 'primevue/button';
-  import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
-  import LabeledDatePicker from '@/components/registration-bar/LabeledDatePicker.vue';
-  import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
-  import productionMapping from '@/service/ProductionMapping';
-  import SinglePopup from '@/components/popup/SinglePopup.vue';
+import { ref, watch, defineExpose } from 'vue';
+import axios from 'axios';
+import Button from 'primevue/button';
+import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
+import LabeledDatePicker from '@/components/registration-bar/LabeledDatePicker.vue';
+import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
+import productionMapping from '@/service/ProductionMapping';
+import SinglePopup from '@/components/popup/SinglePopup.vue';
 
 
-  // 부모 컴포넌트에 이벤트 전송을 위한 emit 정의
-  const emit = defineEmits(['load-planed', 'reset']);
+// 이벤트 정의
+const emit = defineEmits(['load-planed']);
 
-  // 오늘 날짜를 기본값으로 설정 (ISO 포맷 → 'YYYY-MM-DD')
-  const today = new Date().toISOString().slice(0, 10);
+// 오늘 날짜
+const today = new Date().toISOString().slice(0, 10);
 
-  // 📌 폼 데이터 (생산계획 정보)
-  const prdp_code = ref('');     // 생산계획코드
-  const prdp_name = ref('');     // 계획명
-  const prdp_date = ref(today);  // 계획일자 (기본값: 오늘)
-  const due_date = ref('');      // 납기일자
-  const reg = ref('');           // 작성자
-  const note = ref('');          // 비고
-  const start_date = ref('');    // 계획시작일
-  const end_date = ref('');      // 계획종료일
+// ✅ ref 기반 폼 항목 정의
+const prdp_code = ref('');
+const prdp_name = ref('');
+const prdp_date = ref(today);
+const due_date = ref('');
+const reg = ref('권민준');
+const note = ref('');
+const start_date = ref('');
+const end_date = ref('');
 
-  // 📦 팝업 제어 변수
-  const dialogVisible = ref(false);  // 팝업 열림 여부
-  const products = ref([]);          // 팝업에서 보여줄 생산계획 리스트
+// 📦 팝업 제어 및 리스트
+const dialogVisible = ref(false);
+const products = ref([]);
 
-  // 🔍 팝업이 열릴 때 데이터 조회
-  watch(dialogVisible, async (visible) => {
+// 팝업 열릴 때 생산계획 목록 조회
+watch(dialogVisible, async (visible) => {
   if (visible) {
     try {
       const response = await axios.get('/api/prdp/all');
-
       products.value = response.data.map(item => ({
-        prdp_code: item.prdp_code,
-        prdp_name: item.prdp_name,
-        prdp_date: item.prdp_date,
-        start_date: item.start_date,
-        end_date: item.end_date,
-        due_date: item.due_date,
-        note: item.note,
-        reg: item.reg,
-        // ✅ 이미 선택된 코드와 같다면 비활성화 처리
+        ...item,
         disabled: item.prdp_code === prdp_code.value
       }));
     } catch (error) {
@@ -53,33 +44,46 @@
   }
 });
 
-  // ✅ 팝업에서 항목 선택 시 해당 데이터를 입력폼에 바인딩
-  const handleConfirm = async (selectedItem) => {
-    prdp_code.value = selectedItem.prdp_code;
-    prdp_name.value = selectedItem.prdp_name;
-    prdp_date.value = selectedItem.prdp_date;
-    reg.value = selectedItem.reg;
-    start_date.value = selectedItem.start_date;
-    end_date.value = selectedItem.end_date;
-    due_date.value = selectedItem.due_date;
-    note.value = selectedItem.note;
+// ✅ 팝업에서 선택 시 입력 필드에 반영
+const handleConfirm = (selectedItem) => {
+  prdp_code.value = selectedItem.prdp_code;
+  prdp_name.value = selectedItem.prdp_name;
+  prdp_date.value = selectedItem.prdp_date;
+  due_date.value = selectedItem.due_date;
+  reg.value = selectedItem.reg;
+  note.value = selectedItem.note;
+  start_date.value = selectedItem.start_date;
+  end_date.value = selectedItem.end_date;
 
-    // 부모에게 선택된 생산계획 코드 전달
-    emit('load-planed', selectedItem.prdp_code);
-  };
+  emit('load-planed', prdp_code.value);
+};
 
-  // 🔄 초기화 버튼 클릭 시 실행
-  const resetForm = () => {
-    prdp_code.value = '';
-    prdp_name.value = '';
-    prdp_date.value = today;
-    due_date.value = '';
-    reg.value = '';
-    note.value = '';
-    start_date.value = '';
-    end_date.value = '';
-    emit('reset');  // 부모 컴포넌트에도 초기화 알림
-  };
+// 🔄 초기화
+const resetForm = () => {
+  prdp_code.value = '';
+  prdp_name.value = '';
+  prdp_date.value = today;
+  due_date.value = '';
+  reg.value = '';
+  note.value = '';
+  start_date.value = '';
+  end_date.value = '';
+};
+
+// 📤 부모 컴포넌트에서 접근 가능하게 노출
+defineExpose({
+  resetForm,
+  getFormData: () => ({
+    prdp_code: prdp_code.value,
+    prdp_name: prdp_name.value,
+    prdp_date: prdp_date.value,
+    due_date: due_date.value,
+    reg: reg.value,
+    note: note.value,
+    start_date: start_date.value,
+    end_date: end_date.value
+  })
+});
 </script>
 <template>
   <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
@@ -91,7 +95,7 @@
         <div class="flex items-center gap-2 flex-nowrap">
           <Button label="삭제" severity="danger" class="min-w-fit" />
           <Button label="초기화" severity="contrast" class="min-w-fit" @click="resetForm"/>
-          <Button label="저장" severity="info" class="min-w-fit" @click=""/>
+          <Button label="저장" severity="info" class="min-w-fit" @click="emit('save')"/>
           <Button label="생산계획 불러오기" severity="success" class="min-w-fit whitespace-nowrap"
             @click="dialogVisible = true" />
         </div>
