@@ -36,26 +36,28 @@ WHERE  prdp_code = ?
 `;
 
 const selectMRP = `
-SELECT mrp_code,
-       plan_date,
-       start_date,
-       mrp_note,
-       prdp_code,
-       emp_code
-FROM   mrp_tbl
+SELECT mrp.mrp_code,
+       mrp.plan_date,
+       mrp.start_date,
+       mrp.mrp_note,
+       mrp.prdp_code,
+       mrp.emp_code
+FROM   mrp_tbl mrp
 WHERE  mrp_code = ?
 `;
 
 const selectMRPDetail = `
-SELECT mrp_d.mrp_d_code,
-       mat.mat_name
-       mrp_d.unit,
+SELECT mat.mat_name,
        mrp_d.req_qtt,
+       mstock.cur_qtt,
+       comm_name(mrp_d.unit) as "unit",
        mrp_d.plan_date,
        mrp_d.proposal_date,
-       mrp_d.mrp_stat
+       comm_name(mrp_d.mrp_stat) as "mrp_stat"
 FROM   mrp_d_tbl mrp_d JOIN mat_tbl mat
                          ON mrp_d.mat_code = mat.mat_code
+                       JOIN mat_stock_v mstock
+                         ON mrp_d.mat_code = mstock.mat_code
 WHERE  mrp_d.mrp_code = ?
 `;
 
