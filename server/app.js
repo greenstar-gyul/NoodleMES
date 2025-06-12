@@ -31,7 +31,7 @@ const orderRouter = require('./routers/order_router.js');
 
 const mprRouter = require('./routers/mpr_router.js');
 
-const qlsRouter = require('./routers/qls_router.js');
+const qlsRouter = require('./routers/qlt_router.js');
 // 기본 라우팅
 app.get('/', (req, res) => {
   res.send('Welcome!!');
