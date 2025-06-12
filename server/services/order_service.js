@@ -58,7 +58,7 @@ const insertOrderTx = async (data) => {
   const conn = await mariadb.connectionPool.getConnection();
 
   try {
-    await conn.beginTransaction();
+    await conn.beginTransaction(); // 트랜잭션 BEGIN;
 
     // 주문 코드 새로 생성해 가져오기.
     const ordCodeRes = await mariadb.queryConn(conn, "selectOrdCodeForUpdate"); // 트랜잭션 발생 및 잠그기
@@ -67,10 +67,10 @@ const insertOrderTx = async (data) => {
 
     // 주문 저장
     data.orderData.ord_code = ordCode;
-    const result = await mariadb.queryConn(conn, "insertOrder", data.orderData);
+    const result = await mariadb.queryConn(conn, "insertOrder", data.orderData); // 메인 등록: 주문서
 
     // 트랜잭션 내에서 실행
-    for (const values of data.detailData) {
+    for (const values of data.detailData) { // 주문서 상세
       values.ord_code = ordCode;
       await mariadb.queryConn(conn, "insertOrderDetail", detailData);
     }
