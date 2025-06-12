@@ -1,39 +1,53 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineExpose, defineProps } from 'vue';
+import axios from 'axios';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import bomMapper from '@/service/BOMMapping.js';
 import matMapping from '@/service/MatMapping.js';
 
+const emit = defineEmits(['update:productRows','rowSelected' ,'rowSelecteds']);
 
-const emit = defineEmits(['update:productRows']);
+const selectedRow = ref(null);
 
-// 제품 리스트
-const products = ref([
-  { prod_code: 'WH001', prod_name: '신라면', edate: '150일', regdate: '2025.06.06', is_used: '활성' },
-  { prod_code: 'WH002', prod_name: '짜파게티', edate: '150일', regdate: '2025.06.07', is_used: '활성' },
-  { prod_code: 'WH003', prod_name: '진진라면', edate: '150일', regdate: '2025.06.01', is_used: '비활성' }
-]);
+const onRowSelect  = (e) => {
+  // 자재 테이블 선택 시
+emit('materialRowSelected', e.data);
+};
 
-// 하위 자재 테이블
+const handleProductRowClick  = (row) => {
+  // 제품 목록 테이블 클릭 시
+  emit('rowSelected', row); // ✅ 반드시 rowSelected로 통일
+  console.log('✅ row 클릭:', row)
+};
+
+// ✔ BOM 테이블 데이터
 const productRows = ref([]);
 const selectedProducts = ref([]);
 const matPopupVisible = ref(false);
 const currentEditingRow = ref(null);
 
-// 자재 목록 및 옵션
-const matList = ref([
-  { mat_code: 'MAT001', mat_name: '밀가루',  mat_type: '원자재' },
-  { mat_code: 'MAT003', mat_name: '고춧가루',  mat_type: '원자재' },
-  { mat_code: 'MAT005', mat_name: '표고버섯',  mat_type: '원자재' },
-  { mat_code: 'MAT100', mat_name: '비닐포장지',  mat_type: '부자재' },
-  { mat_code: 'MAT101', mat_name: '박스',  mat_type: '부자재' }
-]);
+// ✔ 자재 목록 및 옵션
+const matList = ref([]);
 
-const matTypeOptions = ref([
-  { label: '원자재', value: '원자재' },
-  { label: '부자재', value: '부자재' }
-]);
+
+
+// ✔ 외부에서 form 데이터 넣기
+const setFormData = (rows) => {
+  productRows.value = rows.map(row => ({ ...row, id: row.id ?? Date.now() + Math.random() }));
+};
+
+// ✔ 외부에서 form 데이터 꺼내기
+const getFormData = () => {
+  return productRows.value;
+};
+
+// ✅ 외부에서 자재 목록 가져오기
+const getDetailRows = () => {
+  return productRows.value;
+};
+
+defineExpose({ setFormData, getFormData, getDetailRows });
 
 // 행 추가
 const addRow = () => {
@@ -55,94 +69,121 @@ const deleteSelected = () => {
 };
 
 // 팝업 열기
-const openMatPopup = (row) => {
+const openMatPopup = async (row) => {
   currentEditingRow.value = row;
-  matPopupVisible.value = true;
+
+  try {
+    const res = await axios.get('/api/bom/materials-popup');
+    matList.value = res.data;
+    console.log('자재 목록 불러옴:', matList.value);
+    matPopupVisible.value = true; // 성공적으로 불러오면 팝업 열기
+  } catch (err) {
+    console.error(' 자재 목록 불러오기 실패:', err);
+    alert('자재 목록을 불러오지 못했습니다.');
+  }
 };
 
 // 팝업 확인 후 값 반영
 const handleProductConfirm = (selectedItem) => {
   if (!currentEditingRow.value || !selectedItem) return;
 
-  currentEditingRow.value.mat_code = selectedItem.mat_code;
-  currentEditingRow.value.mat_name = selectedItem.mat_name;
-  currentEditingRow.value.mat_type = selectedItem.mat_type;
+  currentEditingRow.value.mat_code = selectedItem.code;
+  currentEditingRow.value.mat_name = selectedItem.name;
+  currentEditingRow.value.mat_type = selectedItem.type;
 
   matPopupVisible.value = false;
 };
+
+defineProps({
+  data: {
+    type: Array,
+    default: () => []
+  }
+});
 </script>
 
 <template>
   <div class="space-y-4" style="width: 60%">
-    <TableWDE :data="products" :dataKey="'prod_code'" :mapper="bomMapper" title="검색결과" />
+    <!-- 제품 검색 결과 (고정 영역) -->
+    <TableWDE
+      :data="bomList"
+      :dataKey="'bom_code'"
+      :mapper="bomMapper"
+      :columns="['bom_code', 'prod_code', 'prod_name', 'edate', 'regdate', 'is_used']"
+      title="검색결과"
+      @row-click="handleProductRowClick"
+    />
 
+    <!-- 자재 입력 테이블 -->
     <div class="card flex flex-col gap-4">
       <div class="flex justify-between">
-        <div class="font-semibold text-2xl">제품</div>
+        <div class="font-semibold text-2xl">하위 자재 </div>
         <div class="flex justify-end gap-2">
           <Button label="선택 삭제" icon="pi pi-trash" severity="danger" @click="deleteSelected" />
           <Button label="행 추가" icon="pi pi-plus" @click="addRow" />
         </div>
       </div>
 
-      <DataTable v-model:selection="selectedProducts" :value="productRows" scrollable scrollHeight="250px" showGridlines
-          dataKey="id" class="w-full">
-          <!-- 체크박스 -->
-          <Column selectionMode="multiple" headerStyle="width: 48px" />
+      <DataTable
+        v-model:selection="selectedProducts"
+        :value="productRows"
+        @rowSelect="onRowSelect"
+        scrollable
+        scrollHeight="250px"
+        showGridlines
+        dataKey="id"
+        class="w-full"
+      >
+        <Column selectionMode="multiple" headerStyle="width: 48px" />
 
-          <!-- 자재코드 -->
-          <Column field="mat_code" header="자재코드" style="width: 150px">
-              <template #body="slotProps">
-                  <div class="flex gap-2">
-                      <InputText v-model="slotProps.data.mat_code" readonly style="width: 100%" />
-                      <Button icon="pi pi-search" @click="() => openMatPopup(slotProps.data)"
-                          style="width: 32px; min-width: 32px;" />
-                  </div>
-              </template>
-          </Column>
+        <Column field="mat_code" header="자재코드" style="width: 150px">
+          <template #body="slotProps">
+            <div class="flex gap-2">
+              <InputText v-model="slotProps.data.mat_code" readonly style="width: 100%" />
+              <Button icon="pi pi-search" @click="() => openMatPopup(slotProps.data)"
+                style="width: 32px; min-width: 32px;" />
+            </div>
+          </template>
+        </Column>
 
-          <!-- 자재명 -->
-          <Column field="mat_name" header="자재명" style="width: 160px">
-              <template #body="slotProps">
-                  <InputText v-model="slotProps.data.mat_name" style="width: 100%" :disabled="true"/>
-              </template>
-          </Column>
+        <Column field="mat_name" header="자재명" style="width: 160px">
+          <template #body="slotProps">
+            <InputText v-model="slotProps.data.mat_name" style="width: 100%" :disabled="true" />
+          </template>
+        </Column>
 
-          <!-- 자재유형 -->
-          <Column field="mat_type" header="자재유형" style="width: 130px">
-              <template #body="slotProps">
-                  <InputText v-model="slotProps.data.mat_type" style="width: 100%" :disabled="true"/>
-              </template>
-          </Column>
+        <Column field="mat_type" header="자재유형" style="width: 130px">
+          <template #body="slotProps">
+            <InputText v-model="slotProps.data.mat_type" style="width: 100%" :disabled="true" />
+          </template>
+        </Column>
 
-          <!-- 소요수량 -->
-          <Column field="req_qtt" header="소요수량" style="width: 100px">
-              <template #body="slotProps">
-                  <InputNumber v-model="slotProps.data.req_qtt" :min="0" inputStyle="width: 100%" showButtons/>
-              </template>
-          </Column>
+        <Column field="req_qtt" header="소요수량" style="width: 100px">
+          <template #body="slotProps">
+            <InputNumber v-model="slotProps.data.req_qtt" :min="0" :step="1" :mode="'decimal'" inputStyle="width: 100%" showButtons />
+          </template>
+        </Column>
 
-          <!-- 단위 -->
-          <Column field="unit" header="단위" style="width: 100px">
-              <template #body="slotProps">
-                  <InputText v-model="slotProps.data.unit" style="width: 100%" />
-              </template>
-          </Column>
+        <Column field="unit" header="단위" style="width: 100px">
+          <template #body="slotProps">
+            <InputText v-model="slotProps.data.unit" style="width: 100%" />
+          </template>
+        </Column>
 
-          <!-- 손실율(%) -->
-          <Column field="loss_rate" header="손실율(%)" style="width: 120px">
-              <template #body="slotProps">
-                  <InputNumber v-model="slotProps.data.loss_rate" :min="0" inputStyle="width: 100%" />
-              </template>
-          </Column>
+        <Column field="loss_rate" header="손실율(%)" style="width: 120px">
+          <template #body="slotProps">
+            <InputNumber v-model="slotProps.data.loss_rate" :min="0" :step="0.1" :mode="'decimal'" inputStyle="width: 100%"  showButtons/>
+          </template>
+        </Column>
       </DataTable>
     </div>
   </div>
 
+  <!-- 자재 선택 팝업 -->
   <SinglePopup
     v-model:visible="matPopupVisible"
     :items="matList"
-    :dataKey="'mat_code'"
+    :dataKey="'code'"
     :mapper="matMapping"
     @confirm="handleProductConfirm"
     placeholder="자재코드 또는 자재명 또는 자재유형 검색"
