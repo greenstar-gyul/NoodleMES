@@ -37,9 +37,22 @@ const props = defineProps({
         type: Array,
     }
 });
-console.log('📌 columns:', props.columns)
-console.log('📌 mapper:', props.mapper)
-console.log('📌 data:', props.data)
+// 테이블에 보여줄 제품 데이터 (예시 데이터)
+const itemsWDE = ref([]);
+
+// 데이터가 바뀔 때마다 열 추출
+watch(
+    () => props.data,
+    (newVal) => {
+        if (newVal?.length > 0) {
+            itemsWDE.value = Object.keys(newVal[0]);
+        } else {
+            itemsWDE.value = [];
+        }
+    },
+    { immediate: true }
+);
+
 
 </script>
 
@@ -72,10 +85,18 @@ console.log('📌 data:', props.data)
             <Column selectionMode="single" headerStyle="width: 3rem" />
 
             <Column
-                v-for="col in columns "
+                v-for="col in columns"
                 :key="col"
                 :field="col"
                 :header="mapper[col] ?? col"
+            />
+
+            <!-- 동적 컬럼 생성 -->
+            <Column
+                v-for="item in itemsWDE"
+                :key="item"
+                :field="item"
+                :header="mapper[item] ?? item"
             />
         </DataTable>
     </div>
