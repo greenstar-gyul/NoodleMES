@@ -24,27 +24,9 @@ const findByCode = async (eqCode) => {
 };
 
 const insertEq = async (eqData) => {
-  const values = [
-      eqData.eq_code,
-      eqData.eq_name,
-      eqData.eq_model,
-      eqData.eq_maker,
-      eqData.capacity,
-      eqData.stat,
-      eqData.eq_make_date,
-      eqData.bring_date,
-      eqData.take_date,
-      eqData.eq_pos,
-      eqData.eq_type,
-      eqData.is_used
-    ];
-
-    const result = await mariadb.query("insertEq", values);
-    return result;
-};
-
-const updateEq = async (eqCode, eqData) => {
-  const values = [
+  try {
+    // 1단계: 설비 정보 등록
+    const eqValues = [
       eqData.eq_code,
       eqData.eq_name,
       eqData.eq_model,
@@ -57,22 +39,58 @@ const updateEq = async (eqCode, eqData) => {
       eqData.eq_pos,
       eqData.eq_type,
       eqData.is_used,
+      eqData.chk_cycle
+    ];
+
+    const eqResult = await mariadb.query("insertEq", eqValues);
+    
+    return eqResult;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+};
+
+// 설비 수정 (점검주기도 함께)
+const updateEq = async (eqCode, eqData) => {
+  try {
+    // 1단계: 설비 정보 수정
+    const eqValues = [
+      eqData.eq_name,
+      eqData.eq_model,
+      eqData.eq_maker,
+      eqData.capacity,
+      eqData.stat,
+      eqData.eq_make_date,
+      eqData.bring_date,
+      eqData.take_date,
+      eqData.eq_pos,
+      eqData.eq_type,
+      eqData.is_used,
+      eqData.chk_cycle,
       eqCode
     ];
 
-    const result = await mariadb.query("udpateEq", values);
-    return result;
+    const eqResult = await mariadb.query("updateEq", eqValues);
+    
+    return eqResult;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
 };
 
 const deleteEq = async (eqCode) => {
-  const result = await mariadb.query("deleteEq", [eqCode]);
+  const result = await mariadb.query("deleteEq", [eqCode])
+                              .catch(err => console.log(err));
   return result;
 };
 
 const deleteMultiple = async (eqCodes) => {
   const results = [];
   for(const eqCode of eqCodes) {
-    const result = await mariadb.query("deleteEq", [eqCode]);
+    const result = await mariadb.query("deleteEq", [eqCode])
+                                .catch(err => console.log(err));
     results.push(result);
   }
   return results;

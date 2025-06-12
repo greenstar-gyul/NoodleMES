@@ -1,22 +1,22 @@
-// 조건없이 전체조회
-
+// 기본사용 쿼리문 - 설비 조회
 const BASE_QUERY = `
 SELECT   eq_code
-         , eq_name
-         , eq_model
-         , eq_maker
-         , capacity
-         , stat
-         , eq_make_date
-         , bring_date
-         , take_date
-         , eq_pos
-         , eq_type
-         , is_used
+         ,eq_name
+         ,eq_model
+         ,eq_maker
+         ,capacity
+         ,stat
+         ,eq_make_date
+         ,bring_date
+         ,take_date
+         ,eq_pos
+         ,eq_type
+         ,is_used
+         ,chk_cycle
 FROM     eq_tbl
 `;
 
-
+// 파라미터별 검색
 function buildSearch(searchParams) {
   const hasCondition = searchParams &&
     Object.values(searchParams).some(val => val !== null && val !== '' && val != undefined);
@@ -52,7 +52,7 @@ function buildSearch(searchParams) {
     values.push(`%${searchParams.eq_maker.trim()}%`);
   }
 
-  // 사용여부 (부분 검색)
+  // 사용여부 (정확 검색)
   if (searchParams.is_used && searchParams.is_used.trim() !== '') {
     conditions.push('is_used = ?');
     values.push(searchParams.is_used.trim());
@@ -68,6 +68,8 @@ function buildSearch(searchParams) {
   return { sql, values };
 }
 
+
+
 module.exports = {
   // 전체 조회 (첫 화면용)
   selectEqList: BASE_QUERY + ' ORDER BY eq_code',
@@ -75,41 +77,23 @@ module.exports = {
   // 동적 검색 (검색 조건 유무에 따라 전체, 조건부 검색)
   buildSearch: buildSearch,
 
-  // 기본 
+  // 기본 조회
   selectEqByCode: BASE_QUERY + ' WHERE eq_code = ?',
 
+  // 설비 등록 쿼리
   insertEq: `
-    INSERT INTO eq_tbl (eq_code
-         , eq_name
-         , eq_model
-         , eq_maker
-         , capacity
-         , stat
-         , eq_make_date
-         , bring_date
-         , take_date
-         , eq_pos
-         , eq_type
-         , is_used)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO eq_tbl (eq_code, eq_name, eq_model, eq_maker, capacity, stat, eq_make_date, bring_date, take_date, eq_pos, eq_type, is_used, chk_cycle)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `,
 
+  // 설비 수정 쿼리
   updateEq: `
     UPDATE eq_tbl 
-    SET eq_name = ?
-        , eq_model = ?
-        , eq_maker = ?
-        , capacity = ?
-        , stat = ?
-        , eq_make_date = ?
-        , bring_date = ?
-        , take_date = ?
-        , eq_pos = ?
-        , eq_type = ?
-        , is_used = ?
+    SET eq_name = ?, eq_model = ?, eq_maker = ?, capacity = ?, stat = ?, eq_make_date = ?, bring_date = ?, take_date = ?, eq_pos = ?, eq_type = ?, is_used = ?, chk_cycle = ?
     WHERE eq_code = ?
   `,
 
+  // 설비 삭제 쿼리
   deleteEq: `
     DELETE FROM eq_tbl 
     WHERE eq_code = ?
