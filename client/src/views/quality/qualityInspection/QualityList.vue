@@ -29,8 +29,8 @@
             
             <!-- 검사기간 -->
             <div class="flex items-center gap-3 w-full">
-                <SearchDateBetween label="검사기간" :from="search.start_date" :to="search.start_date"
-                    @update:from="search.end_date = $event" @update:to="search.end_date = $event">
+                <SearchDateBetween label="검사기간" :from="search.start_date" :to="search.end_date"
+                    @update:from="search.start_date = $event" @update:to="search.end_date = $event">
                 </SearchDateBetween>
             </div>
             <!-- 검사유형 -->
