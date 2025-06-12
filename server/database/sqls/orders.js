@@ -121,6 +121,7 @@ SELECT CONCAT(
              )
 FROM ord_tbl
 WHERE SUBSTR(ord_code, 5, 4) = DATE_FORMAT( CURDATE(), '%Y')
+FOR UPDATE
 `;
 
 module.exports = {
