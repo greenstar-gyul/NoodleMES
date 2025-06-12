@@ -96,6 +96,27 @@ router.delete('/:ordCode', async (req, res) => {
         });
     }
 });
+router.delete('/:ordCode', async (req, res) => {
+    try {
+        const { ordCode } = req.params;
+
+        await orderService.deleteOrderTx(ordCode); // 삭제만 하고 결과값 따로 받을 필요 없음
+
+        res.json({
+            result_code: "SUCCESS",
+            message: `주문 ${ordCode}가 삭제되었습니다.`,
+            data: { ordCode } // 삭제한 주문 코드
+        });
+    } catch (err) {
+        console.error("주문 삭제 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "주문 삭제 중 오류가 발생했습니다.",
+            error: err.message
+        });
+    }
+});
+
 
 // 거래처 목록 조회
 router.get('/orders/clients', async (req, res) => {
@@ -156,42 +177,42 @@ router.get("/products/search", async (req, res) => {
 });
 
 // 공통코드 - 규격
-router.get("/spec", async (req, res) => {
-  try {
-    const result = await orderService.findSpecList();
-    res.json({
-        result_code: "SUCCESS",
-        message: "성공",
-        data: result
-    });
-  } catch (err) {
-    console.error("규격 코드 조회 실패:", err);
-    res.status(500).json({
-        result_code: "FAIL",
-        message: "실패",
-        error: err.message
-    });
-  }
-});
+// router.get("/spec", async (req, res) => {
+//   try {
+//     const result = await orderService.findSpecList();
+//     res.json({
+//         result_code: "SUCCESS",
+//         message: "성공",
+//         data: result
+//     });
+//   } catch (err) {
+//     console.error("규격 코드 조회 실패:", err);
+//     res.status(500).json({
+//         result_code: "FAIL",
+//         message: "실패",
+//         error: err.message
+//     });
+//   }
+// });
 
 // 공통코드 - 단위
-router.get("/unit", async (req, res) => {
-  try {
-    const result = await orderService.findUnitList();
-    res.json({
-        result_code: "SUCCESS",
-        message: "성공",
-        data: result
-    });
-  } catch (err) {
-    console.error("단위 코드 조회 실패:", err);
-    res.status(500).json({
-        result_code: "FAIL",
-        message: "실패",
-        error: err.message
-    });
-  }
-});
+// router.get("/unit", async (req, res) => {
+//   try {
+//     const result = await orderService.findUnitList();
+//     res.json({
+//         result_code: "SUCCESS",
+//         message: "성공",
+//         data: result
+//     });
+//   } catch (err) {
+//     console.error("단위 코드 조회 실패:", err);
+//     res.status(500).json({
+//         result_code: "FAIL",
+//         message: "실패",
+//         error: err.message
+//     });
+//   }
+// });
 
 
 // 해당 javascript 파일의 마지막 코드, 모듈화
