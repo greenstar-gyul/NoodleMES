@@ -25,7 +25,7 @@ const searchEqiChkType = BASE_QUERY + `
 const selectEqiChkCodeForUpdate = `
 SELECT CONCAT(
     'CHK-', ?, '-',
-    LPAD(COALESCE(MAX(SUBSTR(eqi_code, -3)), 0) + 1, 3, '0')
+    LPAD(COALESCE(MAX(SUBSTR(chk_type_code, -3)), 0) + 1, 3, '0')
 ) AS next_chk_type_code
 FROM eqi_type_tbl
 WHERE eq_type = ?

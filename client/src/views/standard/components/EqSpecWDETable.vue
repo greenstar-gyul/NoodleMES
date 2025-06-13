@@ -88,7 +88,7 @@ const exportToExcel = () => {
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
                 <div>
-                    <div class="font-semibold text-2xl">{{ title || '설비 목록' }}</div>
+                    <div class="font-semibold text-2xl">{{ title || '점검항목 목록' }}</div>
                     <div class="text-sm text-gray-500 mt-1">총 {{ data.length }}건</div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
@@ -103,7 +103,7 @@ const exportToExcel = () => {
         <!-- 데이터 없을 때 표시 -->
         <div v-if="!data || data.length === 0" class="text-center p-8 text-gray-500">
             <p>표시할 데이터가 없습니다.</p>
-            <p class="text-sm mt-2">검색 조건을 확인하거나 새로운 설비를 등록해주세요.</p>
+            <p class="text-sm mt-2">검색 조건을 확인하거나 새로운 설비점검항목을 등록해주세요.</p>
         </div>
 
         <!-- DataTable (PrimeVue) -->
@@ -146,7 +146,7 @@ const exportToExcel = () => {
         <!-- 선택된 행 정보 표시 -->
         <div v-if="selectedWDE && selectedWDE.length > 0" class="mt-4 p-3 bg-blue-50 rounded">
             <p class="text-sm text-blue-600">
-                선택된 설비: {{ selectedWDE.length }}개
+                선택된 점검항목: {{ selectedWDE.length }}개
                 <span v-if="selectedWDE.length === 1" class="ml-2">
                     ({{ selectedWDE[0][dataKey] }} - 수정 모드)
                 </span>

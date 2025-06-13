@@ -1,13 +1,13 @@
 <script setup>
 import { ref, watch } from 'vue';
-import Button  from 'primevue/button';
+import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
 
 // Props
 const props = defineProps({
-  fields: {
+  data: {
     type: Array,
     required: true
   },
@@ -27,6 +27,11 @@ const props = defineProps({
     type: String,
     default: '400px' // 기본값 지정
   },
+  columns: {
+    type: Array,
+    default: () => []
+  },
+
   initialData: {  // 🎯 초기 데이터 받기
     type: Array,
     default: () => []
@@ -35,7 +40,8 @@ const props = defineProps({
 
 // Emits
 const emit = defineEmits(['update', 'loadEquipment'])
-
+const selectedE = ref([]);
+const dynamicColumns = ref([]);
 // 상태 관리
 const rows = ref([]) // 전체 데이터
 const selectedRows = ref([]) // 선택된 행
@@ -51,7 +57,7 @@ watch(
 
 // 새 행 추가
 const addRow = () => {
-  const newRow = Object.fromEntries(props.fields.map(f => [f, '']))
+  const newRow = Object.fromEntries(props.data.map(f => [f, '']))
   newRow[props.dataKey] = 'NEW_' + Date.now() // 임시 ID
   rows.value.push(newRow)
   emit('update', rows.value);
@@ -64,7 +70,7 @@ const deleteSelected = () => {
     console.log('⚠️ 삭제할 행을 선택해주세요!');
     return;
   }
-  
+
   rows.value = rows.value.filter(row => !selectedRows.value.includes(row))
   selectedRows.value = []
   emit('update', rows.value);
@@ -91,58 +97,26 @@ const handleInputChange = () => {
             <div class="font-semibold text-2xl">{{ title }}</div>
           </div>
           <div class="flex justify-end gap-2">
-            <Button 
-              label="선택 삭제" 
-              icon="pi pi-trash" 
-              severity="danger" 
-              @click="deleteSelected"
-              :disabled="selectedRows.length === 0"
-            />
-            <Button 
-              label="행 추가" 
-              icon="pi pi-plus" 
-              @click="addRow" 
-            />
-            <Button 
-              label="지시정보 불러오기" 
-              severity="success" 
-              class="min-w-fit whitespace-nowrap" 
-              @click="loadEquipment" 
-            />
+            <Button label="선택 삭제" icon="pi pi-trash" severity="danger" @click="deleteSelected"
+              :disabled="selectedRows.length === 0" />
+            <Button label="행 추가" icon="pi pi-plus" @click="addRow" />
+            <Button label="지시정보 불러오기" severity="success" class="min-w-fit whitespace-nowrap" @click="loadEquipment" />
           </div>
         </div>
       </div>
-      
+
       <!-- 📋 데이터 테이블 -->
-      <DataTable 
-        v-model:selection="selectedRows" 
-        :value="rows" 
-        :dataKey="dataKey" 
-        selectionMode="multiple"
-        showGridlines 
-        scrollable 
-        :scrollHeight="scrollHeight" 
-        tableStyle="min-width: 50rem"
-      >
+      <DataTable v-model:selection="selectedRows" :value="rows" :dataKey="dataKey" selectionMode="multiple"
+        showGridlines scrollable :scrollHeight="scrollHeight" tableStyle="min-width: 50rem">
         <Column selectionMode="multiple" headerStyle="width: 3rem" />
-        
-        <Column 
-          v-for="field in fields" 
-          :key="field" 
-          :field="field" 
-          :header="mapper?.[field] ?? field"
-        >
+
+        <Column v-for="col in data" :key="dataKey" :field="col" :header="mapper[col] ?? col">
           <template #body="slotProps">
-            <InputText 
-              v-model="slotProps.data[field]" 
-              class="w-full" 
-              placeholder="입력해주세요"
-              @input="handleInputChange"
-            />
+            <InputText v-model="slotProps.data[col]" class="w-full" placeholder="입력해주세요" @input="handleInputChange" />
           </template>
         </Column>
       </DataTable>
-      
+
       <!-- 📊 현재 데이터 개수 표시 -->
       <div class="text-sm text-gray-600">
         총 {{ rows.length }}건의 데이터
@@ -150,5 +124,3 @@ const handleInputChange = () => {
     </div>
   </div>
 </template>
-
-

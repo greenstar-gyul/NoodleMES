@@ -30,7 +30,7 @@ const props = defineProps({
 });
 // 테이블에 보여줄 제품 데이터
 const emit = defineEmits(['selection-change', 'updated', 'delete', 'export']);
-const selectedWDE = ref([]);
+const selectedWDEeiqchk = ref([]);
 const dynamicColumns = ref([]);
 // 데이터가 바뀔 때마다 열 추출
 watch(
@@ -47,26 +47,26 @@ watch(
 
 const onRowSelect = (event) => {
     console.log('행 선택됨:', event.data);
-    console.log('현재 선택된 항목들:', selectedWDE.value);
-    emit('selection-change', selectedWDE.value);  // 전체 선택 배열 보내기
+    console.log('현재 선택된 항목들:', selectedWDEeiqchk.value);
+    emit('selection-change', selectedWDEeiqchk.value);  // 전체 선택 배열 보내기
 };
 
 const onRowUnselect = (event) => {
     console.log('행 선택 해제:', event.data);
-    console.log('현재 선택된 항목들:', selectedWDE.value);
-    emit('selection-change', selectedWDE.value);  // 전체 선택 배열 보내기
+    console.log('현재 선택된 항목들:', selectedWDEeiqchk.value);
+    emit('selection-change', selectedWDEeiqchk.value);  // 전체 선택 배열 보내기
 };
 
 // 선택 초기화 메서드
 const clearSelection = () => {
-    selectedWDE.value = [];
+    selectedWDEeiqchk.value = [];
     emit('selection-change', []);  // 부모한테도 알려주기
 };
 
 const deleteSelected = () => {
-    if (selectedWDE.value) {
-        console.log('삭제 요청:', selectedWDE.value);
-        emit('delete', selectedWDE.value);
+    if (selectedWDEeiqchk.value) {
+        console.log('삭제 요청:', selectedWDEeiqchk.value);
+        emit('delete', selectedWDEeiqchk.value);
     }
 };
 
@@ -93,7 +93,7 @@ const exportToExcel = () => {
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" 
-                            @click="deleteSelected" :disabled="!selectedWDE || selectedWDE.length == 0" />
+                            @click="deleteSelected" :disabled="!selectedWDEeiqchk || selectedWDEeiqchk.length == 0" />
                     <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" 
                             outlined @click="exportToExcel" />
                 </div>
@@ -109,7 +109,7 @@ const exportToExcel = () => {
         <!-- DataTable (PrimeVue) -->
         <DataTable
             v-else
-            v-model:selection="selectedWDE"
+            v-model:selection="selectedWDEeiqchk"
             :value="data"
             :dataKey="dataKey"
             showGridlines
@@ -144,11 +144,11 @@ const exportToExcel = () => {
             />
         </DataTable>
         <!-- 선택된 행 정보 표시 -->
-        <div v-if="selectedWDE && selectedWDE.length > 0" class="mt-4 p-3 bg-blue-50 rounded">
+        <div v-if="selectedWDEeiqchk && selectedWDEeiqchk.length > 0" class="mt-4 p-3 bg-blue-50 rounded">
             <p class="text-sm text-blue-600">
-                선택된 설비: {{ selectedWDE.length }}개
-                <span v-if="selectedWDE.length === 1" class="ml-2">
-                    ({{ selectedWDE[0][dataKey] }} - 수정 모드)
+                선택된 설비: {{ selectedWDEeiqchk.length }}개
+                <span v-if="selectedWDEeiqchk.length === 1" class="ml-2">
+                    ({{ selectedWDEeiqchk[0][dataKey] }} - 수정 모드)
                 </span>
                 <span v-else class="ml-2">
                     (다중 선택 - 삭제만 가능)
