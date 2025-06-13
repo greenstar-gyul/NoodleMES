@@ -1,5 +1,8 @@
 import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import App from './App.vue';
+
+import { createPersistedState } from 'pinia-plugin-persistedstate';
 import router from './router';
 import mrpRouter from './router/mrp';
 import prodRouter from './router/production';
@@ -17,6 +20,8 @@ import ToastService from 'primevue/toastservice';
 
 import '@/assets/styles.scss';
 
+const pinia = createPinia();
+pinia.use(createPersistedState()) // localStorage 기본 사용
 const app = createApp(App);
 
 app.use(router);
@@ -40,4 +45,5 @@ app.use(PrimeVue, {
 app.use(ToastService);
 app.use(ConfirmationService);
 
+app.use(pinia);
 app.mount('#app');

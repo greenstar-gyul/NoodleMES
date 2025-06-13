@@ -1,5 +1,8 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useOrderProductStore } from '@/stores/OrderProductStore';
+
 import axios from 'axios';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
@@ -16,11 +19,11 @@ import InputNumber from 'primevue/inputnumber';
 import Calendar from 'primevue/calendar';
 import { Select } from 'primevue';
 
-// 상위 컴포넌트에서 전달받은 props
-const props = defineProps({
-  productRows: { type: Array, required: true },
-  selectedProducts: { type: Array, required: true }
-});
+// 피니아
+// const { productRows, selectedProducts, setProductRows, resetProductRows, setSelectedProducts } = useOrderProductStore();
+const prodStore = useOrderProductStore();
+// Store에서 프로퍼티를 추출하면서 반응성을 유지하려면 storeToRefs()를 사용해야 한다.
+const  { productRows, selectedProducts, setProductRows, resetProductRows, setSelectedProducts } = storeToRefs(prodStore);
 
 /* ===== DATA ===== */
 // 제품명 팝업
@@ -28,9 +31,6 @@ const productPopupVisible = ref(false);
 
 //테이블 행
 const currentProductRow = ref(null);
-
-// 선택된 행
-const selectedProducts = ref([]);
 
 //제품리스트
 const productList = ref([]);
@@ -63,23 +63,26 @@ const handleProductConfirm = (selectedProduct) => {
 
 // 행 추가
 const addRow = () => {
-    const rows = props.productRows || [];
     const newRow = {
-        id: Date.now() + rows.length, // 유니크 ID 생성
+        ord_d_code: `temp-${Date.now()}`,
         prod_name: '',
         com_value: '',
         spec: '',
         unit: '',
-        prod_qtt: 0,
+        prod_amount: 0,
         prod_price: 0,
         delivery_date: '',
         priority: 0,
         total_price: 0
     };
 
-    props.productRows.push(newRow);
-};
+    // 안전하게 배열인지 확인 후 할당
+    if (!Array.isArray(productRows.value)) {
+        productRows.value = [];
+    }
 
+    productRows.value = [...productRows.value, newRow];
+};
 
 // 선택 삭제
 const deleteSelected = () => {
@@ -89,20 +92,22 @@ const deleteSelected = () => {
     }
         
     // 1. 선택되지 않은 행만 필터링
-    // props.productRows 배열에서 selectedProducts.value에 포함되지 않은 항목만 남김
-    const selRows = props.productRows.filter((item) => {
+    // productRows 배열에서 selectedProducts.value에 포함되지 않은 항목만 남김
+    const selRows = productRows.filter((item) => {
         return !(selectedProducts.value.findIndex((selProd) => item.id === selProd.id) > -1);
     });
     
-    // 2. props.productRows 배열 초기화 (기존 행들 모두 제거)
-    while (props.productRows.length > 0) {
-        props.productRows.pop(); // 배열의 마지막 요소부터 하나씩 제거
+    // 2. productRows 배열 초기화 (기존 행들 모두 제거)
+    while (productRows.length > 0) {
+        productRows.pop(); // 배열의 마지막 요소부터 하나씩 제거
     }
 
     // 3. 선택되지 않은 행만 다시 push해서 화면에 반영
-    props.productRows.push(...selRows); // 선택되지 않은 행들만 남겨서 다시 배열에 추가
-};
+    productRows.push(...selRows); // 선택되지 않은 행들만 남겨서 다시 배열에 추가
 
+    //4. 선택해제
+    setSelectedProducts([]); 
+};
 
 //숫자형식(콤마)
 const formatNumber = (value) => {
@@ -111,9 +116,9 @@ const formatNumber = (value) => {
 };
 
 //총액 자동 계산
-watch(props.productRows, (rows) => {
+watch(productRows, (rows) => {
   rows.forEach(row => {
-    row.total_price = (row.prod_qtt || 0) * (row.prod_price || 0);
+    row.total_price = (row.prod_amount || 0) * (row.prod_price || 0);
   });
 }, { deep: true });
 
@@ -153,7 +158,7 @@ onMounted(async () => {
         </div>
 
         <!-- 제품 테이블 -->
-        <DataTable v-model:selection="selectedProducts" :value="props.productRows" showGridlines scrollable scrollHeight="450px" dataKey="id" class="w-full fixed-table">
+        <DataTable v-model:selection="selectedProducts" :value="productRows" showGridlines scrollable scrollHeight="450px" dataKey="ord_d_code" class="w-full fixed-table">
             <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
             <Column field="prod_name" header="제품명" style="width: 220px" bodyStyle="width: 220px">
@@ -185,15 +190,15 @@ onMounted(async () => {
                 </template>
             </Column>            
 
-            <Column field="prod_qtt" header="수량" style="width: 60px" bodyStyle="width: 100px">
+            <Column field="prod_amount" header="수량" style="width: 60px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.prod_qtt" :min="0" showButtons  inputStyle="width: 100%"/>
+                    <InputNumber v-model="slotProps.data.prod_amount" :min="0" showButtons  :inputStyle="{ width: '100%' }"/>
                 </template>
             </Column>
 
             <Column field="prod_price" header="단가(원)" style="width: 100px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.prod_price" inputStyle="width: 100%"/>
+                    <InputNumber v-model="slotProps.data.prod_price" :inputStyle="{ width: '100%' }"/>
                 </template>
             </Column>
 
@@ -205,13 +210,13 @@ onMounted(async () => {
 
             <Column field="priority" header="우선순위" style="width: 100px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.priority" :min="0" showButtons inputStyle="width: 100%"/>
+                    <InputNumber v-model="slotProps.data.priority" :min="0" showButtons :inputStyle="{ width: '100%' }"/>
                 </template>
             </Column>
 
             <Column field="total_price" header="총액(원)" style="width: 100px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <InputText :value="formatNumber(slotProps.data.prod_qtt * slotProps.data.prod_price)" readonly style="width: 100%"/>
+                    <InputText :value="formatNumber(slotProps.data.prod_amount * slotProps.data.prod_price)" readonly style="width: 100%"/>
                 </template>
             </Column>
         </DataTable>
