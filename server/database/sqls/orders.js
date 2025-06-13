@@ -27,9 +27,10 @@ const selectOrderDetailList = `
        , od.ord_priority
        , od.total_price
        , p.prod_name
-       , p.unit
-       , p.spec
+       , comm_name(p.unit) AS unit
+       , comm_name(p.spec) AS spec
        , p.note
+       , comm_name(p.com_value) AS com_value
   FROM ord_d_tbl od
   JOIN prod_tbl p ON od.prod_code = p.prod_code
   WHERE od.ord_code = ?
