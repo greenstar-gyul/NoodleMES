@@ -23,7 +23,15 @@ import { Select } from 'primevue';
 // const { productRows, selectedProducts, setProductRows, resetProductRows, setSelectedProducts } = useOrderProductStore();
 const prodStore = useOrderProductStore();
 // Store에서 프로퍼티를 추출하면서 반응성을 유지하려면 storeToRefs()를 사용해야 한다.
-const  { productRows, selectedProducts, setProductRows, resetProductRows, setSelectedProducts } = storeToRefs(prodStore);
+// storeToRefs()는 Pinia 스토어의 "상태!"를 반응형으로 변환해준다.
+// 따라서, storeToRefs()를 사용하여 상태를 추출하는 것이 좋다.
+
+// 상태는 반응형으로 가져오기
+const { productRows, selectedProducts } = storeToRefs(prodStore);
+// 함수는 그대로 가져오기
+const { setProductRows, resetProductRows, setSelectedProducts } = prodStore;
+
+
 
 /* ===== DATA ===== */
 // 제품명 팝업
@@ -58,6 +66,13 @@ const handleProductConfirm = (selectedProduct) => {
         currentProductRow.value.spec = selectedProduct.spec;
         currentProductRow.value.unit = selectedProduct.unit;
         currentProductRow.value.prod_code = selectedProduct.prod_code; // 서버 전송용
+
+        // 현재 행의 나머지 필드 초기화
+        currentProductRow.value.prod_amount = 0;
+        currentProductRow.value.prod_price = 0;
+        currentProductRow.value.delivery_date = '';
+        currentProductRow.value.ord_priority = 0;
+        currentProductRow.value.total_price = 0;
     }
 };
 
@@ -72,7 +87,7 @@ const addRow = () => {
         prod_amount: 0,
         prod_price: 0,
         delivery_date: '',
-        priority: 0,
+        ord_priority: 0,
         total_price: 0
     };
 
@@ -87,27 +102,28 @@ const addRow = () => {
 // 선택 삭제
 const deleteSelected = () => {
     // 선택된 제품이 없을 경우 함수를 종료
-    if (selectedProducts.length == 0) {
+    if (!selectedProducts.value || selectedProducts.value.length === 0) {
         return;
     }
-        
-    // 1. 선택되지 않은 행만 필터링
+
+    // 선택되지 않은 행만 필터링 (key: ord_d_code)
     // productRows 배열에서 selectedProducts.value에 포함되지 않은 항목만 남김
-    const selRows = productRows.filter((item) => {
-        return !(selectedProducts.value.findIndex((selProd) => item.id === selProd.id) > -1);
+    const selRows = productRows.value.filter(item => {
+        return !selectedProducts.value.some(sel => sel.ord_d_code === item.ord_d_code);
     });
-    
-    // 2. productRows 배열 초기화 (기존 행들 모두 제거)
-    while (productRows.length > 0) {
-        productRows.pop(); // 배열의 마지막 요소부터 하나씩 제거
+
+    // productRows 배열 초기화 (기존 행들 모두 제거)
+    while (productRows.value.length > 0) {
+        productRows.value.pop(); // 배열의 마지막 요소부터 하나씩 제거
     }
 
-    // 3. 선택되지 않은 행만 다시 push해서 화면에 반영
-    productRows.push(...selRows); // 선택되지 않은 행들만 남겨서 다시 배열에 추가
+    // 선택되지 않은 행만 다시 push해서 화면에 반영
+    productRows.value.push(...selRows); // 선택되지 않은 행들만 남겨서 다시 배열에 추가
 
-    //4. 선택해제
-    setSelectedProducts([]); 
+    // 선택 해제
+    setSelectedProducts([]);
 };
+
 
 //숫자형식(콤마)
 const formatNumber = (value) => {
@@ -208,9 +224,9 @@ onMounted(async () => {
                 </template>
             </Column>
 
-            <Column field="priority" header="우선순위" style="width: 100px" bodyStyle="width: 100px">
+            <Column field="ord_priority" header="우선순위" style="width: 100px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.priority" :min="0" showButtons :inputStyle="{ width: '100%' }"/>
+                    <InputNumber v-model="slotProps.data.ord_priority" :min="0" showButtons :inputStyle="{ width: '100%' }"/>
                 </template>
             </Column>
 

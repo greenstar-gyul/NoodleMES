@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useOrderProductStore } from '@/stores/OrderProductStore';
 
 import axios from 'axios';
@@ -29,8 +30,17 @@ const props = defineProps({
   note: { type: Object, required: true },
 });
 
-//피니아
-const { productRows, setProductRows, resetProductRows } = useOrderProductStore();
+// 피니아
+// const { productRows, selectedProducts, setProductRows, resetProductRows, setSelectedProducts } = useOrderProductStore();
+const prodStore = useOrderProductStore();
+// Store에서 프로퍼티를 추출하면서 반응성을 유지하려면 storeToRefs()를 사용해야 한다.
+// storeToRefs()는 Pinia 스토어의 "상태!"를 반응형으로 변환해준다.
+// 따라서, storeToRefs()를 사용하여 상태를 추출하는 것이 좋다.
+
+// 상태는 반응형으로 가져오기
+const { productRows } = storeToRefs(prodStore);
+// 함수는 그대로 가져오기
+const { setProductRows, resetProductRows, setSelectedProducts } = prodStore;
 
 
 /* ===== DATA ===== */
@@ -115,8 +125,8 @@ const handleSave = async () => {
     spec: item.spec,
     prod_amount: item.prod_amount,
     prod_price: item.prod_price,
-    delivery_date:moment(item.delivery_date).format("YYYY.MM.DD"),
-    ord_priority: item.priority,
+    delivery_date:moment(item.delivery_date).format("YYYY-MM-DD"),
+    ord_priority: item.ord_priority,
     total_price: item.total_price,
     prod_code: item.prod_code
   }));
@@ -145,6 +155,7 @@ const handleConfirm = async (selectedOrder) => {
     // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
     details.forEach((item, idx) => {
       item.ord_d_code = item.ord_d_code || `row-${idx}`;
+      item.delivery_date = moment(item.delivery_date).format('YYYY-MM-DD');
     });
 
     setProductRows(details);
@@ -152,10 +163,10 @@ const handleConfirm = async (selectedOrder) => {
     // 주문 기본 정보 설정
     props.ordCode.value = selectedOrder.ord_code;
     props.ordName.value = selectedOrder.ord_name;
-    props.ordDate.value = moment(selectedOrder.ord_date).format("YYYY.MM.DD");
+    props.ordDate.value = moment(selectedOrder.ord_date).format("YYYY-MM-DD");
     props.note.value = selectedOrder.note || '';
     props.selectedClient.value = selectedOrder.client_code;
-    props.empCode.value = selectedOrder.mcode;
+    props.empCode.value.value = selectedOrder.mcode;
   } catch (err) {
     console.error('주문 상세 조회 실패:', err);
   }
