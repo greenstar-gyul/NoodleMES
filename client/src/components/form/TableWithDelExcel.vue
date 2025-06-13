@@ -39,11 +39,9 @@ const props = defineProps({
     scrollHeight: {             // 부모에서 설정할수있게 추가했습니다
     type: String,
     default: '400px'
-  }
+  } 
 });
-        default: []
-    }
-});
+
 
 // 테이블에 보여줄 제품 데이터 (예시 데이터)
 const itemsWDE = ref([]);
@@ -79,8 +77,6 @@ watch(
   { immediate: true }
 );
 
-// DataTable 선택된 행 (선택 모드)
-const selectedWDE = ref([]);
 </script>
 
 <template>
