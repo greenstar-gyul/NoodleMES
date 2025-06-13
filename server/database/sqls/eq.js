@@ -12,8 +12,17 @@ SELECT   eq_code
          ,eq_pos
          ,eq_type
          ,is_used
-         ,chk_cycle
 FROM     eq_tbl
+`;
+
+const BASE_QUERY_FOR_EQII = `
+SELECT eqii_code
+       ,inst_date
+       ,chk_exp_date
+       ,stat
+       ,note
+       ,inst_emp_code
+FROM   eqii_tbl
 `;
 
 // 파라미터별 검색
@@ -85,6 +94,8 @@ module.exports = {
   // 전체 조회 (첫 화면용)
   selectEqList: BASE_QUERY + ' ORDER BY eq_code',
 
+  selectEqiiList: BASE_QUERY_FOR_EQII + ' ORDER BY eqii_code',
+
   // 동적 검색 (검색 조건 유무에 따라 전체, 조건부 검색)
   buildSearch: buildSearch,
 
@@ -93,14 +104,14 @@ module.exports = {
 
   // 설비 등록 쿼리
   insertEq: `
-    INSERT INTO eq_tbl (eq_code, eq_name, eq_model, eq_maker, capacity, stat, eq_make_date, bring_date, take_date, eq_pos, eq_type, is_used, chk_cycle)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO eq_tbl (eq_code, eq_name, eq_model, eq_maker, capacity, stat, eq_make_date, bring_date, take_date, eq_pos, eq_type, is_used)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `,
 
   // 설비 수정 쿼리
   updateEq: `
     UPDATE eq_tbl 
-    SET eq_name = ?, eq_model = ?, eq_maker = ?, capacity = ?, stat = ?, eq_make_date = ?, bring_date = ?, take_date = ?, eq_pos = ?, eq_type = ?, is_used = ?, chk_cycle = ?
+    SET eq_name = ?, eq_model = ?, eq_maker = ?, capacity = ?, stat = ?, eq_make_date = ?, bring_date = ?, take_date = ?, eq_pos = ?, eq_type = ?, is_used = ?
     WHERE eq_code = ?
   `,
 
