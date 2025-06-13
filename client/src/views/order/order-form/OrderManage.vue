@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import OrderManageSearch from './order-manage-sub/OrderManageSearch.vue';
 import OrderManageProduct from './order-manage-sub/OrderManageProduct.vue';
 
@@ -8,10 +8,8 @@ const ord_code = ref({});
 const ord_name = ref({});
 const ord_date = ref({});
 const selectedClient = ref({});
-const selectedManager = ref({});
+const empCode = ref({ value: "EMP001" }); // 로그인 후 전역상태에서 받아오기
 const note = ref({});
-const productRows = ref([]);
-const selectedProducts = ref([]);
 </script>
 
 <template>
@@ -21,14 +19,10 @@ const selectedProducts = ref([]);
     :ord-name="ord_name"
     :ord-date="ord_date"
     :selected-client="selectedClient"
-    :selected-manager="selectedManager"
+    :emp-code="empCode"
     :note="note"
-    :product-rows="productRows"
   />
 
   <!-- ===== 제품 영역 ===== -->
-  <OrderManageProduct
-    :product-rows="productRows"
-    :selected-products="selectedProducts"
-  />
+  <OrderManageProduct />
 </template>
