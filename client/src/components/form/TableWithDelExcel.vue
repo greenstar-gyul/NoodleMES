@@ -80,7 +80,7 @@ watch(
 );
 
 // DataTable 선택된 행 (선택 모드)
-const selectedWDE = ref([]);
+// const selectedWDE = ref([]);
 
 </script>
 
