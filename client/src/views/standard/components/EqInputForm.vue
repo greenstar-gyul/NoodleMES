@@ -66,17 +66,16 @@
                 <LabeledDatePicker v-model="eqForm.eq_make_date" label="제조일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">점검주기</label>
-                <InputText v-model="eqForm.chk_cycle" type="number" placeholder="점검주기 입력" class="w-full" />
+                <LabeledDatePicker v-model="eqForm.bring_date" label="도입일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
         </div>
 
         <!-- 인계일자 / 설비유형 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <LabeledDatePicker v-model="eqForm.bring_date" label="도입일자" placeholder="날짜를 선택" :disabled="false" />
+                <label class="font-semibold text-xl block mb-2">설치위치</label>
+                <InputText v-model="eqForm.eq_pos" type="text" placeholder="설치위치 입력" class="w-full" />
             </div>
-            
             <div>
                 <LabeledDatePicker v-model="eqForm.reg_date" label="등록일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
@@ -84,10 +83,6 @@
 
         <!-- 설치위치 / 사용여부 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="font-semibold text-xl block mb-2">설치위치</label>
-                <InputText v-model="eqForm.eq_pos" type="text" placeholder="설치위치 입력" class="w-full" />
-            </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">사용여부</label>
                 <Dropdown v-model="eqForm.is_used" :options="statusOptions" optionLabel="label" optionValue="value"

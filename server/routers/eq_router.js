@@ -4,13 +4,13 @@ const router = express.Router();
 const eqService = require('../services/eq_service.js');
 
 // mrp 전체 조회
-router.get('/all', async (req, res)=>{
+router.get('/all', async (req, res) => {
     try {
-      let eqList = await eqService.findAll();
-      res.send(eqList);
+        let eqList = await eqService.findAll();
+        res.send(eqList);
     } catch (err) {
         console.log(err);
-        res.status(500).send({ error : '조회 실패'});
+        res.status(500).send({ error: '조회 실패' });
     }
 });
 
@@ -56,6 +56,22 @@ router.delete('/:code', async (req, res) => {
         const result = await eqService.deleteEq(req.params.code);
         res.json({ success: true, data: result });
     } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 다중 삭제
+router.delete('/multiple/delete', async (req, res) => {
+    try {
+        const { codes } = req.body;
+        if (!codes || !Array.isArray(codes) || codes.length === 0) {
+            return res.status(400).json({ success: false, error: '삭제할 코드가 없습니다' });
+        }
+
+        const result = await eqService.deleteMultiple(codes);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
