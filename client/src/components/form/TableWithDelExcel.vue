@@ -35,6 +35,12 @@ const props = defineProps({
     },
     columns: {
         type: Array,
+    },
+    scrollHeight: {             // 부모에서 설정할수있게 추가했습니다
+    type: String,
+    default: '400px'
+  }
+});
         default: []
     }
 });
@@ -73,9 +79,8 @@ watch(
   { immediate: true }
 );
 
-console.log('📌 columns:', props.columns)
-console.log('📌 mapper:', props.mapper)
-console.log('📌 data:', props.data)
+// DataTable 선택된 행 (선택 모드)
+// const selectedWDE = ref([]);
 
 </script>
 
@@ -101,8 +106,7 @@ console.log('📌 data:', props.data)
             :value="data"
             :dataKey="dataKey"
             showGridlines
-            scrollable
-            scrollHeight="400px"
+            :scrollHeight="scrollHeight"
             tableStyle="min-width: 50rem"
         >
             <Column selectionMode="single" headerStyle="width: 3rem" />

@@ -60,7 +60,7 @@ router.get('/materials-popup', async (req, res) => {
 }); 
 
 // 🔍 BOM 검색 목록 라우터
-router.get('/list', async (req, res) => {
+router.get('/search', async (req, res) => {
   try {
     const searchParams = req.query; // 프론트에서 넘어온 검색조건들
     const result = await bomService.searchBomList(searchParams); // ✅ 검색 서비스 사용
@@ -68,6 +68,17 @@ router.get('/list', async (req, res) => {
   } catch (err) {
     console.error('❌ BOM 검색 목록 라우터 에러:', err);
     res.status(500).send('서버 오류');
+  }
+});
+
+// 제품유형 목록 조회 라우터
+router.get('/com-values', async (req, res) => {
+  try {
+    const result = await bomService.getComValueOptions(); // ✅ 함수명 바뀐 경우 맞춰주기
+    res.json(result); // ✅ 객체 배열 그대로 전달
+  } catch (err) {
+    console.error('❌ 제품유형 목록 조회 실패:', err);
+    res.status(500).send('제품유형 목록 조회 실패');
   }
 });
 

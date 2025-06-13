@@ -11,7 +11,7 @@ export const QualityMapping = {
 
     lot_code: 'LOT번호',
     result: '결과코드',
-    qir_emp_code: '검사자',
+    emp_code: '검사자',
     start_date: '시작일시',
     end_date: '종료일시',
     uppass_qtt: '불량수량',

@@ -21,11 +21,38 @@ router.get('/selectMonth', async (req, res)=>{
                                     .catch(err => console.log(err));
     res.send(monthList); 
 });
+router.get('/order-list', async (req, res) => {
+  try {
+    let orderList = await prdpService.findOrder();
+    res.send(orderList);
+  } catch (err) {
+    console.error('❌ 주문 조회 실패:', err);
+    res.status(500).send('서버 오류');
+  }
+});
 // 라인전체조회
-router.get('/line', async (req, res)=>{
-    let lineList = await prdpService.findLine()
-                                    .catch(err => console.log(err));
-    res.send(lineList); 
+router.get("/line", async (req, res) => {
+  const prodType = req.query.type;  // ex: j1, j2, j3
+
+  // com_value → line_type 변환
+  const typeMap = {
+    j1: 's1',  // 봉지라면 → 봉지라인
+    j2: 's2',  // 컵라면(대) → 컵라면 라인
+    j3: 's2',  // 컵라면(소) → 컵라면 라인
+  };
+
+  const lineType = typeMap[prodType];
+
+  if (!lineType) {
+    return res.status(400).send("Invalid product type");
+  }
+
+  try {
+    const lines = await prdpService.findLineByType(lineType);
+    res.send(lines);
+  } catch (err) {
+    res.status(500).send("DB 조회 실패");
+  }
 });
 
 // 제품전체조회
@@ -49,17 +76,13 @@ router.get('/detail/one', async (req, res) => {
 });
 
 // 3. 생산계획 등록
-router.post('/', async (req, res) => {
-  try{
-    const { production, details } = req.body;
-    const datas = {
-      prdpData: production,
-      detailData: details
-    }
-    const result = await prdpService.insertProductionTx(datas)
-    res.json({ success: true, data: result });
-  }catch (error){
-    res.status(500).json({ success: false, error: error.message });
+router.post('/register', async (req, res) => {
+  try {
+    const result = await prdpService.insertProductionTx(req.body);
+    res.json(result);
+  } catch (err) {
+    console.error('❌ 등록 실패:', err);
+    res.status(500).send('등록 중 오류 발생');
   }
 });
 

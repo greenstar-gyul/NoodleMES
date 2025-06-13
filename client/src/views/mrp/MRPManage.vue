@@ -1,64 +1,39 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
 import TableWithAddDel from '@/components/form/TableWithAddDel.vue';
 import mrpMapping from '@/service/MRPMapping';
 import MRPManageSearch from './mrp-sub/MRPManageSearch.vue';
 import bomSubMapping from '@/service/BOMSubMapping';
+import axios from 'axios';
+import MRPManageTable from './mrp-sub/MRPManageTable.vue';
 
-// 팝업 visible 상태
-const dialogVisible = ref(false);
-// 팝업 visible 상태 끝
-
-const mats = ref([]); 
-const popupMats = ref([]);  // 하위자재 추가 팝업 내부 자재들
-const matList = ref([]);    // 하위자재 필터 목록
-const selMatList = ref([]); // 하위자재 테이블 요소 선택 목록
-//팝업 끝
-const mrpDetailList = ref([]); // 하위자재 테이블 요소 목록
 const prdpCode = ref(null);
 
 onMounted(() => {
-
     // popupMats.value = MRPService.popupMats;
     // mats.value = MRPService.mats;
 });
 
-const openPopup = () => {
-    if (prdpCode.value == null || prdpCode.value == '') {
-        alert('생산계획을 먼저 불러오삼.');
-        return;
-    }
-    // console.log(prdpCode.value);
-    dialogVisible.value = true;
-}
-
-const popupMatsConfirm = (values) => {
-    // console.log(values);
-    // values.forEach(element => {
-    //     // console.log(element['mat_code']);
-    //     matList.value.push(element['mat_code']);
-    //     selMatList.value.push(mats.value.find(item => {
-    //         if (element['mat_code'] == item.mat_code) {
-    //             // console.log(item);
-    //             return true;
-    //         }
-    //     }));
-
-    //     // mats.value.push(element);
-    // });
-
-    // console.log(selMatList.value);
-}
-
 const saveData = async () => {
-    
-}
+    const data = {};
+    data.mrpData = mrpInfo.value;
+    data.detailData = mrpDetailList.value;
+    // console.log(data);
 
-const updateMRPDetailList = (values) => {
-    console.log(values);
-    selMatList.value = values;
-    // selMatList.value = [...values]; // shallow copy, 배열은 다른 배열이지만 내부 값들은 동일한 객체들임..
+    if (data.mrpData.mrp_code === '') {
+        console.log(data);
+        const response = await axios.post(`/api/mrp/create`, data);
+        const result = response.data;
+        console.log(response);
+    }
+    else {
+        // console.log(data.mrpData.mrp_code);
+        return; // 아직 미구현
+        const response = await axios.put(`/api/mrp/${data.mrpData.mrp_code}`, data);
+        const result = response.data;
+        // console.log(result);
+    }
 }
 
 const updatePrdpCode = (value) => {
@@ -66,19 +41,63 @@ const updatePrdpCode = (value) => {
 }
 
 const resetData = () => {
-    selMatList.value = [];
+    mrpDetailList.value = [];
+    mrpInfo.value = {
+        prdp_code: '',
+        reg: '김영업',
+        prdp_date: '',
+        start_date: '',
+        mrp_code: '',
+        note: '',
+        emp_code: 'EMP-10001',
+    };
+    prdpCode.value = '';
 }
+
+const loadMrpDetail = async (mrpCode) => {
+    // mrp_code가 없다는 것은.. 등록된 mrp가 아님..
+    if (mrpCode != undefined && mrpCode != null && mrpCode != '') {
+        // console.log(mrpCode);
+        const result = await axios.get(`/api/mrp/detail/${mrpCode}`);
+        mrpDetailList.value = await result.data;
+    }
+    else {
+        mrpDetailList.value = [];
+    }
+}
+
+// 현재 MRP 정보
+const mrpInfo = defineModel('data');
+mrpInfo.value = {
+    prdp_code: '',
+    reg: '김영업',
+    prdp_date: '',
+    start_date: '',
+    mrp_code: '',
+    note: '',
+    emp_code: 'EMP-10001',
+};
+
+// mrp 정보가 바뀌면 하위 자재 갱신하기..
+watch(() => mrpInfo.value, (newVal) => {
+    // loadMrpInfo();
+    prdpCode.value = mrpInfo.value.prdp_code;
+    // console.log(mrpInfo.value);
+    loadMrpDetail(mrpInfo.value.mrp_code);
+})
+
+// 현재 MRP 상세(하위 자재) 정보
+const mrpDetailList = defineModel('subData');
 
 </script>
 
 <template>
     <div>
-        <MRPManageSearch v-on:update-list="updateMRPDetailList" @update-prdp="updatePrdpCode" @reset-list="resetData" @save-data="saveData"></MRPManageSearch>
-        <!-- <TableWithAddDel v-model:data="selMatList" :dataKey="'mat_code'" :mapper="mrpMapping" @open-popup="openPopup()" title="자재" :columns="['mat_code','mat_name','unit','req_qtt','cur_qtt','plan_date','proposal_date','mrp_status']"></TableWithAddDel> -->
-        <TableWithAddDel v-model:data="selMatList" :dataKey="'mrp_d_code'" :mapper="mrpMapping.mrpMapping" @open-popup="openPopup()" :columns="['mat_name','req_qtt','cur_qtt','unit']" title="자재"></TableWithAddDel>
+        <MRPManageSearch v-model:data="mrpInfo" @reset-list="resetData" @save-data="saveData"></MRPManageSearch>
+        <MRPManageTable v-model:subData="mrpDetailList" v-model:prdp="prdpCode" :dataKey="'mrp_d_code'" :columns="['mat_name','req_qtt', 'unit','cur_qtt','stock_unit']" title="자재"></MRPManageTable>
     </div>
 
     <!-- 팝업 -->
-    <MultiplePopup v-model:visible="dialogVisible" :items="popupMats" @confirm="popupMatsConfirm" :mapper="bomSubMapping" :dataKey="'mat_code'"></MultiplePopup>
+    
     <!-- 팝업 끝 -->
 </template>

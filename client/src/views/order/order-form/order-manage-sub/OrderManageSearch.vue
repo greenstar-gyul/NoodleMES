@@ -1,5 +1,7 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useOrderProductStore } from '@/stores/OrderProductStore';
+
 import axios from 'axios';
 import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
@@ -17,15 +19,19 @@ import InputNumber from 'primevue/inputnumber';
 import Calendar from 'primevue/calendar';
 import { Select } from 'primevue';
 
+// 상위 컴포넌트에서 전달받은 props
 const props = defineProps({
-  productRows: { type: Array, required: true },
   ordCode: { type: Object, required: true },
   ordName: { type: Object, required: true },
   ordDate: { type: Object, required: true },
   selectedClient: { type: Object, required: true },
-  selectedManager: { type: Object, required: true },
+  empCode: { type: Object, required: true },
   note: { type: Object, required: true },
 });
+
+//피니아
+const { productRows, setProductRows, resetProductRows } = useOrderProductStore();
+
 
 /* ===== DATA ===== */
 // 주문 팝업
@@ -54,11 +60,10 @@ const handleReset = () => {
     props.ordDate.value = '';
     props.note.value = '';
     props.selectedClient.value = null;
-    props.selectedManager.value = null;
+    props.empCode.value = null;
 
-    // 제품 목록 초기화
-    props.productRows.value = [];
-
+    // 제품 목록 초기화, store 함수 사용
+    resetProductRows();
     console.log('초기화 완료 (주문 + 제품 목록)');
 };
 
@@ -84,11 +89,13 @@ const handleDelete = async () => {
 
 //저장
 const handleSave = async () => {
+  console.log("등록자 코드 (mcode):", props.empCode.value);
+  
   if (!props.ordName.value || !props.selectedClient.value) {
     alert('주문명과 거래처는 필수입니다.');
     return;
   }
-  if (props.productRows.value.length === 0) {
+  if (productRows.value.length === 0) {
     alert('제품 목록이 비어 있습니다. 최소 하나의 제품을 추가해주세요.');
     return;
   }
@@ -99,19 +106,18 @@ const handleSave = async () => {
     ord_date: moment().format('YYYY-MM-DD'),
     ord_stat: 'a1',
     note: props.note.value,
-    mcode: props.selectedManager.value,
+    mcode: props.empCode.value,
     client_code: props.selectedClient.value
   };
 
-  const details = props.productRows.value.map(item => ({
+  const details = productRows.value.map(item => ({
     unit: item.unit,
     spec: item.spec,
-    prod_amount: item.prod_qtt,
+    prod_amount: item.prod_amount,
     prod_price: item.prod_price,
-    delivery_date: item.delivery_date,
+    delivery_date:moment(item.delivery_date).format("YYYY.MM.DD"),
     ord_priority: item.priority,
     total_price: item.total_price,
-    ord_code: props.ordCode.value,
     prod_code: item.prod_code
   }));
 
@@ -134,7 +140,14 @@ const handleConfirm = async (selectedOrder) => {
     // 주문 상세 조회
     // 서버에서 JOIN으로 prod_name, unit 등도 같이 내려줘야 함
     const detailRes = await axios.get(`/api/order/${selectedOrder.ord_code}/details`);
-    props.productRows.value = detailRes.data.data;
+    const details = detailRes.data.data;//store 함수 사용
+
+    // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
+    details.forEach((item, idx) => {
+      item.ord_d_code = item.ord_d_code || `row-${idx}`;
+    });
+
+    setProductRows(details);
 
     // 주문 기본 정보 설정
     props.ordCode.value = selectedOrder.ord_code;
@@ -142,7 +155,7 @@ const handleConfirm = async (selectedOrder) => {
     props.ordDate.value = moment(selectedOrder.ord_date).format("YYYY.MM.DD");
     props.note.value = selectedOrder.note || '';
     props.selectedClient.value = selectedOrder.client_code;
-    props.selectedManager.value = selectedOrder.mcode;
+    props.empCode.value = selectedOrder.mcode;
   } catch (err) {
     console.error('주문 상세 조회 실패:', err);
   }
@@ -184,22 +197,6 @@ onMounted(async () => {
 
   } catch (err) {
     console.error('데이터 로딩 실패:', err);
-  }
-});
-
-// 거래처 변경 시 담당자 목록 업데이트
-watch(() => props.selectedClient.value, (newClientCode) => {
-  const target = allClients.value.find(c => c.client_code === newClientCode);
-
-  if (target) {
-    managerOptions.value = [{
-      label: target.client_mname,
-      value: target.client_mname
-    }];
-    props.selectedManager.value = target.client_mname;
-  } else {
-    managerOptions.value = [];
-    props.selectedManager.value = null;
   }
 });
 </script>
@@ -245,12 +242,7 @@ watch(() => props.selectedClient.value, (newClientCode) => {
 
       <!-- 입력 폼 영역 3 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <LabeledSelect
-              label="거래처 담당자"
-              v-model="props.selectedManager.value"
-              :options="managerOptions"
-              placeholder="거래처 담당자를 선택해주세요"
-          />
+          <LabeledInput label="등록자" v-model="props.empCode.value" :disabled="true"/>
           <LabeledTextarea
               label="비고"
               v-model="props.note.value"
