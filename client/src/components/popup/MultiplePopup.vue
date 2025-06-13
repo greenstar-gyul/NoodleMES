@@ -19,7 +19,7 @@
 
     <!-- 동적 컬럼 생성 -->
     <Column
-        v-for="item in multiplePopupItems"
+        v-for="item in visibleFields"
         :key="item"
         :field="item"
         :header="mapper[item] ?? item"
@@ -67,13 +67,18 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  selectedHeader : {
+    type : Array,
+    default : [],
+  }
 });
 const emit = defineEmits(['update:visible', 'confirm']);
 
 const selectedItems = ref([]);
 const searchKeyword = ref('');
 
-const multiplePopupItems = ref();
+// const multiplePopupItems = ref([]);
+const visibleFields = ref([]);
 
 // visible 상태 양방향 바인딩
 watch(() => props.visible, (val) => {
@@ -82,15 +87,31 @@ watch(() => props.visible, (val) => {
 
 // 데이터가 바뀔 때마다 열 추출
 watch(
-    () => props.items,
-    (newVal) => {
-        if (newVal?.length > 0) {
-            multiplePopupItems.value = Object.keys(newVal[0]);
-        } else {
-            multiplePopupItems.value = [];
-        }
-    },
-    { immediate: true }
+  () => props.items,
+  (newVal) => {
+    if(props.selectedHeader.length > 0) return; // selectedHeader가 있을 경우 watch 종료.
+    
+    if (Array.isArray(newVal) && newVal.length > 0) {
+      visibleFields.value = Object.keys(newVal[0]);
+    } else  {
+      visibleFields.value = [];
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => props.selectedHeader,
+  (newVal) => {
+    if (newVal.length > 0 ) {
+      visibleFields.value = newVal;
+    } else if(Array.isArray(props.items) && props.items.length > 0){
+      visibleFields.value = Object.keys(props.items[0]);
+    }else {
+      visibleFields.value = [];
+    }
+  },
+  { immediate: true }
 );
 
 const cancel = () => {

@@ -58,15 +58,10 @@
 import { ref } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
-import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
 import StandardInputForm from '@/views/standard/components/EqSpecInputForm.vue';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
-import TableWAD from '@/components/form/TableWithAddDel.vue';
-import bomMapper from '@/service/BOMMapping.js';
-import bomSubMapper from '@/service/BOMSubMapping.js';
 import eqstMapper from '@/service/EquipSpecTypeMapping.js';
-import MultiplePopup from '@/components/popup/MultiplePopup.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 
 // 검색조건 데이터 (v-model로 바인딩됨)

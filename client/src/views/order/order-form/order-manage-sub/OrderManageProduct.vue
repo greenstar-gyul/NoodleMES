@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import axios from 'axios';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
 import productMapping from '@/service/ProductMapping.js';
@@ -15,6 +16,7 @@ import InputNumber from 'primevue/inputnumber';
 import Calendar from 'primevue/calendar';
 import { Select } from 'primevue';
 
+// 상위 컴포넌트에서 전달받은 props
 const props = defineProps({
   productRows: { type: Array, required: true },
   selectedProducts: { type: Array, required: true }
@@ -33,6 +35,12 @@ const selectedProducts = ref([]);
 //제품리스트
 const productList = ref([]);
 
+// 규격 옵션 목록
+const specOptions = ref([]);
+
+// 단위 옵션 목록 
+const unitOptions = ref([]);
+
 /* ===== FUNCTIONS ===== */
 // 제품명 팝업 열기
 const openProductPopup = (row) => {
@@ -40,14 +48,16 @@ const openProductPopup = (row) => {
     productPopupVisible.value = true;
 };
 
-// 제품명 팝업 Confirm 핸들러
+// 팝업에서 제품 선택 시 현재 행에 값 반영
 const handleProductConfirm = (selectedProduct) => {
     console.log('선택된 제품:', selectedProduct);
-
     if (currentProductRow.value) {
+        // 선택된 제품 정보를 현재 선택된 행에 넣기
         currentProductRow.value.prod_name = selectedProduct.prod_name;
-        currentProductRow.value.prod_type = selectedProduct.prod_type;
-        currentProductRow.value.priority = selectedProduct.priority;
+        currentProductRow.value.com_value = selectedProduct.com_value;
+        currentProductRow.value.spec = selectedProduct.spec;
+        currentProductRow.value.unit = selectedProduct.unit;
+        currentProductRow.value.prod_code = selectedProduct.prod_code; // 서버 전송용
     }
 };
 
@@ -55,9 +65,9 @@ const handleProductConfirm = (selectedProduct) => {
 const addRow = () => {
     const rows = props.productRows || [];
     const newRow = {
-        id: Date.now() + rows.length,
+        id: Date.now() + rows.length, // 유니크 ID 생성
         prod_name: '',
-        prod_type: '',
+        com_value: '',
         spec: '',
         unit: '',
         prod_qtt: 0,
@@ -94,7 +104,7 @@ const deleteSelected = () => {
 };
 
 
-//숫자형식
+//숫자형식(콤마)
 const formatNumber = (value) => {
     if (!value) return '0';
     return new Intl.NumberFormat().format(value);
@@ -110,12 +120,20 @@ watch(props.productRows, (rows) => {
 //제품 불러오기
 onMounted(async () => {
   try {
-    const res = await fetch('/api/order/prod_tbl');
-    const data = await res.json();
-    productList.value = data;
-  } catch (err) {
-    console.error('제품 리스트 불러오기 실패:', err);
-  }
+    // 제품 목록
+    const prodRes = await axios.get('/api/order/products'); // 제품 전체 목록 불러오기
+    productList.value = prodRes.data.data; // 전체 제품 목록 저장
+
+    // 규격 옵션 (공통코드: 0O, 0X, 0Y)
+    const specRes = await axios.get('/api/order/spec');
+    specOptions.value = specRes.data.data;
+
+    // 단위 옵션 (공통코드: 0H)
+    const unitRes = await axios.get('/api/order/unit');
+        unitOptions.value = unitRes.data.data;
+    } catch (err) {
+        console.error('제품 리스트 불러오기 실패:', err);
+    }
 });
 </script>
 <template>
@@ -145,23 +163,25 @@ onMounted(async () => {
                 </template>
             </Column>
 
-            <Column field="prod_type" header="유형" style="width: 120px" bodyStyle="width: 120px">
+            <Column field="com_value" header="유형" style="width: 120px" bodyStyle="width: 120px">
                 <template #body="slotProps">
-                    <InputText v-model="slotProps.data.prod_type" style="width: 100%" readonly />
+                    <InputText v-model="slotProps.data.com_value" style="width: 100%" readonly />
                 </template>
-            </Column>
-
+            </Column>    
+            
             <Column field="spec" header="규격" style="width: 130px" bodyStyle="width: 130px">
                 <template #body="slotProps">
-                    <Select v-model="slotProps.data.spec" :options="specOptions" optionLabel="label" optionValue="value" placeholder="규격"  style="width: 100%"/>
+                    <InputText v-model="slotProps.data.spec" style="width: 100%" readonly />
+                    <!-- <Select v-model="slotProps.data.spec" :options="specOptions" optionLabel="label" optionValue="value" placeholder="규격"  style="width: 100%"/> -->
                 </template>
             </Column>
 
             <Column field="unit" header="단위" style="width: 100px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <Select v-model="slotProps.data.unit" :options="unitOptions" optionLabel="label" optionValue="value" placeholder="단위"  style="width: 100%"/>
+                    <InputText v-model="slotProps.data.unit" style="width: 100%" readonly />
+                    <!-- <Select v-model="slotProps.data.unit" :options="unitOptions" optionLabel="label" optionValue="value" placeholder="단위"  style="width: 100%"/> -->
                 </template>
-            </Column>
+            </Column>            
 
             <Column field="prod_qtt" header="수량" style="width: 60px" bodyStyle="width: 100px">
                 <template #body="slotProps">
@@ -169,7 +189,7 @@ onMounted(async () => {
                 </template>
             </Column>
 
-            <Column field="prod_price" header="단가" style="width: 100px" bodyStyle="width: 100px">
+            <Column field="prod_price" header="단가(원)" style="width: 100px" bodyStyle="width: 100px">
                 <template #body="slotProps">
                     <InputNumber v-model="slotProps.data.prod_price" inputStyle="width: 100%"/>
                 </template>
@@ -187,7 +207,7 @@ onMounted(async () => {
                 </template>
             </Column>
 
-            <Column field="total_price" header="총액" style="width: 100px" bodyStyle="width: 100px">
+            <Column field="total_price" header="총액(원)" style="width: 100px" bodyStyle="width: 100px">
                 <template #body="slotProps">
                     <InputText :value="formatNumber(slotProps.data.prod_qtt * slotProps.data.prod_price)" readonly style="width: 100%"/>
                 </template>
@@ -199,8 +219,10 @@ onMounted(async () => {
   <!-- ===== 제품명 팝업 ===== -->
   <SinglePopup
       v-model:visible="productPopupVisible"
+      :selectedHeader = "['prod_name', 'prod_code','com_value', 'note']"
       :items="productList"
       @confirm="handleProductConfirm"
       :mapper="productMapping"
+      :dataKey="'prod_code'"
   />
 </template>

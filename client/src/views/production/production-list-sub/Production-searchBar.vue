@@ -24,7 +24,7 @@ const search = ref({
 });
 
 // 조회 버튼 클릭 시 emit
-const fetchOrders = () => {
+const fetchPrdps = () => {
   emit('search', search.value);
 };
 
@@ -57,7 +57,7 @@ const resetSearch = () => {
 
     <div class="flex justify-center gap-3 mt-4">
       <Button label="초기화" severity="contrast" @click="resetSearch" />
-      <Button label="조회" severity="info" @click="fetchOrders" />
+      <Button label="조회" severity="info" @click="fetchPrdps" />
     </div>
   </div>
 </template>

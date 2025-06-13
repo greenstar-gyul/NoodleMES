@@ -27,11 +27,15 @@ const mrpRouter = require('./routers/mrp_router.js');
 
 const eqRouter = require('./routers/eq_router.js');
 
+const eqichkRouter = require('./routers/eqichk_router.js');
+
 const orderRouter = require('./routers/order_router.js');
 
 const mprRouter = require('./routers/mpr_router.js');
 
 const qlsRouter = require('./routers/qlt_router.js');
+
+const bomRouter = require('./routers/bom_router.js');
 // 기본 라우팅
 app.get('/', (req, res) => {
   res.send('Welcome!!');
@@ -41,6 +45,8 @@ app.use('/dept', deptRouter);
 app.use('/prdp', prdpRouter);
 app.use('/mrp', mrpRouter);
 app.use('/eq', eqRouter);
+app.use('/eqichk', eqichkRouter);
 app.use('/order', orderRouter);
 app.use('/mpr', mprRouter);
 app.use('/quality', qlsRouter);
+app.use('/bom',bomRouter);

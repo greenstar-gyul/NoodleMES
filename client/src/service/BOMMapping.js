@@ -1,4 +1,5 @@
 export const bomMapping = {
+    bom_code: 'BOM코드',
     prod_code: '제품코드',
     prod_name: '제품명',
     edate: '유통기한',

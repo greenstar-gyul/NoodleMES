@@ -6,10 +6,10 @@
             <div class="flex justify-between">
                 <div>
                     <div class="font-semibold text-2xl">
-                        {{ isEditMode ? '설비 수정' : '설비 등록' }}
+                        {{ isEditMode ? '점검항목 수정' : '점검항목 등록' }}
                     </div>
                     <div v-if="isEditMode" class="text-sm text-blue-600 mt-1">
-                        선택된 설비: {{ eqForm.eq_code }}
+                        선택된 점검항목: {{ eqForm.eq_code }}
                     </div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
@@ -26,12 +26,12 @@
         <!-- 설비코드 / 설비명 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-xl block mb-2">설비코드</label>
-                <InputText v-model="eqForm.eq_code" type="text" placeholder="자동 생성" :disabled="true"
+                <label class="font-semibold text-xl block mb-2">점검항목코드</label>
+                <InputText v-model="eqForm.eq_code" type="text" placeholder="설비코드" :disabled="isEditMode"
                     class="w-full" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">설비명</label>
+                <label class="font-semibold text-xl block mb-2">설비유형</label>
                 <InputText v-model="eqForm.eq_name" type="text" placeholder="설비명 입력" class="w-full" />
             </div>
         </div>
@@ -39,11 +39,11 @@
         <!-- 모델명 / 제조사 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-xl block mb-2">모델명</label>
+                <label class="font-semibold text-xl block mb-2">항목명</label>
                 <InputText v-model="eqForm.eq_model" type="text" placeholder="모델명 입력" class="w-full" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">제조사</label>
+                <label class="font-semibold text-xl block mb-2">점검방법</label>
                 <InputText v-model="eqForm.eq_maker" type="text" placeholder="제조사명 입력" class="w-full" />
             </div>
         </div>
@@ -51,43 +51,38 @@
         <!-- 용량 / 등록일자 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-xl block mb-2">용량</label>
+                <label class="font-semibold text-xl block mb-2">기준값</label>
                 <InputText v-model="eqForm.capacity" type="number" placeholder="용량 입력" class="w-full" />
             </div>
             <div>
-                <LabeledDatePicker :key="`make_date_${isEditMode}_${eqForm.eq_code}`" v-model="eqForm.eq_make_date" label="제조일자" placeholder="날짜를 선택" :disabled="false" />
+                <label class="font-semibold text-xl block mb-2">단위</label>
+                <InputText v-model="eqForm.chk_cycle" type="number" placeholder="점검주기 입력" class="w-full" />
             </div>
         </div>
 
         <!-- 제조일자 / 점검주기 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <LabeledDatePicker :key="`bring_date_${isEditMode}_${eqForm.eq_code}`" v-model="eqForm.bring_date" label="도입일자" placeholder="날짜를 선택" :disabled="false" />
+                <LabeledDatePicker v-model="eqForm.eq_make_date" label="제조일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">점검주기</label>
-                <InputText v-model="eqForm.chk_cycle" type="number" placeholder="점검주기 입력" class="w-full" />
+                <LabeledDatePicker v-model="eqForm.bring_date" label="도입일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
         </div>
 
         <!-- 인계일자 / 설비유형 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <LabeledDatePicker :key="`take_date_${isEditMode}_${eqForm.eq_code}`" v-model="eqForm.take_date" label="인계일자" placeholder="날짜를 선택" :disabled="false" />
+                <label class="font-semibold text-xl block mb-2">설치위치</label>
+                <InputText v-model="eqForm.eq_pos" type="text" placeholder="설치위치 입력" class="w-full" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">설비유형</label>
-                <Dropdown v-model="eqForm.eq_type" :options="eqTypeOptions" optionLabel="label" optionValue="value"
-                    placeholder="유형 선택" class="w-full" />
+                <LabeledDatePicker v-model="eqForm.reg_date" label="등록일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
         </div>
 
         <!-- 설치위치 / 사용여부 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="font-semibold text-xl block mb-2">설치위치</label>
-                <InputText v-model="eqForm.eq_pos" type="text" placeholder="설치위치 입력" class="w-full" />
-            </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">사용여부</label>
                 <Dropdown v-model="eqForm.is_used" :options="statusOptions" optionLabel="label" optionValue="value"
@@ -98,10 +93,11 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, defineProps, defineEmits, nextTick } from 'vue';
+import { ref, watch, computed, defineProps, defineEmits } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
+import Textarea from 'primevue/textarea';
 import LabeledDatePicker from '../../../components/common/LabeledDatePicker.vue';
 import axios from 'axios';
 
@@ -165,7 +161,7 @@ const eqTypeOptions = [
 ];
 
 // 폼 초기화 함수
-const resetForm = async () => {
+const resetForm = () => {
     eqForm.value = {
         eq_code: '',
         eq_name: '',
@@ -173,6 +169,7 @@ const resetForm = async () => {
         eq_maker: '',
         capacity: '',
         stat: '',
+        reg_date: null,
         eq_make_date: null,
         bring_date: null,
         take_date: null,
@@ -181,8 +178,6 @@ const resetForm = async () => {
         eq_type: '',
         is_used: '',
     };
-
-    await nextTick();
 };
 
 // 선택된 데이터 변경 감지 (테이블에서 행 선택 시)
@@ -218,10 +213,7 @@ watch(
 const formatDateForDB = (date) => {
     if (!date) return null;
     if (date instanceof Date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        return date.toISOString().split('T')[0]; // YYYY-MM-DD 형태로 변환
     }
     return null;
 };
@@ -232,18 +224,18 @@ const saveEquipment = async () => {
         console.log('설비 등록:', eqForm.value);
 
         // 필수 필드 검증
-        if (!eqForm.value.eq_type||!eqForm.value.eq_name) {
-            alert('설비명은 필수입니다.');
+        if (!eqForm.value.eq_code || !eqForm.value.eq_name) {
+            alert('설비코드와 설비명은 필수입니다.');
             return;
         }
 
         const submitData = {
             ...eqForm.value,
-            capacity: eqForm.value.capacity ? parseInt(eqForm.value.capacity) : null,  // 숫자 변환
-            chk_cycle: eqForm.value.chk_cycle ? parseInt(eqForm.value.chk_cycle) : null,
-            eq_make_date: formatDateForDB(eqForm.value.eq_make_date) || formatDateForDB(new Date()),
-            bring_date: formatDateForDB(eqForm.value.bring_date) || formatDateForDB(new Date()),
-            take_date: formatDateForDB(eqForm.value.take_date) || formatDateForDB(new Date())
+            capacity: eqForm.value.capacity ? parseInt(eqForm.value.capacity) : null,  // 🎯 숫자 변환!
+            chk_cycle: eqForm.value.chk_cycle ? parseInt(eqForm.value.chk_cycle) : null,  // 점검주기도 숫자일 수 있으니까
+            eq_make_date: formatDateForDB(eqForm.value.eq_make_date) || new Date().toISOString().split('T')[0],
+            bring_date: formatDateForDB(eqForm.value.bring_date) || new Date().toISOString().split('T')[0],
+            take_date: formatDateForDB(eqForm.value.take_date) || new Date().toISOString().split('T')[0]
         };
 
 
@@ -252,7 +244,7 @@ const saveEquipment = async () => {
         if (response.data.success) {
             console.log('설비 등록 완료');
             alert('설비가 성공적으로 등록되었습니다.');
-            await resetForm();
+            resetForm();
             emit('data-updated'); // 부모에게 데이터 업데이트 알림
         } else {
             console.error('등록 실패:', response.data.error);
@@ -277,11 +269,11 @@ const updateEquipment = async () => {
 
         const submitData = {
             ...eqForm.value,
-            capacity: eqForm.value.capacity ? parseInt(eqForm.value.capacity) : null,  // 숫자 변환
-            chk_cycle: eqForm.value.chk_cycle ? parseInt(eqForm.value.chk_cycle) : null,
-            eq_make_date: formatDateForDB(eqForm.value.eq_make_date) || formatDateForDB(new Date()),
-            bring_date: formatDateForDB(eqForm.value.bring_date) || formatDateForDB(new Date()),
-            take_date: formatDateForDB(eqForm.value.take_date) || formatDateForDB(new Date())
+            capacity: eqForm.value.capacity ? parseInt(eqForm.value.capacity) : null,  // 🎯 숫자 변환!
+            chk_cycle: eqForm.value.chk_cycle ? parseInt(eqForm.value.chk_cycle) : null,  // 점검주기도 숫자일 수 있으니까
+            eq_make_date: formatDateForDB(eqForm.value.eq_make_date) || new Date().toISOString().split('T')[0],
+            bring_date: formatDateForDB(eqForm.value.bring_date) || new Date().toISOString().split('T')[0],
+            take_date: formatDateForDB(eqForm.value.take_date) || new Date().toISOString().split('T')[0]
         };
 
 
@@ -290,7 +282,6 @@ const updateEquipment = async () => {
         if (response.data.success) {
             console.log('설비 수정 완료');
             alert('설비가 성공적으로 수정되었습니다.');
-            await resetForm();
             emit('data-updated'); // 부모에게 데이터 업데이트 알림
         } else {
             console.error('수정 실패:', response.data.error);
