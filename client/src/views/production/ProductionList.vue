@@ -1,27 +1,36 @@
 <script setup>
-import { ref,onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import moment from 'moment'; // ✅ moment 추가
 import ProductionSearchBar from './production-list-sub/Production-searchBar.vue';
 import ProductionTable from './production-list-sub/Production-Table.vue';
 import ProductMapper from '@/service/ProductionMapping';
 
+const tableData = ref([]);
 
-// 데이터 연동
-const tableData = ref([])
+const formatDateFields = (data) => {
+  return data.map(item => ({
+    ...item,
+    prdp_date: item.prdp_date ? moment(item.prdp_date).format('YYYY-MM-DD') : '',
+    start_date: item.start_date ? moment(item.start_date).format('YYYY-MM-DD') : '',
+    end_date: item.end_date ? moment(item.end_date).format('YYYY-MM-DD') : '',
+    due_date: item.due_date ? moment(item.due_date).format('YYYY-MM-DD') : '',
+  }));
+};
 
-
+// ✅ 초기 리스트 조회
 const loadTableData = async () => {
   try {
-    const res = await axios.get('/api/prdp/selectMonth')
-    tableData.value = res.data
-    console.log('✅ 조회된 리스트:', tableData.value)
+    const res = await axios.get('/api/prdp/selectMonth');
+    tableData.value = formatDateFields(res.data);
+    console.log('✅ 조회된 리스트:', tableData.value);
   } catch (err) {
-    console.error('❌ 리스트 조회 실패:', err)
+    console.error('❌ 리스트 조회 실패:', err);
   }
-}
+};
 
+// ✅ 검색 기능
 const handleSearch = async (searchParams) => {
-  // 🔽 빈 문자열을 null로 변환
   const cleanParams = Object.fromEntries(
     Object.entries(searchParams).map(([key, val]) => [key, val === '' ? null : val])
   );
@@ -34,9 +43,9 @@ const handleSearch = async (searchParams) => {
     });
 
     if (response.data && response.data.success) {
-      tableData.value = response.data.data || [];
+      tableData.value = formatDateFields(response.data.data || []);
     } else if (Array.isArray(response.data)) {
-      tableData.value = response.data;
+      tableData.value = formatDateFields(response.data);
     } else {
       console.error('검색 실패:', response.data);
       tableData.value = [];
@@ -47,19 +56,19 @@ const handleSearch = async (searchParams) => {
   }
 };
 
+// ✅ 검색 초기화
 const resetSearch = async () => {
-  await loadTableData(); // 초기 리스트 재조회
+  await loadTableData();
 };
 
-// Mounted
 onMounted(() => {
-  loadTableData()
-})
+  loadTableData();
+});
 </script>
 
 <template>
-  <ProductionSearchBar  @search="handleSearch" @reset="resetSearch" />
-  <ProductionTable :data="tableData" :mapper="ProductMapper"/>
+  <ProductionSearchBar @search="handleSearch" @reset="resetSearch" />
+  <ProductionTable :data="tableData" :mapper="ProductMapper" />
   <div v-if="tableData.length === 0" class="text-center text-gray-500 mt-4">
     조건에 맞는 데이터가 없습니다.
   </div>

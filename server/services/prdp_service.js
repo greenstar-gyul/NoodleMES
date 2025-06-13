@@ -22,13 +22,19 @@ const selectMonth = async () => {
                           .catch(err => console.log(err));
   return list;
 };
-// 라인 조건 없이 전체조회
-const findLine = async () => {
-  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
-  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
-  let list = await mariadb.query("selectLineList")
-                          .catch(err => console.log(err));
+// ✅ 서비스 함수
+const findOrder = async () => {
+  const list = await mariadb.query("selectOrdList") // ← 이 이름 정확히 확인!
+    .catch(err => console.log(err));
   return list;
+};
+// 생산라인 목록 조회 by 제품유형
+const findLineByType = async (lineType) => {
+  return await mariadb.query("selectLineList", [lineType])
+    .catch(err => {
+      console.error("🔴 라인 조회 실패:", err);
+      throw err;
+    });
 };
 // 제품 조건 없이 전체조회
 const findProd = async () => {
@@ -39,7 +45,7 @@ const findProd = async () => {
   return list;
 };
 
-// 제품 조건 없이 전체조회
+// 상세정보 전체조회
 const findDetail = async (prdpCode) => {
   try {
     const result = await mariadb.query("selectPrdpDOne", [prdpCode]);
@@ -66,42 +72,69 @@ const searchPrdp = async (params) => {
   return list;
 };
 
-// 등록 트렌잭션 
+// 등록시 동작 트랜잭션
 const insertProductionTx = async (data) => {
   const conn = await mariadb.connectionPool.getConnection();
 
   try {
-    await conn.beginTransaction(); // 트랜잭션 BEGIN;
+    await conn.beginTransaction(); // 트랜잭션 시작
 
-    // 주문 코드 새로 생성해 가져오기.
-    const prdpCodeRes = await mariadb.queryConn(conn, "selectPrdpCodeForUpdate"); // 트랜잭션 발생 및 잠그기
-
-    const prdpCode = prdpCodeRes[0].prdp_code;
-    console.log('>> insertPrdp payload:', data.prdpData);
-
-    // 주문 저장
+    // ✅ 생산계획 코드 생성 (예: PRDP-2025-0001)
+    const prdpCodeRes = await mariadb.queryConn(conn, "selectPrdpCodeForUpdate");
+    const prdpCode = prdpCodeRes[0]?.new_code; // ❗ 'new_code'로 받아오기
     data.prdpData.prdp_code = prdpCode;
-    const result = await mariadb.queryConn(conn, "insertPrdp", data.prdpData); // 메인 등록: 주문서
 
-    // 트랜잭션 내에서 실행
-    for (const values of data.detailData) { // 주문서 상세
-      values.prdp_code = prdpCode;
-      await mariadb.queryConn(conn, "insertPrdpDetail", values);
+    // ✅ reg 기본값 설정
+    data.prdpData.reg = data.prdpData.reg || 'EMP-10001';
+
+    // ✅ 생산계획 메인 파라미터 구성
+    const prdpParams = convertObjToAry(data.prdpData, [
+      'prdp_code',
+      'prdp_name',
+      'prdp_date',
+      'due_date',
+      'reg',
+      'note',
+      'start_date',
+      'end_date',
+      'ord_code'
+    ]);
+
+    // ✅ 메인 테이블 INSERT
+    const result = await mariadb.queryConn(conn, "insertPrdp", prdpParams);
+
+    // ✅ 상세 항목 처리
+    for (const detail of data.detailData) {
+      detail.prdp_code = prdpCode;
+
+      // ✅ 상세 코드 생성 (예: PRDP-D-0001)
+      const prdpDCodeRes = await mariadb.queryConn(conn, "selectPrdpDCodeForUpdate");
+      const prdp_d_code = prdpDCodeRes[0]?.new_d_code;
+      detail.prdp_d_code = prdp_d_code;
+
+      // ✅ 상세 파라미터 구성
+      const insertParams = [
+        detail.emp_code,
+        detail.line_code,
+        detail.planned_qtt,
+        detail.prdp_code,
+        detail.prdp_d_code,
+        detail.priority,
+        detail.prod_code
+      ];
+
+      await mariadb.queryConn(conn, "insertPrdpDetail", insertParams);
     }
 
-    // 커밋 수행
-    await conn.commit();
-
+    await conn.commit(); // 커밋
     return result;
-  }
-  catch (err) {
-    await conn.rollback();
-    console.error('트랜잭션 실패:', err);
 
+  } catch (err) {
+    await conn.rollback(); // 롤백
+    console.error('❌ 트랜잭션 실패:', err);
     throw err;
-  }
-  finally {
-    conn.release();
+  } finally {
+    conn.release(); // 연결 해제
   }
 };
 
@@ -138,51 +171,15 @@ const updateProductionTx = async (data) => {
     conn.release();
   }
 };
-
-// 삭제 트렌잭션 수정필요 
-const deleteProductionTx = async (data) => {
-  const conn = await mariadb.connectionPool.getConnection();
-
-  try {
-    await conn.beginTransaction(); // 트랜잭션 BEGIN;
-
-    // 1. 메인 생산계획 정보 수정
-
-    const prdpData = convertObjToAry(data.prdpData, ['prdp_name','due_date','note','start_date','end_date','prdp_code']);
-    const result = await mariadb.queryConn(conn, "updatePrdp", prdpData);
-
-
-    // 2. 상세 생산계획 항목들 수정
-    for (const values of data.detailData) {
-      const detailData = convertObjToAry(values, ['emp_code', 'line_code', 'planned_qtt', 'priority', 'prod_code', 'prdp_d_code']);
-      await mariadb.queryConn(conn, "updatePrdpDetail", detailData);
-    }
-
-    await conn.commit(); // 커밋
-    return result;
-  }
-  catch (err) {
-    await conn.rollback();
-    console.error('트랜잭션 실패:', err);
-    throw err;
-  }
-  finally {
-    conn.release();
-  }
-};
-
-
-
-
 module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
     findAll,
     selectMonth,
     findDetail,
-    findLine,
+    findOrder,
+    findLineByType,
     findProd,
     searchPrdp,
     insertProductionTx,
     updateProductionTx,
-    deleteProductionTx
 };

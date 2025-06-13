@@ -50,18 +50,18 @@ const findProductByName = async (name) => {
 };
 
 // 공통코드 - 규격
-const findSpecList = async () => {
-  // group_value가 '0Z'인 공통코드만 가져와서 규격 옵션으로 사용
-  const result = await mariadb.query("selectSpecCodes").catch(console.error);
-  return result;
-};
+// const findSpecList = async () => {
+//   // group_value가 '0Z'인 공통코드만 가져와서 규격 옵션으로 사용
+//   const result = await mariadb.query("selectSpecCodes").catch(console.error);
+//   return result;
+// };
 
 // 공통코드 - 단위
-const findUnitList = async () => {
-  // group_value가 '0H'인 공통코드만 가져와서 단위 옵션으로 사용
-  const result = await mariadb.query("selectUnitCodes").catch(console.error);
-  return result;
-};
+// const findUnitList = async () => {
+//   // group_value가 '0H'인 공통코드만 가져와서 단위 옵션으로 사용
+//   const result = await mariadb.query("selectUnitCodes").catch(console.error);
+//   return result;
+// };
 
 // 주문 등록
 const insertOrder = async (orderData) => {
@@ -97,17 +97,24 @@ const insertOrderTx = async (data) => {
 
     // 주문 코드 새로 생성해 가져오기.
     const ordCodeRes = await mariadb.queryConn(conn, "selectOrdCodeForUpdate"); // 트랜잭션 발생 및 잠그기
-
-    const ordCode = ordCodeRes[0].ord_code;
-
+    const ordCode = ordCodeRes[0].ord_code; //결과 배열의 첫 번째 행에서 ord_code 컬럼의 값 가져오기
+    const insertColumns = ['ord_code', 'ord_name', 'ord_date', 'ord_stat', 'note', 'mcode', 'client_code',];
+    const detailColumns = ['ord_d_code', 'unit', 'spec', 'prod_amount', 'prod_price', 'delivery_date', 'ord_priority', 'total_price', 'ord_code', 'prod_code'];
     // 주문 저장
     data.orderData.ord_code = ordCode;
-    const result = await mariadb.queryConn(conn, "insertOrder", data.orderData); // 메인 등록: 주문서
+    const result = await mariadb.queryConn(conn, "insertOrder", convertObjToAry(data.orderData, insertColumns)); // 메인 등록: 주문서
 
+    // 주문 상세 등록
     // 트랜잭션 내에서 실행
     for (const values of data.detailData) { // 주문서 상세
+      // 주문 상세 코드 생성
+      const ordDCodeRes = await mariadb.queryConn(conn, "selectOrdDCodeForUpdate");
+      const ordDCode = ordDCodeRes[0].ord_d_code;
+
       values.ord_code = ordCode;
-      await mariadb.queryConn(conn, "insertOrderDetail", values);
+      values.ord_d_code = ordDCode;
+
+      await mariadb.queryConn(conn, "insertOrderDetail", convertObjToAry(values, detailColumns));
     }
 
     // 커밋 수행
@@ -151,8 +158,6 @@ module.exports ={
     findClientList,
     findProductList,
     findProductByName,
-    findSpecList,
-    findUnitList,
     insertOrder,
     insertOrderDetail,
     insertOrderTx,
