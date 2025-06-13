@@ -1,4 +1,4 @@
-// 조건없이 전체조회
+// 조건없이 전체조회 (디버그용)
 const selectMRPList = `
 SELECT   mrp_code,
          plan_date,
@@ -10,12 +10,14 @@ FROM     mrp_tbl
 ORDER BY mrp_code
 `;
 
+// 조건없이 전체 상세 조회 (디버그용)
 const selectMRPDetailList = `
 SELECT   *
 FROM     mrp_d_tbl
 ORDER BY mrp_code
 `;
 
+// 생산 계획 불러오기
 const selectPRDPList = `
 SELECT   prdp.prdp_code,
          prdp.prdp_name,
@@ -23,26 +25,29 @@ SELECT   prdp.prdp_code,
          TO_CHAR(prdp.start_date, 'yyyy-MM-dd') AS "start_date",
          TO_CHAR(prdp.end_date, 'yyyy-MM-dd') AS "end_date",
          emp.emp_name AS "reg",
+         emp.emp_code,
          prdp.note
 FROM     prdp_tbl prdp JOIN emp_tbl emp
                          ON prdp.reg = emp.emp_code
 ORDER BY prdp_code;
 `;
 
+// 생산 계회의 MRP 코드 불러오기
 const selectMRPCode = `
 SELECT mrp_code
 FROM   mrp_tbl
 WHERE  prdp_code = ?
 `;
 
+// MRP 코드로 MRP 조회
 const selectMRP = `
-SELECT mrp.mrp_code,
-       mrp.plan_date,
-       mrp.start_date,
-       mrp.mrp_note,
-       mrp.prdp_code,
-       mrp.emp_code
-FROM   mrp_tbl mrp
+SELECT mrp_code,
+       plan_date,
+       start_date,
+       mrp_note,
+       prdp_code,
+       emp_code
+FROM   mrp_tbl
 WHERE  mrp_code = ?
 `;
 
@@ -60,11 +65,16 @@ WHERE  mrp_code = ?
 //                          ON mrp_d.mat_code = mstock.mat_code
 // WHERE  mrp_d.mrp_code = ?
 // `;
+
+// MRP 코드로 MRP 상세 조회
 const selectMRPDetail = `
-SELECT mat.mat_name,
+SELECT mrp_d.mrp_code,
+       mrp_d.mrp_d_code,
+       mat.mat_name,
        mrp_d.req_qtt,
+       comm_name(mrp_d.unit) as "unit",
        mstock.cur_qtt,
-       comm_name(mrp_d.unit) as "unit"
+       comm_name(mstock.unit) as "stock_unit"
 FROM   mrp_d_tbl mrp_d JOIN mat_tbl mat
                          ON mrp_d.mat_code = mat.mat_code
                        JOIN mat_stock_v mstock
@@ -76,9 +86,9 @@ const selectMRPCodeForUpdate = `
 SELECT CONCAT(
               CONCAT('MRP-', DATE_FORMAT( CURDATE(), '%Y%m%d-')), 
               LPAD(IFNULL(MAX(SUBSTR(mrp_code, -3)), 0) + 1, 3, '0')
-             )
+             ) AS "mrp_code"
 FROM mrp_tbl
-WHERE SUBSTR(mrp_code, 5, 8) = DATE_FORMAT( CURDATE(), '%Y%M%D')
+WHERE SUBSTR(mrp_code, 5, 8) = DATE_FORMAT( CURDATE(), '%Y%m%d')
 FOR UPDATE
 `
 
@@ -86,7 +96,7 @@ const selectMRPDetailCode = `
 SELECT CONCAT(
               'MRP-D-',
               LPAD(IFNULL(MAX(SUBSTR(mrp_d_code, -4)), 0) + 1, 4, '0')
-             )
+             ) AS "mrp_d_code"
 FROM mrp_d_tbl
 `
 
@@ -100,6 +110,23 @@ INSERT INTO mrp_d_tbl(mrp_d_code, unit, req_qtt, mrp_code, mat_code)
 VALUES (?, ?, ?, ?, ?)
 `
 
+const selectBOMbyprdpcode = `
+SELECT   bm.mat_code,
+         bm.mat_name,
+         SUM(bm.req_qtt * pd.planned_qtt) AS "req_qtt",
+         comm_name(bm.unit) AS "unit",
+         mstock.cur_qtt,
+         comm_name(mstock.unit) AS "stock_unit"
+FROM     bom_mat bm JOIN bom_tbl bt 
+                      ON bm.bom_code = bt.bom_code
+                    JOIN prdp_d_tbl pd 
+                      ON bt.prod_code = pd.prod_code
+                    JOIN mat_stock_v mstock 
+                      ON bm.mat_code = mstock.mat_code
+WHERE    pd.prdp_code = ?
+GROUP BY bm.mat_code, bm.mat_name, mstock.cur_qtt, unit
+`;
+
 module.exports = {
     selectMRPList,
     selectMRPDetailList,
@@ -111,4 +138,5 @@ module.exports = {
     selectMRPDetailCode,
     insertMRP,
     insertMRPDetail,
+    selectBOMbyprdpcode,
 }

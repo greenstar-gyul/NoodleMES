@@ -8,10 +8,10 @@ import LabeledInput from '../../../components/registration-bar/LabeledInput.vue'
 import MRPService from '../../../service/MRPService';  // 백 서버 없이 테스트 용
 import axios from 'axios';
 
-const emit = defineEmits(['updateList', 'updatePrdp', 'resetList', 'saveData']);
+const emit = defineEmits(['updateList', 'updatePrdp', 'resetList', 'saveData', 'update:data']);
 const props = defineProps({
     data: {
-        type: Array,
+        type: Object,
         required: true
     },
     dataKey: {
@@ -20,20 +20,9 @@ const props = defineProps({
     }
 });
 
-onMounted(async () => {
-    loadPlansData();
-    loadDatas();
-    resetData(); // 조회 폼 초기화
+onMounted(() => {
+    
 })
-
-// 데이터 불러오기
-const loadDatas = async () => {
-    // prodPlans.value = MRPService.prodPlans; // 백 서버 없이 테스트 용
-    // mrpList.value = MRPService.mrpList; // 백 서버 없이 테스트 용
-
-    // const response = await axios.get(`/api/mrp/all`);
-    // testList.value = await response.data;
-}
 
 /**
  * 생산 계획 불러오기 팝업 데이터 불러오기
@@ -51,21 +40,6 @@ const loadPlansData = async () => {
     }
 }
 
-// 조회 폼 초기화
-const resetData = () => {
-    mrpData.value = {
-        prdp_code: '',
-        reg: '동',
-        prdp_date: '',
-        start_date: '',
-        mrp_code: `저장 시 자동으로 생성됩니다.`,
-    };
-
-    emit('resetList');
-    emit('updateList', []);
-    emit('updatePrdp', '');
-}
-
 /**
  * 생산 계획 불러오기
  * @param value 선택한 생산 계획
@@ -73,41 +47,45 @@ const resetData = () => {
  * 없다면 새로운 mrp 생성
  */
 const prdpLoad = async (value) => {
-    // console.log(value.prdp_code);
     const prdpCode = value.prdp_code;
-    // console.log(prdpCode);
-    //  const isFind = mrpList.value.findIndex((mrp) => mrp.prdp_code === prdpCode);
 
     const mrpCodeRes = await axios.get(`/api/mrp/mrpcode/${prdpCode}`);
-    // console.log(mrpCodeRes);
-    const mrpCode = await mrpCodeRes.data[0].mrp_code;
-    // console.log(mrpCode);
+    const mrpCodeData = await mrpCodeRes.data[0];
+    let mrpCode = '';
+    
+    if (mrpCodeData) {
+        mrpCode = mrpCodeData.mrp_code;
+    }
+
+    // MRP 폼 데이터
+    const mrpData = {
+        prdp_code: '',
+        reg: '김영업',
+        prdp_date: '',
+        start_date: '',
+        mrp_code: '',
+        emp_code: 'EMP-10001',
+        note: '',
+    };
 
     // 선택된 값으로 채우기,, (생산 계획과 관련된 부분)
-    mrpData.value.prdp_code = value.prdp_code;
-    mrpData.value.prdp_date = value.prdp_date;
-    mrpData.value.start_date = value.start_date;
-    mrpData.value.reg = value.reg;
-
-    emit('updatePrdp', value.prdp_code);
-
-    if (mrpCode != undefined || mrpCode != null || mrpCode != '') {
-        mrpData.value.mrp_code = mrpCode;
+    mrpData.prdp_code = value.prdp_code;
+    mrpData.prdp_date = value.prdp_date;
+    mrpData.start_date = value.start_date;
+    mrpData.reg = value.reg;
+    mrpData.mrp_code = mrpCode;
+    
+    if (mrpCode != undefined && mrpCode != null && mrpCode != '') {
         
         // mrp 조회
         const mrpRes = await axios.get(`/api/mrp/${mrpCode}`);
         const findMRP = await mrpRes.data[0];
-
-        // console.log(findMRP);
-
-        mrpData.value.note = findMRP.mrp_note;
-
-        // mrp 상세 목록 조회
-        const mrpDetailResponse = await axios.get(`/api/mrp/detail/${mrpCode}`);
-        mrpDetailList.value = await mrpDetailResponse.data;
-
-        emit('updateList', mrpDetailList.value);
+        
+        mrpData.note = findMRP.mrp_note;
+        mrpData.emp_code = findMRP.emp_code;
     }
+
+    emit('update:data', mrpData);
 }
 
 const openPopup = async () => {
@@ -115,40 +93,16 @@ const openPopup = async () => {
     mrpPopupVisible.value = true;
 }
 
-// 조회 폼 데이터
-const mrpData = ref({
-    prdp_code: '',
-    reg: '',
-    prdp_date: '',
-    start_date: '',
-    mrp_code: '',
-});
+const saveMRP = async () => {
+    if (props.data.prdp_code === '') {
+        alert('생산 계획 먼저 선택해라ㅡㅡ');
+        return;
+    }
+    emit('saveData')
+}
 
 const mrpPopupVisible = ref(false);
 const prodPlans = ref([]);
-// const mrpList = ref([]);
-const mrpDetailList = ref([]);
-// const testList = ref([]);
-
-// const currentDate = new Date();
-// const tMonth = currentDate.getMonth() + 1;
-// const month = tMonth < 10 ? `0${tMonth}` : tMonth;
-
-// const tDate = currentDate.getDate();
-// const date = tDate < 10 ? `0${tDate}` : tDate;
-
-/* 무한 루프 발생? 왜? 데이터가 계속 순환 참조 중;;
-watch(() => mrpDetailList.value, (newVal) => {
-    emit('updateList', newVal);
-    // console.log(newVal);
-    // updateMRPDetailList();
-})
-
-watch(() => mrpData.value.prdp_code, (newVal) => {
-    console.log(newVal);
-    emit('updatePrdp', newVal);
-})
-*/
 
 </script>
 
@@ -166,24 +120,24 @@ watch(() => mrpData.value.prdp_code, (newVal) => {
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit" />
-                    <Button label="초기화" severity="contrast" class="min-w-fit" v-on:click="resetData" />
-                    <Button label="저장" severity="info" class="min-w-fit" v-on:click="emit('saveData')"/>
+                    <Button label="초기화" severity="contrast" class="min-w-fit" v-on:click="emit('resetList')" />
+                    <Button label="저장" severity="info" class="min-w-fit" v-on:click="saveMRP"/>
                     <Button label="생산계획 불러오기" severity="success" class="min-w-fit whitespace-nowrap"
                         @click="openPopup" />
                 </div>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="MRP코드" :model-value="mrpData.mrp_code" :disabled="true" />
-            <LabeledInput label="생산계획코드" :model-value="mrpData.prdp_code" :disabled="true" />
+            <LabeledInput label="MRP코드" :model-value="data.mrp_code" :disabled="true" placeholder="저장 시 자동으로 생성됩니다." />
+            <LabeledInput label="생산계획코드" :model-value="data.prdp_code" :disabled="true" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="계획수립일" :model-value="mrpData.prdp_date" :disabled="true" />
-            <LabeledInput label="생산시작일" :model-value="mrpData.start_date" :disabled="true" />
+            <LabeledInput label="계획수립일" :model-value="data.prdp_date" :disabled="true" />
+            <LabeledInput label="생산시작일" :model-value="data.start_date" :disabled="true" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="작성자" :model-value="mrpData.reg" :disabled="true" />
-            <LabeledTextarea label="비고" v-model="mrpData.note" placeholder="특이사항 입력" :rows="1" />
+            <LabeledInput label="작성자" :model-value="data.reg" :disabled="true" />
+            <LabeledTextarea label="비고" v-model="data.note" placeholder="특이사항 입력" :rows="1" />
         </div>
     </div>
 

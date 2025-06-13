@@ -8,13 +8,16 @@
  * @param message
  * String: 성공/실패 메시지
  */
-const addResultCode = (res, successful, message) => {
-    if (successful)
-      res.result_code = 'SUCCESS';
-    else
-      res.result_code = 'FAILURE';
+const addResultCode = (res, successful, message, data = null, ) => {
+  const result = {
+    result_code: successful ? 'SUCCESS' : 'FAIL',
+    message,
+  };
 
-    res.message = message;
+  if (successful) result.data = data;
+  else result.error = error;
+
+  res.send(result);
 };
 
 module.exports = {

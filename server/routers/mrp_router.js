@@ -48,10 +48,28 @@ router.get('/detail/:mrpCode', async (req, res) => {
     res.send(mrpDetails);
 });
 
+// MRP 코드로 MRP 상세 조회
+router.get('/sub-mat/:prdpCode', async (req, res) => {
+    const prdpCode = req.params.prdpCode;
+    const matList = await mrpService.findMatByBom([prdpCode])
+        .catch(err => console.log(err));
+    res.send(matList);
+});
+
 // MRP 신규 등록
 router.post('/create', async (req, res) => {
     const data = req.body;
-    console.log(data);
+    const result = await mrpService.insertMRPTx(data)
+        .catch(err => console.log(err));
+    res.send(result);
+});
+
+// MRP 갱신
+router.put('/:mrpCode', async (req, res) => {
+    const data = req.body;
+    const result = await mrpService.modifyMRPTx(data)
+        .catch(err => console.log(err));
+    res.send(result);
 });
 
 module.exports = router;
