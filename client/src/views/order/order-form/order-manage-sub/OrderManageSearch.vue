@@ -152,7 +152,7 @@ const handleConfirm = async (selectedOrder) => {
     // 주문 기본 정보 설정
     props.ordCode.value = selectedOrder.ord_code;
     props.ordName.value = selectedOrder.ord_name;
-    props.ordDate.value = moment(selectedOrder.ord_date).format("YYYY.MM.DD");
+    props.ordDate.value = moment(selectedOrder.ord_date).format("YYYY-MM-DD");
     props.note.value = selectedOrder.note || '';
     props.selectedClient.value = selectedOrder.client_code;
     props.empCode.value = selectedOrder.mcode;
