@@ -35,17 +35,22 @@ ORDER BY prdp_code`;
 
 // 생산계획 상세 조회
 const selectPrdpDOne = `
-SELECT d.prdp_d_code,
-       d.planned_qtt,
-       d.priority,
-       d.prod_code,
-       p.prod_name,
-       d.emp_code,
-       d.prdp_code,
-       d.line_code
+SELECT  d.prdp_d_code,
+        d.planned_qtt,
+        d.priority,
+        d.prod_code,
+        p.prod_name,
+        p.com_value AS com_value,                  -- 제품유형 코드
+        comm_name(p.com_value) AS com_value_name, -- 제품유형명 (봉지라면 등)
+        comm_name(p.unit) AS unit,
+        comm_name(p.spec) AS spec,
+        d.emp_code,
+        d.prdp_code,
+        d.line_code
 FROM prdp_d_tbl d
 JOIN prod_tbl p ON d.prod_code = p.prod_code
-WHERE d.prdp_code = ?`;
+WHERE d.prdp_code = ?
+`;
 
 // 주문정보 목록 조회
 const selectOrdList = 

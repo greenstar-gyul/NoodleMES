@@ -189,24 +189,34 @@
   }
 });
 
-  // 📡 생산계획 상세 데이터를 로드하는 함수 (axios GET 요청
+  // 📡 생산계획 상세 데이터를 로드하는 함수
   const loadPlanDetails = async () => {
     try {
       // ✅ 기존 데이터 초기화
       productRows.value = [];
-      
+
       const response = await axios.get(`/api/prdp/detail/one?prdp_code=${props.prdp}`);
 
       const detailData = response.data;
+
+      // 🔍 받아온 데이터 확인용 로그
+      console.log('✅ 불러온 상세 데이터:', JSON.stringify(detailData, null, 2));
+
+      // 실제 화면에 뿌릴 데이터 적용
       detailData.forEach(detail => {
         productRows.value.push(detail);
       });
+
     } catch (err) {
-      console.error('상세 데이터 조회 실패:', err);
+      console.error('❌ 상세 데이터 조회 실패:', err);
     }
   };
 
-  
+  const productTypeMap = {
+  J1: '봉지라면',
+  J2: '컵라면(대)',
+  J3: '컵라면(소)'
+};
 </script>
 
 <template>
@@ -239,11 +249,15 @@
                   <InputText v-model="slotProps.data.prod_name" readonly style="width: 100%" />
               </template>
           </Column>
-          <!-- 제품명 (197px) -->
+          <!-- 제품유형 -->
           <Column field="com_value" header="제품유형" style="width: 150px">
-              <template #body="slotProps">
-                  <InputText v-model="slotProps.data.com_value" readonly style="width: 100%" />
-              </template>
+            <template #body="slotProps">
+              <InputText
+                :value="productTypeMap[slotProps.data.com_value.toUpperCase()] || slotProps.data.com_value"
+                readonly
+                style="width: 100%"
+              />
+            </template>
           </Column>
 
          
