@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, defineExpose } from 'vue'
+import { ref, watch, defineExpose, computed } from 'vue'
 import Button from 'primevue/button'
 import LabeledCheckbox from '@/components/common/LabeledCheckbox.vue'
 import LabeledInput from '@/components/common/LabeledInput.vue'
@@ -9,8 +9,8 @@ import LabeledTextarea from '@/components/common/LabeledTextarea.vue'
 
 // 옵션 정의
 const productTypeOptions = [
-  { label: '반제품', value: '반제품' },
-  { label: '완제품', value: '완제품' }
+  { label: '반제품', value: 'i2' },
+  { label: '완제품', value: 'i1' }
 ]
 
 const comValueOptions = [
@@ -18,6 +18,8 @@ const comValueOptions = [
   { label: '컵라면(대)', value: 'J2' },
   { label: '컵라면(소)', value: 'J3' }
 ];
+
+
 
 const unitOptions = ref([])
 const specOptions = ref([])
@@ -32,45 +34,55 @@ const com_value = ref('')
 const unit = ref('')
 const spec = ref('')
 const prod_weight = ref('')
-const is_used = ref(false)
+const is_used = ref('f2') // 기본값: 사용함
 const edate = ref('')
 const regdate = ref(today)
 const note = ref('')
 
+// ✅ 사용안함 체크박스용 computed
+const isUsedChecked = computed({
+  get: () => is_used.value === 'f1',       // 체크되면 사용안함(f1)
+  set: (val) => {
+    is_used.value = val ? 'f1' : 'f2'      // true → f1, false → f2
+  }
+})
+
 // ✅ 자동 옵션 조정
 watch([prod_type, com_value], ([type, value]) => {
-  if (type === '반제품') {
+  if (type === 'i2') {
     specOptions.value = [{ label: '-', value: '-' }]
-    unitOptions.value = [{ label: 'EA', value: 'EA' }]
+    unitOptions.value = [{ label: 'EA', value: 'h4' }]
     spec.value = '-'
-    unit.value = 'EA'
-  } else if (type === '완제품') {
-    unit.value = 'BOX'
-    unitOptions.value = [{ label: 'BOX', value: 'BOX' }]
+    unit.value = 'h4'
+  } else if (type === 'i1') {
+    unit.value = 'h5'
+    unitOptions.value = [{ label: 'BOX', value: 'h5' }]
 
     if (value === 'J1') { // 봉지라면
       specOptions.value = [
-        { label: '40', value: '40' },
-        { label: '20', value: '20' }
+        { label: '20', value: 'o1' },
+        { label: '40', value: 'o2' }
       ]
-      spec.value = '20'
+      spec.value = 'o1'
     } else if (value === 'J2') { // 컵라면(대)
       specOptions.value = [
-        { label: '16', value: '16' },
-        { label: '8', value: '8' }
+        { label: '16', value: 'x1' },
+        { label: '8', value: 'x2' }
       ]
-      spec.value = '16'
+      spec.value = 'x1'
     } else if (value === 'J3') { // 컵라면(소)
       specOptions.value = [
-        { label: '12', value: '12' },
-        { label: '6', value: '6' }
+        { label: '12', value: 'y1' },
+        { label: '6', value: 'y2' }
       ]
-      spec.value = '12'
+      spec.value = 'y1'
     } else {
       specOptions.value = []
     }
   }
 })
+
+
 
 // ✅ 외부에서 set할 수 있게
 const setFormData = (data) => {
@@ -81,7 +93,7 @@ const setFormData = (data) => {
   unit.value = data.unit ?? ''
   spec.value = data.spec ?? ''
   prod_weight.value = data.prod_weight ?? ''
-  is_used.value = data.is_used === 'Y'
+  is_used.value = data.is_used ?? 'f2'
   edate.value = data.edate ?? ''
   regdate.value = data.regdate ?? ''
   note.value = data.note ?? ''
@@ -96,13 +108,28 @@ const getFormData = () => ({
   unit: unit.value,
   spec: spec.value,
   prod_weight: prod_weight.value,
-  is_used: is_used.value ? 'Y' : 'N',
+  is_used: is_used.value,
   edate: edate.value,
   regdate: regdate.value,
   note: note.value
 })
 
-defineExpose({ setFormData, getFormData })
+// 리셋 부분
+const resetForm = () => {
+  prod_code.value = ''
+  prod_name.value = ''
+  prod_type.value = ''
+  com_value.value = ''
+  unit.value = ''
+  spec.value = ''
+  prod_weight.value = ''
+  is_used.value = 'f2'
+  edate.value = ''
+  regdate.value = today
+  note.value = ''
+}
+
+defineExpose({ setFormData, getFormData, resetForm  })
 </script>
 
 <template>
@@ -139,7 +166,7 @@ defineExpose({ setFormData, getFormData })
     <!-- 총중량 / 유통기한 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <LabeledInput v-model="prod_weight" label="총중량" />
-      <LabeledInput v-model="edate" label="유통기한" />
+      <LabeledInput v-model="edate" label="유통기한(일)" />
     </div>
 
     <!-- 등록일자 / 사용여부 -->

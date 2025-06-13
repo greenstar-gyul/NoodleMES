@@ -11,6 +11,7 @@ const selectPrdpList =
         , end_date
         , due_date
         , reg
+        , ord_code
         , note
 
 FROM prdp_tbl
@@ -46,23 +47,39 @@ FROM prdp_d_tbl d
 JOIN prod_tbl p ON d.prod_code = p.prod_code
 WHERE d.prdp_code = ?`;
 
-// 설비 목록 조회
-const selectLineList = 
-`SELECT line_code,
-        line_name,
-        is_used
+// 주문정보 목록 조회
+const selectOrdList = 
+`SELECT 
+        ord.ord_code,
+        ordd.prod_code,
+        p.prod_name,
+        ordd.prod_amount,
+        ord.ord_name,
+        ord.ord_date
+FROM    ord_d_tbl ordd
+JOIN    ord_tbl ord ON ordd.ord_code = ord.ord_code
+JOIN    prod_tbl p ON ordd.prod_code = p.prod_code
+ORDER BY ord.ord_date
+`;
 
-FROM line_tbl
-ORDER BY line_code`;
+// 설비 목록 조회
+const selectLineList = `
+SELECT line_code, 
+       line_name, 
+       is_used 
+FROM  line_tbl 
+WHERE line_type = ?
+ORDER BY line_code
+`;
 
 
 // 제품 목록 조회
 const selectProdList = 
 `SELECT prod_code,
         prod_name,
-        is_used,
-        unit,
-        com_value
+        comm_name(spec) AS "spec",
+        comm_name(unit) AS "unit",
+        comm_name(com_value) AS "com_value"
 FROM prod_tbl
 ORDER BY prod_code`;
 
@@ -74,10 +91,11 @@ const insertPrdp = `
                        prdp_date,
                        due_date,
                        reg,
-                       note)
+                       note,
                        start_date,
                        end_date,
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                       ord_code)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
 // 생산계획 상세 등록
@@ -88,8 +106,7 @@ INSERT INTO prdp_d_tbl(emp_code,
                       prdp_code,
                       prdp_d_code,
                       priority,
-                      prod_code
-                      )
+                      prod_code)
   VALUES (?, ?, ?, ?, ?, ?, ?)
 `;
 
@@ -149,13 +166,19 @@ const deletePrdpDetail = `
 // prdp_code 자동생성 
 // SELECT prdp_code for new insert
 const selectPrdpCodeForUpdate = `
-SELECT CONCAT(
-              CONCAT('PRDP-', DATE_FORMAT( CURDATE(), '%Y')), 
-              LPAD(IFNULL(MAX(SUBSTR(prdp_code, -4)), 0) + 1, 4, '0')
-             )
+SELECT CONCAT('PRDP-', DATE_FORMAT(CURDATE(), '%Y%m'), '-', LPAD(COUNT(*) + 1, 4, '0')) AS new_code
 FROM prdp_tbl
-WHERE SUBSTR(prdp_code, 5, 4) = DATE_FORMAT( CURDATE(), '%Y')
-FOR UPDATE
+WHERE SUBSTRING(prdp_code, 6, 6) = DATE_FORMAT(CURDATE(), '%Y%m')
+FOR UPDATE;
+`;
+
+// prdp_d_code 생성
+const selectPrdpDCodeForUpdate = `
+SELECT CONCAT('PRDP-D-', 
+              LPAD(IFNULL(MAX(CAST(SUBSTRING(prdp_d_code, 9) AS UNSIGNED)), 0) + 1, 4, '0')
+             ) AS new_d_code
+FROM prdp_d_tbl
+FOR UPDATE;
 `;
 
 
@@ -163,6 +186,7 @@ module.exports = {
     selectPrdpList,
     getCurrentMonthPlans,
     selectPrdpDOne,
+    selectOrdList,
     selectLineList,
     selectProdList,
     searchPrdp,
@@ -172,5 +196,6 @@ module.exports = {
     updatePrdpDetail,
     deletePrdp,
     deletePrdpDetail,
-    selectPrdpCodeForUpdate
+    selectPrdpCodeForUpdate,
+    selectPrdpDCodeForUpdate
 }

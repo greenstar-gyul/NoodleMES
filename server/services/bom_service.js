@@ -158,7 +158,21 @@ const searchBomList = async (params) => {
     console.error('❌ BOM 검색 목록 서비스 에러:', err);
     throw err;
   } finally {
-    if (conn) conn.release();
+     conn.release();
+  }
+};
+
+// 제품 유형 불러오기 
+const getComValueOptions = async () => {
+  const conn = await mariadb.connectionPool.getConnection();
+  try {
+    const result = await conn.query(bomSql.selectComValueOptions); 
+    return result;  // ✅ 이제는 { com_value, com_name } 형태의 객체 배열이므로 그대로 리턴
+  } catch (err) {
+    console.error('❌ 제품유형 목록 조회 실패:', err);
+    throw err;
+  } finally {
+    conn.release();
   }
 };
 
@@ -167,5 +181,6 @@ module.exports ={
     getBomList,
     findOneBomDetail,
     getMaterialsForPopup,
-    searchBomList
+    searchBomList,
+    getComValueOptions
 };

@@ -8,6 +8,10 @@ import matMapping from '@/service/MatMapping.js';
 
 const emit = defineEmits(['update:productRows','rowSelected' ,'rowSelecteds']);
 
+const resetRows = () => {
+  productRows.value = []
+}
+
 const selectedRow = ref(null);
 
 const onRowSelect  = (e) => {
@@ -47,7 +51,7 @@ const getDetailRows = () => {
   return productRows.value;
 };
 
-defineExpose({ setFormData, getFormData, getDetailRows });
+defineExpose({ setFormData, getFormData, getDetailRows, resetRows  });
 
 // 행 추가
 const addRow = () => {
@@ -97,20 +101,42 @@ const handleProductConfirm = (selectedItem) => {
 defineProps({
   data: {
     type: Array,
-    default: () => []
+    required: true
   }
 });
+
+const unitCodeMap = {
+  'KG': 'h1',
+  'T': 'h2',
+  'L': 'h3',
+  'EA': 'h4',
+  'BOX': 'h5',
+  'G': 'h6',
+  'MM': 'h7',
+  '%': 'h8',
+  'CM': 'h9'
+};
+
+const convertUnitToCode = (row) => {
+  const input = row.unit?.trim().toUpperCase(); // 대소문자 무시하고 trim
+  const code = unitCodeMap[input];
+  if (code) {
+    row.unit = code;  // ✅ 자동으로 코드값 대입
+  }
+};
+
 </script>
 
 <template>
   <div class="space-y-4" style="width: 60%">
     <!-- 제품 검색 결과 (고정 영역) -->
     <TableWDE
-      :data="bomList"
+      :data="data"
       :dataKey="'bom_code'"
       :mapper="bomMapper"
       :columns="['bom_code', 'prod_code', 'prod_name', 'edate', 'regdate', 'is_used']"
       title="검색결과"
+      :scrollHeight="'200px'"
       @row-click="handleProductRowClick"
     />
 
@@ -166,7 +192,7 @@ defineProps({
 
         <Column field="unit" header="단위" style="width: 100px">
           <template #body="slotProps">
-            <InputText v-model="slotProps.data.unit" style="width: 100%" />
+            <InputText v-model="slotProps.data.unit" style="width: 100%" @blur="() => convertUnitToCode(slotProps.data)" />
           </template>
         </Column>
 

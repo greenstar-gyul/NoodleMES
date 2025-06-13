@@ -106,8 +106,8 @@ const selectAllMaterialsForPopup = `
   SELECT    prod_code AS code,
             prod_name AS name,
             '반제품' AS type
-  FROM  prod_tbl
-  WHERE prod_type = '반제품'
+  FROM      prod_tbl
+  WHERE     prod_type = 'i2'
 `;
 
 // 🔍 BOM 목록 검색 쿼리 개선
@@ -142,15 +142,14 @@ FROM prod_tbl
 FOR UPDATE
 `;
 
-// // BOM코드 자동 생성 쿼리
-// const selectBomCodeForUpdate = `
-// SELECT CONCAT(
-//     'BOM-',
-//     LPAD(IFNULL(MAX(CAST(SUBSTRING(bom_code, 5) AS UNSIGNED)), 0) + 1, 4, '0')
-// )
-// FROM bom_tbl
-// FOR UPDATE
-// `;
+// 제품유형 불러오는 쿼리
+const selectComValueOptions = `
+SELECT DISTINCT com_value, 
+                comm_name(com_value) AS com_name
+FROM prod_tbl
+WHERE com_value IS NOT NULL
+`;
+
 
 module.exports = {
     insertProduct,
@@ -160,6 +159,7 @@ module.exports = {
     prodSelectOne,
     matSelectDetail,
     searchBomList,
+    selectComValueOptions,
     selectAllMaterialsForPopup,
     selectProdCodeForUpdate,
     // selectBomCodeForUpdate

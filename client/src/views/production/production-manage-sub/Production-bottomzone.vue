@@ -12,9 +12,12 @@
     resetAll,
     getDetails: () => productRows.value  // 하단에서 현재 상태 반환
   });
+
   // 🔄 테이블 내용 초기화 함수 (부모에서 접근 가능)
   function resetAll() {
+    console.log('✅ [Bottomzone] resetAll 실행됨');
     productRows.value = [];
+    selectedProducts.value = []; // ✅ 추가
   }
 
   // 부모로부터 전달받은 props 정의 (생산계획 코드)
@@ -29,8 +32,6 @@
   watch(
     () => props.prdp,
     (newPrdp) => {
-      console.log(`변경감지: ${newPrdp}`);
-      console.log(`변경 후 계획: ${props.prdp}`);
       loadPlanDetails();
       return newPrdp;
     }
@@ -77,8 +78,9 @@
       prod_name: '',
       planned_qtt: 0,
       unit: '',
+      spec: '',
       priority: 0,
-      line_code: '',
+      line_code: ''
     };
     currentProductRow.value = null; // 수정 행 없으니 null로 세팅
     productPopupVisible.value = true;
@@ -99,17 +101,22 @@
       // 수정 시 해당 행 내용 변경
       currentProductRow.value.prod_code = selectedProduct.prod_code;
       currentProductRow.value.prod_name = selectedProduct.prod_name;
+      currentProductRow.value.com_value = selectedProduct.com_value;
       currentProductRow.value.unit = selectedProduct.unit;
+      currentProductRow.value.spec = selectedProduct.spec; 
       // 필요시 priority 등도 수정 가능
     } else if (tempNewRow.value) {
       // 새 행 추가 시
       productRows.value.push({
         prod_code: selectedProduct.prod_code,
         prod_name: selectedProduct.prod_name,
+        com_value: selectedProduct.com_value,
         planned_qtt: 0,
         unit: selectedProduct.unit,
+        spec: selectedProduct.spec,
         priority: 0,
         line_code: '',
+        emp_code: 'EMP-10001' 
       });
       tempNewRow.value = null;
     }
@@ -122,33 +129,40 @@
     productRows.value = productRows.value.filter(row => !selectedProducts.value.includes(row));
     selectedProducts.value = [];
   };
+
   // 🔍 제품 팝업 열기 (클릭한 행을 currentProductRow에 설정)
   const openProductPopup = (row) => {
     tempNewRow.value = null;      // 새 행 추가 상태 초기화
     currentProductRow.value = row; // 수정 대상 행 지정
     productPopupVisible.value = true;
   };
-  // 🔍 라인 팝업 열기 (클릭한 행을 currentLineRow에 설정)
-  const openlinePopup = (row) => {
-    currentLineRow.value = row;
-    linePopupVisible.value = true;
+  const openlinePopup = async (row) => {
+  currentLineRow.value = row;
+
+  // 1. 제품 유형(com_value) → 라인 유형 코드로 매핑
+  const prodType = row.com_value;
+    let lineTypeCode = '';
+
+    if (prodType === '봉지라면') lineTypeCode = 'j1';
+    else if (prodType === '컵라면(대)') lineTypeCode = 'j2';
+    else if (prodType === '컵라면(소)') lineTypeCode = 'j3';
+    else {
+      alert('지원하지 않는 제품 유형입니다.');
+      return;
+    }
+
+    try {
+      // 2. 라인 유형 코드 기준으로 라인 조회 요청
+      const response = await axios.get('/api/prdp/line', {
+        params: { type: lineTypeCode }
+      });
+      lines.value = response.data;
+      linePopupVisible.value = true;
+    } catch (error) {
+      console.error('라인 조회 실패:', error);
+    }
   };
 
-    // 🔍 라인 팝업이 열릴 때 데이터 조회
-  watch(linePopupVisible, async (visible) => {
-    if (visible) {
-      try {
-        const response = await axios.get('/api/prdp/line');
-        lines.value = response.data.map(item => ({
-          line_code: item.line_code,
-          line_name: item.line_name,
-          is_used: item.is_used
-        }));
-      } catch (error) {
-        console.error('라인 목록 조회 실패:', error);
-      }
-    }
-  });
   // 🔍 제품명 팝업 열릴 때 데이터 조회
  watch(productPopupVisible, async (visible) => {
   if (visible) {
@@ -163,9 +177,8 @@
         prod_code: item.prod_code,
         prod_name: item.prod_name,
         com_value: item.com_value,
-        is_used: item.is_used,
         unit: item.unit,
-        disabled: selectedCodes.includes(item.prod_code) // 이미 선택된 경우 선택 불가
+        spec: item.spec
       }));
 
     } catch (error) {
@@ -179,19 +192,15 @@
   // 📡 생산계획 상세 데이터를 로드하는 함수 (axios GET 요청
   const loadPlanDetails = async () => {
     try {
-      console.log('프론트에서 보낼 prdp_code:', props.prdp);
-
       // ✅ 기존 데이터 초기화
       productRows.value = [];
       
       const response = await axios.get(`/api/prdp/detail/one?prdp_code=${props.prdp}`);
-      console.log('✅ 조회된 상세 데이터:', response.data);
 
       const detailData = response.data;
       detailData.forEach(detail => {
         productRows.value.push(detail);
       });
-
     } catch (err) {
       console.error('상세 데이터 조회 실패:', err);
     }
@@ -210,50 +219,70 @@
           <Button label="행 추가" icon="pi pi-plus" @click="newRow" />
         </div>
       </div>
-      <DataTable v-model:selection="selectedProducts" :value="productRows" scrollable scrollHeight="320px" showGridlines dataKey="prod_code">
-        <Column selectionMode="multiple" headerStyle="width: 3rem" />
-        <Column field="prod_code" header="제품코드">
-          <template #body="slotProps">
-            <div class="flex gap-2">
-              <InputText v-model="slotProps.data.prod_code" readonly />
-              <Button icon="pi pi-search" @click="openProductPopup(slotProps.data)" />
-            </div>
-          </template>
-        </Column>
-        <Column field="prod_name" header="제품명">
-          <template #body="slotProps">
-            <div class="flex gap-2">
-              <InputText v-model="slotProps.data.prod_name" readonly />
-            </div>
-          </template>
-        </Column>
+      <DataTable v-model:selection="selectedProducts" :value="productRows" scrollable scrollHeight="320px" showGridlines
+          dataKey="prod_code">
+          <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-        <Column field="planned_qtt" header="목표수량">
-          <template #body="slotProps">
-            <InputNumber v-model="slotProps.data.planned_qtt" :min="0" showButtons />
-          </template>
-        </Column>
+          <!-- 제품코드 (234px) -->
+          <Column field="prod_code" header="제품코드" style="width: 230px">
+              <template #body="slotProps">
+                  <div class="flex gap-2">
+                      <InputText v-model="slotProps.data.prod_code" readonly style="width: 180px" />
+                      <Button icon="pi pi-search" @click="openProductPopup(slotProps.data)" />
+                  </div>
+              </template>
+          </Column>
 
-        <Column field="unit" header="단위">
-          <template #body="slotProps">
-            <InputText v-model="slotProps.data.unit" placeholder="EA" :disabled="true"/>
-          </template>
-        </Column>
+          <!-- 제품명 (197px) -->
+          <Column field="prod_name" header="제품명" style="width: 195px">
+              <template #body="slotProps">
+                  <InputText v-model="slotProps.data.prod_name" readonly style="width: 100%" />
+              </template>
+          </Column>
+          <!-- 제품명 (197px) -->
+          <Column field="com_value" header="제품유형" style="width: 150px">
+              <template #body="slotProps">
+                  <InputText v-model="slotProps.data.com_value" readonly style="width: 100%" />
+              </template>
+          </Column>
 
-        <Column field="priority" header="우선순위">
-          <template #body="slotProps">
-            <InputNumber v-model="slotProps.data.priority" :min="0" showButtons />
-          </template>
-        </Column>
+         
 
-        <Column field="line_code" header="생산라인">
-          <template #body="slotProps">
-            <div class="flex gap-2">
-              <InputText v-model="slotProps.data.line_code" readonly />
-              <Button icon="pi pi-search" @click="openlinePopup(slotProps.data)" />
-            </div>
-          </template>
-        </Column>
+          <!-- 단위 (160px) -->
+          <Column field="unit" header="단위" style="width: 159px">
+              <template #body="slotProps">
+                  <InputText v-model="slotProps.data.unit" disabled style="width: 100%" />
+              </template>
+          </Column>
+
+          <!-- 규격 (160px) -->
+          <Column field="spec" header="규격" style="width: 159px">
+              <template #body="slotProps">
+                  <InputText v-model="slotProps.data.spec" disabled style="width: 100%" />
+              </template>
+          </Column>
+          
+          <Column field="planned_qtt" header="목표수량" style="width: 230px">
+              <template #body="slotProps">
+                  <InputNumber v-model="slotProps.data.planned_qtt" :min="0" showButtons inputStyle="width: 100%" />
+              </template>
+          </Column>
+
+          <Column field="priority" header="우선순위" style="width: 100px">
+              <template #body="slotProps">
+                  <InputNumber v-model="slotProps.data.priority" :min="0" showButtons inputStyle="width: 100px" />
+              </template>
+          </Column>
+
+          <!-- 생산라인 (237px) -->
+          <Column field="line_code" header="생산라인" style="width: 235px">
+              <template #body="slotProps">
+                  <div class="flex gap-2">
+                      <InputText v-model="slotProps.data.line_code" readonly style="width: 180px" />
+                      <Button icon="pi pi-search" @click="openlinePopup(slotProps.data)" />
+                  </div>
+              </template>
+          </Column>
       </DataTable>
     </div>
   </div>
