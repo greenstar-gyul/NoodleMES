@@ -30,7 +30,7 @@ router.get('/search', async (req, res)=>{
 
     const values = convertObjToAry(search, ['mpr_code','req_date_from','req_date_to','deadline_from','deadline_to','mrp_code','mcode'])
 
-    console.log(values);
+    // console.log(values);
     let mprList = await mprService.findSearch(values)
                                     .catch(err => console.log(err));
 
@@ -38,6 +38,15 @@ router.get('/search', async (req, res)=>{
     // 주의사항) res(Http Response에 대응되는 변수)의 응답메소드를 호출하지 않으면 통신이 종료되지 않음                   
     // res.send()는 데이터를 반환하는 응답 메소드며 객체로 반환되므로 JSON으로 자동 변환
     res.send(mprList); 
+});
+
+// 등록
+router.post('/', async (req, res) => {
+  try {
+    const result = await mprService.insertMpr(req.body);
+  } catch (error) {
+    console.error(err);
+  }
 });
 
 // 해당 javascript 파일의 마지막 코드, 모듈화

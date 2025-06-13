@@ -9,4 +9,5 @@ export default [
         name: 'productionList',
         component: () => import('@/views/production/ProductionList.vue')
     },
+    
 ];

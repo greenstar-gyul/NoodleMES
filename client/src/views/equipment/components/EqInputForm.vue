@@ -27,42 +27,44 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">설비코드</label>
-                <InputText v-model="eqForm.eq_code" type="text" placeholder="자동 생성" :disabled="true"
-                    class="w-full" />
+                <InputText v-model="eqForm.eq_code" type="text" placeholder="자동 생성" :disabled="true" class="w-full" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">설비명</label>
-                <InputText v-model="eqForm.eq_name" type="text" placeholder="설비명 입력" class="w-full" />
+                <label class="font-semibold text-xl block mb-2">설비유형</label>
+                <Dropdown v-model="eqForm.eq_type" :options="eqTypeOptions" optionLabel="label" optionValue="value"
+                    placeholder="유형 선택" class="w-full" />
             </div>
         </div>
 
         <!-- 모델명 / 제조사 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-xl block mb-2">모델명</label>
-                <InputText v-model="eqForm.eq_model" type="text" placeholder="모델명 입력" class="w-full" />
+                <label class="font-semibold text-xl block mb-2">설비명</label>
+                <InputText v-model="eqForm.eq_name" type="text" placeholder="설비명 입력" class="w-full" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">제조사</label>
-                <InputText v-model="eqForm.eq_maker" type="text" placeholder="제조사명 입력" class="w-full" />
+                <label class="font-semibold text-xl block mb-2">모델명</label>
+                <InputText v-model="eqForm.eq_model" type="text" placeholder="모델명 입력" class="w-full" />
             </div>
         </div>
 
         <!-- 용량 / 등록일자 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-xl block mb-2">용량</label>
-                <InputText v-model="eqForm.capacity" type="number" placeholder="용량 입력" class="w-full" />
+                <LabeledDatePicker :key="`bring_date_${isEditMode}_${eqForm.eq_code}`" v-model="eqForm.bring_date"
+                    label="도입일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
             <div>
-                <LabeledDatePicker :key="`make_date_${isEditMode}_${eqForm.eq_code}`" v-model="eqForm.eq_make_date" label="제조일자" placeholder="날짜를 선택" :disabled="false" />
+                <LabeledDatePicker :key="`make_date_${isEditMode}_${eqForm.eq_code}`" v-model="eqForm.eq_make_date"
+                    label="제조일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
         </div>
 
         <!-- 제조일자 / 점검주기 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <LabeledDatePicker :key="`bring_date_${isEditMode}_${eqForm.eq_code}`" v-model="eqForm.bring_date" label="도입일자" placeholder="날짜를 선택" :disabled="false" />
+                <label class="font-semibold text-xl block mb-2">용량</label>
+                <InputText v-model="eqForm.capacity" type="number" placeholder="용량 입력" class="w-full" />
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">점검주기</label>
@@ -73,25 +75,23 @@
         <!-- 인계일자 / 설비유형 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <LabeledDatePicker :key="`take_date_${isEditMode}_${eqForm.eq_code}`" v-model="eqForm.take_date" label="인계일자" placeholder="날짜를 선택" :disabled="false" />
+                <label class="font-semibold text-xl block mb-2">설치위치</label>
+                <InputText v-model="eqForm.eq_pos" type="text" placeholder="설치위치 입력" class="w-full" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">설비유형</label>
-                <Dropdown v-model="eqForm.eq_type" :options="eqTypeOptions" optionLabel="label" optionValue="value"
-                    placeholder="유형 선택" class="w-full" />
+                <label class="font-semibold text-xl block mb-2">제조사</label>
+                <InputText v-model="eqForm.eq_maker" type="text" placeholder="제조사명 입력" class="w-full" />
             </div>
         </div>
 
         <!-- 설치위치 / 사용여부 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-xl block mb-2">설치위치</label>
-                <InputText v-model="eqForm.eq_pos" type="text" placeholder="설치위치 입력" class="w-full" />
-            </div>
-            <div>
                 <label class="font-semibold text-xl block mb-2">사용여부</label>
-                <Dropdown v-model="eqForm.is_used" :options="statusOptions" optionLabel="label" optionValue="value"
-                    placeholder="사용여부 선택" class="w-full" />
+                <Checkbox v-model="isUnused" binary variant="filled" inputId="usage-checkbox" />
+                <label for="usage-checkbox" class="text-lg">
+                {{ isUnused ? ' 미사용' : ' 사용중' }}
+            </label>
             </div>
         </div>
     </div>
@@ -101,6 +101,7 @@
 import { ref, watch, computed, defineProps, defineEmits, nextTick } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
+import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import LabeledDatePicker from '../../../components/common/LabeledDatePicker.vue';
 import axios from 'axios';
@@ -138,12 +139,18 @@ const isEditMode = computed(() => {
     return props.selectedData !== null && props.selectedData !== undefined;
 });
 
-// 사용여부 옵션들
-const statusOptions = [
-    { label: '아니요/미사용', value: 'f1' },
-    { label: '예/사용', value: 'f2' },
-    { label: '전체', value: '' }
-];
+// checkbox
+const isUnused = computed({
+    get() {
+        // is_used가 'f1'이면 체크박스가 선택됨 (미사용)
+        return eqForm.value.is_used === 'f1';
+    },
+    set(value) {
+        // 체크박스가 선택되면(true) is_used는 'f1' (미사용)
+        // 체크박스가 해제되면(false) is_used는 'f2' (사용)
+        eqForm.value.is_used = value ? 'f1' : 'f2';
+    }
+});
 
 const eqTypeOptions = [
     { label: '배합기', value: 'MIX' },
@@ -179,7 +186,7 @@ const resetForm = async () => {
         chk_cycle: '',
         eq_pos: '',
         eq_type: '',
-        is_used: '',
+        is_used: 'f2',
     };
 
     await nextTick();
@@ -205,7 +212,7 @@ watch(
                 take_date: newData.take_date ? new Date(newData.take_date) : null,
                 eq_pos: newData.eq_pos || '',
                 eq_type: newData.eq_type || '',
-                is_used: newData.is_used || ''
+                is_used: newData.is_used || 'f2'
             };
         } else {
             // 선택 해제 시 폼 초기화
@@ -232,7 +239,7 @@ const saveEquipment = async () => {
         console.log('설비 등록:', eqForm.value);
 
         // 필수 필드 검증
-        if (!eqForm.value.eq_type||!eqForm.value.eq_name) {
+        if (!eqForm.value.eq_type || !eqForm.value.eq_name) {
             alert('설비명은 필수입니다.');
             return;
         }
@@ -243,7 +250,8 @@ const saveEquipment = async () => {
             chk_cycle: eqForm.value.chk_cycle ? parseInt(eqForm.value.chk_cycle) : null,
             eq_make_date: formatDateForDB(eqForm.value.eq_make_date) || formatDateForDB(new Date()),
             bring_date: formatDateForDB(eqForm.value.bring_date) || formatDateForDB(new Date()),
-            take_date: formatDateForDB(eqForm.value.take_date) || formatDateForDB(new Date())
+            take_date: formatDateForDB(eqForm.value.take_date) || formatDateForDB(new Date()),
+            is_used: eqForm.value.is_used
         };
 
 
@@ -281,7 +289,8 @@ const updateEquipment = async () => {
             chk_cycle: eqForm.value.chk_cycle ? parseInt(eqForm.value.chk_cycle) : null,
             eq_make_date: formatDateForDB(eqForm.value.eq_make_date) || formatDateForDB(new Date()),
             bring_date: formatDateForDB(eqForm.value.bring_date) || formatDateForDB(new Date()),
-            take_date: formatDateForDB(eqForm.value.take_date) || formatDateForDB(new Date())
+            take_date: formatDateForDB(eqForm.value.take_date) || formatDateForDB(new Date()),
+            is_used: eqForm.value.is_used
         };
 
 

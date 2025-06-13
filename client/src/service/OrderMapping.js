@@ -11,7 +11,7 @@ export const orderMapping = {
     note: '비고',
     spec:'규격',
     unit:'단위',
-    mcode:'담당자 코드',
+    mcode:'등록자 코드',
     client_code:'거래처 코드',
 };
 

@@ -7,7 +7,6 @@ import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
 import MprData from '@/service/MprData.js';
 
-const emit = defineEmits(['searchOption', 'resetSearch']);
 
 // 데이터 및 옵션
 // const mprdata = ref(MprData);
@@ -16,23 +15,23 @@ const searchmprdate = ref([])
 
 // 검색 조건 초기값
 const searchOption = ref({
-  mpr_code: '',
-  req_date_from: null,
-  req_date_to: null,
-  deadline_from: null,
-  deadline_to: null,
-  mrp_code: '',
-  mcode: '',
-  // line: ''
+  mpr_code: '',         // 구매요청코드
+  req_date_from: null,  // 요청일자(시작값)
+  req_date_to: null,    // 요청일자(마지막값)
+  deadline_from: null,  // 납기일자(시작값)
+  deadline_to: null,    // 납기일자(마지막값)
+  mrp_code: '',         // MRP 코드
+  mcode: '',            // 요청자
 });
 
+const emit = defineEmits(['searchOption', 'resetSearch']);
 const fetchSearch = () => {
-  emit('searchOption', searchOption.value);
+  emit('searchOption', searchOption.value); // 조건을 상위로 emit
 };
 
 // 초기화
-const resetSearch = () => {
-  search.value = {
+const resetSearchOption  = () => {
+  searchOption.value = {
     mpr_code: '',
     req_date_from: null,
     req_date_to: null,
@@ -40,11 +39,16 @@ const resetSearch = () => {
     deadline_to: null,
     mrp_code: '',
     mcode: '',
-    // line: ''
   };
-  mprdata.value = [...MprData];
-  emit('reset');
 };
+
+const handleReset = () => {
+  resetSearchOption();               // 검색 조건 초기화
+  emit('resetSearch');              // 부모에게 "초기화했어"라고 알림
+};
+
+defineExpose({ resetSearchOption }); 
+
 </script>
 
 <template>
@@ -81,7 +85,7 @@ const resetSearch = () => {
 
     <!-- 조회/초기화 버튼 -->
     <div class="flex justify-center gap-3 mt-4">
-      <Button label="초기화" severity="contrast" @click="resetSearch" />
+      <Button label="초기화" severity="contrast" @click="handleReset" />
       <Button label="조회" severity="info" @click="fetchSearch" />
     </div>
   </div>

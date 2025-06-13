@@ -31,7 +31,17 @@
                 :key="item"
                 :field="item"
                 :header="mapper[item] ?? item"
-            />
+            >
+              <!-- 날짜포맷변경을 위해 추가한 파트 -->
+              <template #body="slotProps">
+                <span v-if="['reqdate', 'deadline'].includes(item)">
+                  {{ formatDate(slotProps.data[item]) }}
+                </span>
+                <span v-else>
+                  {{ slotProps.data[item] }}
+                </span>
+              </template>
+            </Column>
         </DataTable>
     </div>
 </template>
@@ -41,6 +51,12 @@ import { ref, watch } from 'vue';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import moment from 'moment'; // 날짜포맷변경을 위해 import
+
+// 날짜포맷변경을 위해 추가한 코드
+const formatDate = (val) => {
+  return val ? moment(val).format('YYYY-MM-DD ') : '';
+};
 
 const props = defineProps({
     data: {

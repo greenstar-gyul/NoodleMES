@@ -1,9 +1,10 @@
 
-// 각 변수별로 SQL문을 등록할 떄 백틱(``)을 사용하는 이유는 줄바꿈 허용을 허용하기 떄문.
+// 각 변수별로 SQL문을 등록할 때 백틱(``)을 사용하는 이유는 줄바꿈 허용을 허용하기 떄문.
 // ( 따옴표는 줄을 바꿀 경우 값이 깨지면서 에러발생 )
 
 
 // 주문 전체 조회
+// mcode 등록자를 뜻함..
 const selectOrderList = `
   SELECT ord_code
        , ord_name
@@ -12,12 +13,13 @@ const selectOrderList = `
        , mcode
        , client_code
   FROM ord_tbl
-  ORDER BY ord_code
+  ORDER BY ord_code 
 `;
 
 // 주문 상세 조회
 const selectOrderDetailList = `
   SELECT od.ord_code
+       , od.ord_d_code
        , od.prod_code
        , od.prod_amount
        , od.prod_price
@@ -47,7 +49,7 @@ const selectProductList = `
   SELECT prod_code,
          prod_name,
          note,
-        comm_name(unit) as unit,
+         comm_name(unit) as unit,
          comm_name(spec) as spec,
          comm_name(com_value) as com_value
     FROM prod_tbl
@@ -88,10 +90,23 @@ const selectOrdCodeForUpdate = `
 SELECT CONCAT(
               CONCAT('ORD-', DATE_FORMAT( CURDATE(), '%Y')), 
               LPAD(IFNULL(MAX(SUBSTR(ord_code, -4)), 0) + 1, 4, '0')
-             )
+             ) AS ord_code
 FROM ord_tbl
 WHERE SUBSTR(ord_code, 5, 4) = DATE_FORMAT( CURDATE(), '%Y')
 FOR UPDATE
+`;
+
+// 주문상세 코드 생성용 (ORD-D-0001 형식)
+// CAST: 형변환
+// LPAD(..., 4, '0'): 4자리 0001이런식으로 0채우기
+const selectOrdDCodeForUpdate = `
+  SELECT CONCAT(
+           'ORD-D-', 
+           LPAD(IFNULL(MAX(CAST(SUBSTR(ord_d_code, 7, 4) AS UNSIGNED)), 0) + 1, 4, '0')
+         ) AS ord_d_code
+  FROM ord_d_tbl
+  WHERE SUBSTR(ord_d_code, 1, 5) = 'ORD-D'
+  FOR UPDATE
 `;
 
 // 주문 등록
@@ -144,6 +159,7 @@ module.exports = {
 
   // 등록
   selectOrdCodeForUpdate,
+  selectOrdDCodeForUpdate,
   insertOrder,
   insertOrderDetail,
 

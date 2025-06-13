@@ -24,8 +24,20 @@
             <!-- 상태 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">사용여부</label>
-                <Dropdown v-model="search.is_used" :options="StatusOptions" optionLabel="label" optionValue="value"
-                    placeholder="전체" class="flex-1" />
+                <div class="flex gap-4">
+                    <div class="flex items-center">
+                        <RadioButton v-model="search.is_used" inputId="all" value="" />
+                        <label for="all" class="ml-2">전체</label>
+                    </div>
+                    <div class="flex items-center">
+                        <RadioButton v-model="search.is_used" inputId="used" value="f2" />
+                        <label for="used" class="ml-2">사용중</label>
+                    </div>
+                    <div class="flex items-center">
+                        <RadioButton v-model="search.is_used" inputId="unused" value="f1" />
+                        <label for="unused" class="ml-2">미사용</label>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -58,7 +70,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import InputText from 'primevue/inputtext';
-import Dropdown from 'primevue/dropdown';
+import RadioButton from 'primevue/radiobutton';
 import Button from 'primevue/button';
 import EqInputForm from '@/views/equipment/components/EqInputForm.vue';
 import EqWDETable from './components/EqWDETable.vue';
@@ -166,15 +178,14 @@ const resetSearch = async (selectedItems) => {
 const handleDelete = async (selectedItems) => {
     const confirmDelete = confirm(`정말로 ${selectedItems.length}개의 설비를 삭제하시겠습니까?`);
     if (!confirmDelete) return;
-    
+
     try {
         const codes = selectedItems.map(item => item.eq_code);
-        
-        // 한 번의 API 호출로 끝! 🎉
+
         const response = await axios.delete('/api/eq/multiple/delete', {
             data: { codes }
         });
-        
+
         if (response.data && response.data.success) {
             alert(`${selectedItems.length}개의 설비가 모두 삭제되었습니다.`);
             await loadAll(); // 목록 새로고침

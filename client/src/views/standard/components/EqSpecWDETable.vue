@@ -30,7 +30,7 @@ const props = defineProps({
 });
 // 테이블에 보여줄 제품 데이터
 const emit = defineEmits(['selection-change', 'updated', 'delete', 'export']);
-const selectedWDEeiqchk = ref([]);
+const selectedWDE = ref([]);
 const dynamicColumns = ref([]);
 // 데이터가 바뀔 때마다 열 추출
 watch(
@@ -47,26 +47,26 @@ watch(
 
 const onRowSelect = (event) => {
     console.log('행 선택됨:', event.data);
-    console.log('현재 선택된 항목들:', selectedWDEeiqchk.value);
-    emit('selection-change', selectedWDEeiqchk.value);  // 전체 선택 배열 보내기
+    console.log('현재 선택된 항목들:', selectedWDE.value);
+    emit('selection-change', selectedWDE.value);  // 전체 선택 배열 보내기
 };
 
 const onRowUnselect = (event) => {
     console.log('행 선택 해제:', event.data);
-    console.log('현재 선택된 항목들:', selectedWDEeiqchk.value);
-    emit('selection-change', selectedWDEeiqchk.value);  // 전체 선택 배열 보내기
+    console.log('현재 선택된 항목들:', selectedWDE.value);
+    emit('selection-change', selectedWDE.value);  // 전체 선택 배열 보내기
 };
 
 // 선택 초기화 메서드
 const clearSelection = () => {
-    selectedWDEeiqchk.value = [];
+    selectedWDE.value = [];
     emit('selection-change', []);  // 부모한테도 알려주기
 };
 
 const deleteSelected = () => {
-    if (selectedWDEeiqchk.value) {
-        console.log('삭제 요청:', selectedWDEeiqchk.value);
-        emit('delete', selectedWDEeiqchk.value);
+    if (selectedWDE.value) {
+        console.log('삭제 요청:', selectedWDE.value);
+        emit('delete', selectedWDE.value);
     }
 };
 
@@ -88,12 +88,12 @@ const exportToExcel = () => {
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
                 <div>
-                    <div class="font-semibold text-2xl">{{ title || '설비 목록' }}</div>
+                    <div class="font-semibold text-2xl">{{ title || '점검항목 목록' }}</div>
                     <div class="text-sm text-gray-500 mt-1">총 {{ data.length }}건</div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" 
-                            @click="deleteSelected" :disabled="!selectedWDEeiqchk || selectedWDEeiqchk.length == 0" />
+                            @click="deleteSelected" :disabled="!selectedWDE || selectedWDE.length == 0" />
                     <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" 
                             outlined @click="exportToExcel" />
                 </div>
@@ -103,13 +103,13 @@ const exportToExcel = () => {
         <!-- 데이터 없을 때 표시 -->
         <div v-if="!data || data.length === 0" class="text-center p-8 text-gray-500">
             <p>표시할 데이터가 없습니다.</p>
-            <p class="text-sm mt-2">검색 조건을 확인하거나 새로운 설비를 등록해주세요.</p>
+            <p class="text-sm mt-2">검색 조건을 확인하거나 새로운 설비점검항목을 등록해주세요.</p>
         </div>
 
         <!-- DataTable (PrimeVue) -->
         <DataTable
             v-else
-            v-model:selection="selectedWDEeiqchk"
+            v-model:selection="selectedWDE"
             :value="data"
             :dataKey="dataKey"
             showGridlines
@@ -144,11 +144,11 @@ const exportToExcel = () => {
             />
         </DataTable>
         <!-- 선택된 행 정보 표시 -->
-        <div v-if="selectedWDEeiqchk && selectedWDEeiqchk.length > 0" class="mt-4 p-3 bg-blue-50 rounded">
+        <div v-if="selectedWDE && selectedWDE.length > 0" class="mt-4 p-3 bg-blue-50 rounded">
             <p class="text-sm text-blue-600">
-                선택된 설비: {{ selectedWDEeiqchk.length }}개
-                <span v-if="selectedWDEeiqchk.length === 1" class="ml-2">
-                    ({{ selectedWDEeiqchk[0][dataKey] }} - 수정 모드)
+                선택된 점검항목: {{ selectedWDE.length }}개
+                <span v-if="selectedWDE.length === 1" class="ml-2">
+                    ({{ selectedWDE[0][dataKey] }} - 수정 모드)
                 </span>
                 <span v-else class="ml-2">
                     (다중 선택 - 삭제만 가능)

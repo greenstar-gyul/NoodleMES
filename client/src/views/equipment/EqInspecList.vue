@@ -15,21 +15,17 @@
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledInput label="점검지시서코드" :value="eqii_code" placeholder="생산계획코드" :disabled="true" />
+      <LabeledInput label="설비코드" v-model="eq_code" />
       <LabeledInput label="설비명" v-model="eq_name" />
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledInput label="설비코드" v-model="eq_code" />
-      <LabeledInput label="점검주기" v-model="chk_cycle" placeholder="작성자명" :disabled="true" />
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <LabeledInput label="상태" v-model="chk_cycle" placeholder="작성자명" :disabled="true" />
       <LabeledReadonlyInput label="최근 점검일" v-model="latest_date" />
     </div>
   </div>
   <div>
     <EqEditableTable
-      :fields="['eqii_code', 'inst_date', 'inst_emp_code', 'eq_chk_type', 'chk_exp_date', 'stat', 'note']"
-      :mapper="eqiiMapper" :dataKey="'eqii_code'" :initialData="inspectionList" @update="handleInspectionTableUpdate"
+      :data="columns" :mapper="eqiiMapper" :dataKey="'eqii_code'" :initialData="equipmentData" @update="handleInspectionTableUpdate"
       @loadEquipment="dialogVisible2 = true" title="설비 점검 지시서 정보" scrollHeight="600px" />
   </div>
   <div>
@@ -52,77 +48,26 @@ import eqMapper from '@/service/EquipmentMapping';
 import eqiiMapper from '@/service/EquipSpecInstMapping'
 import EqEditableTable from '@/views/equipment/components/EqEditableTable.vue';
 import eqchkMapper from '@/service/EqChkListMapping.js'
+import axios from 'axios';
 import { ref, computed, onMounted } from 'vue'
 import { Button } from 'primevue';
 
 
 const eq_code = ref('')
 const eq_name = ref('')
-const inst_date = ref('')
-const inst_emp_code = ref('')
-const eq_chk_type = ref('')
 const eqii_code = ref('CHK' + Date.now().toString().slice(-6))
 const chk_cycle = ref('')
 const latest_date = ref('')
+const columns = ['eqii_code', 'inst_date', 'inst_emp_code', 'eq_chk_type', 'chk_exp_date', 'stat', 'note']
+
+const eqpops = ref([]);
 
 // 팝업
 const dialogVisible = ref(false);
 // 팝업 2
 const dialogVisible2 = ref(false);
 
-const inspectionList = ref([
-  {
-    eqii_code: 'CHK001',
-    inst_date: '2024-06-10',
-    inst_emp_code: 'EMP001',
-    eq_chk_type: '정기점검',
-    chk_exp_date: '2024-06-15',
-    stat: '대기',
-    note: '정기 점검 예정'
-  }
-]);
 
-// 팝업시작
-const equipments = ref([
-  { eq_code: 'EQ001', eq_name: '컨베이어 벨트', eq_model: 'CV-A100', chk_cycle: '30일' },
-  { eq_code: 'EQ002', eq_name: '프레스 기계', eq_model: 'PR-B200', chk_cycle: '15일' },
-  { eq_code: 'EQ003', eq_name: '용접기', eq_model: 'WD-C300', chk_cycle: '60일' },
-  { eq_code: 'EQ004', eq_name: '포장기', eq_model: 'PK-D400', chk_cycle: '45일' },
-  { eq_code: 'EQ005', eq_name: '절단기', eq_model: 'CT-E500', chk_cycle: '20일' },
-]);
-
-const eqiis = ref([
-  { eq_code: 'EQ001', eqii_code: 'CHK001', inst_date: '2024-06-01', eq_chk_type: '정기점검', stat: '완료' },
-  { eq_code: 'EQ001', eqii_code: 'CHK002', inst_date: '2024-06-02', eq_chk_type: '특별점검', stat: '진행중' },
-  { eq_code: 'EQ002', eqii_code: 'CHK003', inst_date: '2024-06-03', eq_chk_type: '긴급점검', stat: '대기' },
-  { eq_code: 'EQ003', eqii_code: 'CHK004', inst_date: '2024-06-04', eq_chk_type: '정기점검', stat: '완료' },
-  { eq_code: 'EQ005', eqii_code: 'CHK005', inst_date: '2024-06-05', eq_chk_type: '안전점검', stat: '취소' },
-]);
-
-const eqoplist = ref([
-  // 컨베이어 벨트 점검항목들
-  { eq_code: 'EQ001', eqop_code: 'OP001', eq_name: '벨트 장력 확인', chk_method: '육안검사', chk_cycle: '일일' },
-  { eq_code: 'EQ001', eqop_code: 'OP002', eq_name: '모터 소음 점검', chk_method: '청음검사', chk_cycle: '주간' },
-  { eq_code: 'EQ001', eqop_code: 'OP003', eq_name: '베어링 윤활', chk_method: '촉감검사', chk_cycle: '월간' },
-
-  // 프레스 기계 점검항목들
-  { eq_code: 'EQ002', eqop_code: 'OP004', eq_name: '유압 압력 확인', chk_method: '계기점검', chk_cycle: '일일' },
-  { eq_code: 'EQ002', eqop_code: 'OP005', eq_name: '안전장치 작동', chk_method: '기능검사', chk_cycle: '주간' },
-  { eq_code: 'EQ002', eqop_code: 'OP006', eq_name: '오일 누유 점검', chk_method: '육안검사', chk_cycle: '일일' },
-
-  // 용접기 점검항목들
-  { eq_code: 'EQ003', eqop_code: 'OP007', eq_name: '전극 마모도 확인', chk_method: '육안검사', chk_cycle: '일일' },
-  { eq_code: 'EQ003', eqop_code: 'OP008', eq_name: '가스 압력 점검', chk_method: '계기점검', chk_cycle: '일일' },
-  { eq_code: 'EQ003', eqop_code: 'OP009', eq_name: '접지 상태 확인', chk_method: '계기점검', chk_cycle: '월간' },
-
-  // 포장기 점검항목들
-  { eq_code: 'EQ004', eqop_code: 'OP010', eq_name: '컨베이어 속도', chk_method: '계기점검', chk_cycle: '일일' },
-  { eq_code: 'EQ004', eqop_code: 'OP011', eq_name: '센서 감도 조정', chk_method: '기능검사', chk_cycle: '주간' },
-
-  // 절단기 점검항목들
-  { eq_code: 'EQ005', eqop_code: 'OP012', eq_name: '블레이드 마모도', chk_method: '육안검사', chk_cycle: '일일' },
-  { eq_code: 'EQ005', eqop_code: 'OP013', eq_name: '냉각수 순환', chk_method: '육안검사', chk_cycle: '일일' },
-]);
 
 const handleInspectionTableUpdate = (updatedData) => {
   console.log('📋 점검지시서 테이블 업데이트:', updatedData);
@@ -156,6 +101,18 @@ const filteredEqiilist = computed(() => {
 
   return eqiis.value.filter(item => item.eq_code === eq_code.value);
 });
+
+// 데이터 업데이트 처리
+const handleUpdate = (updatedData) => {
+  equipmentData.value = updatedData
+  console.log('데이터 업데이트됨!', updatedData)
+}
+
+// 지시정보 불러오기 처리
+const handleLoadEquipment = () => {
+  console.log('지시정보 불러오기 클릭!')
+  // 여기서 API 호출하거나 새 데이터 로드
+}
 
 const handleInspectionSelect = (selectedInspection) => {
   console.log('선택된 점검지시서:', selectedInspection);

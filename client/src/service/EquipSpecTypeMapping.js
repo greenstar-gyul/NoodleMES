@@ -5,9 +5,7 @@ export const eqstMapping = {
     range_top: '기준(상한)',
     range_bot: '기준(하한)',
     unit: '단위',
-    jdg_mth: '판정방식',
-    regdate: '생성일',
-    crrdate: '수정일'
+    jdg_mth: '판정방식'
 };
 
 export default eqstMapping;
