@@ -41,9 +41,6 @@ const props = defineProps({
     default: '400px'
   }
 });
-        default: []
-    }
-});
 
 // 테이블에 보여줄 제품 데이터 (예시 데이터)
 const itemsWDE = ref([]);
