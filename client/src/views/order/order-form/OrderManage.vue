@@ -12,7 +12,6 @@ const selectedManager = ref({});
 const note = ref({});
 const productRows = ref([]);
 const selectedProducts = ref([]);
-const propTest = ref(1);
 </script>
 
 <template>
@@ -31,6 +30,5 @@ const propTest = ref(1);
   <OrderManageProduct
     :product-rows="productRows"
     :selected-products="selectedProducts"
-    :test-data="propTest"
   />
 </template>

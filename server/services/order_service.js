@@ -50,18 +50,18 @@ const findProductByName = async (name) => {
 };
 
 // 공통코드 - 규격
-const findSpecList = async () => {
-  // group_value가 '0Z'인 공통코드만 가져와서 규격 옵션으로 사용
-  const result = await mariadb.query("selectSpecCodes").catch(console.error);
-  return result;
-};
+// const findSpecList = async () => {
+//   // group_value가 '0Z'인 공통코드만 가져와서 규격 옵션으로 사용
+//   const result = await mariadb.query("selectSpecCodes").catch(console.error);
+//   return result;
+// };
 
 // 공통코드 - 단위
-const findUnitList = async () => {
-  // group_value가 '0H'인 공통코드만 가져와서 단위 옵션으로 사용
-  const result = await mariadb.query("selectUnitCodes").catch(console.error);
-  return result;
-};
+// const findUnitList = async () => {
+//   // group_value가 '0H'인 공통코드만 가져와서 단위 옵션으로 사용
+//   const result = await mariadb.query("selectUnitCodes").catch(console.error);
+//   return result;
+// };
 
 // 주문 등록
 const insertOrder = async (orderData) => {
@@ -151,8 +151,6 @@ module.exports ={
     findClientList,
     findProductList,
     findProductByName,
-    findSpecList,
-    findUnitList,
     insertOrder,
     insertOrderDetail,
     insertOrderTx,

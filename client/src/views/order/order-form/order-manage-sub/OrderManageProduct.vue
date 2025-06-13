@@ -36,10 +36,10 @@ const selectedProducts = ref([]);
 const productList = ref([]);
 
 // 규격 옵션 목록
-const specOptions = ref([]);
+// const specOptions = ref([]);
 
 // 단위 옵션 목록 
-const unitOptions = ref([]);
+// const unitOptions = ref([]);
 
 /* ===== FUNCTIONS ===== */
 // 제품명 팝업 열기
@@ -124,13 +124,15 @@ onMounted(async () => {
     const prodRes = await axios.get('/api/order/products'); // 제품 전체 목록 불러오기
     productList.value = prodRes.data.data; // 전체 제품 목록 저장
 
-    // 규격 옵션 (공통코드: 0O, 0X, 0Y)
-    const specRes = await axios.get('/api/order/spec');
-    specOptions.value = specRes.data.data;
+    // // 규격 옵션 (공통코드: 0O, 0X, 0Y)
+    // const specRes = await axios.get('/api/order/spec');
+    // specOptions.value = specRes.data.data;
 
-    // 단위 옵션 (공통코드: 0H)
-    const unitRes = await axios.get('/api/order/unit');
-        unitOptions.value = unitRes.data.data;
+    // // 단위 옵션 (공통코드: 0H)
+    // const unitRes = await axios.get('/api/order/unit');
+    // unitOptions.value = unitRes.data.data;
+
+
     } catch (err) {
         console.error('제품 리스트 불러오기 실패:', err);
     }

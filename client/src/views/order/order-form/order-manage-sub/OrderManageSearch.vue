@@ -95,7 +95,6 @@ const handleSave = async () => {
 
   // 주문 본문의 데이터 객체
   const order = {
-    ord_code: props.ordCode.value,
     ord_name: props.ordName.value,
     ord_date: moment().format('YYYY-MM-DD'),
     ord_stat: 'a1',
@@ -105,13 +104,15 @@ const handleSave = async () => {
   };
 
   const details = props.productRows.value.map(item => ({
-    ord_code: item.ord_code,
-    prod_code: item.prod_code,
-    prod_amount: item.prod_amount,
+    unit: item.unit,
+    spec: item.spec,
+    prod_amount: item.prod_qtt,
     prod_price: item.prod_price,
     delivery_date: item.delivery_date,
-    ord_priority: item.ord_priority,
-    total_price: item.total_price
+    ord_priority: item.priority,
+    total_price: item.total_price,
+    ord_code: props.ordCode.value,
+    prod_code: item.prod_code
   }));
 
   try {

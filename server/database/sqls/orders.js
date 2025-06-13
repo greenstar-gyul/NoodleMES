@@ -47,6 +47,8 @@ const selectProductList = `
   SELECT prod_code,
          prod_name,
          note,
+        comm_name(unit) as unit,
+         comm_name(spec) as spec,
          comm_name(com_value) as com_value
     FROM prod_tbl
    ORDER BY prod_code
@@ -66,20 +68,20 @@ const selectProductByName = `
 `;
 
 // 공통코드: 규격 (0O, 0X, 0Y)
-const selectSpecCodes = `
-  SELECT comm_name(com_value) AS value,
-         comm_name(com_value) AS label
-  FROM common_code
-  WHERE group_value in('0O', '0X', '0Y') 
-`;
+// const selectSpecCodes = `
+//   SELECT comm_name(com_value) AS value,
+//          comm_name(com_value) AS label
+//   FROM common_code
+//   WHERE group_value in('0O', '0X', '0Y') 
+// `;
 
 // 공통코드: 단위 (0H)
-const selectUnitCodes = `
-  SELECT comm_name(com_value) AS value,
-         comm_name(com_value) AS label
-  FROM common_code
-  WHERE group_value = '0H'
-`;
+// const selectUnitCodes = `
+//   SELECT comm_name(com_value) AS value,
+//          comm_name(com_value) AS label
+//   FROM common_code
+//   WHERE group_value = '0H'
+// `;
 
 // 주문 코드 생성용 (FOR UPDATE 잠금)
 const selectOrdCodeForUpdate = `
@@ -108,14 +110,17 @@ const insertOrder = `
 // 주문 상세 등록
 const insertOrderDetail = `
   INSERT INTO ord_d_tbl (
-    ord_code,
-    prod_code,
+    ord_d_code,
+    unit,
+    spec,
     prod_amount,
     prod_price,
     delivery_date,
     ord_priority,
-    total_price
-  ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    total_price,
+    ord_code,
+    prod_code
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
 // 주문 삭제
@@ -136,8 +141,6 @@ module.exports = {
   selectClientList,
   selectProductList,
   selectProductByName,
-  selectSpecCodes,
-  selectUnitCodes,
 
   // 등록
   selectOrdCodeForUpdate,
