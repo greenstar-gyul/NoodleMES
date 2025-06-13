@@ -24,6 +24,14 @@ router.get('/plan-list', async (req, res) => {
     res.send(prodPlanList);
 });
 
+// 자재 목록 불러오기
+router.get('/matlist', async (req, res) => {
+    // console.log('왜 안뜸 ㅡㅡ');
+    const result = await mrpService.getMatList()
+        .catch(err => console.log(err));
+    res.send(result);
+});
+
 // 생산 계획에 따른 MRP 코드
 router.get('/mrpcode/:prdpCode', async (req, res) => {
     const prdpCode = req.params.prdpCode;
@@ -71,5 +79,6 @@ router.put('/:mrpCode', async (req, res) => {
         .catch(err => console.log(err));
     res.send(result);
 });
+
 
 module.exports = router;

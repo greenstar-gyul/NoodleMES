@@ -22,17 +22,17 @@ const saveData = async () => {
     // console.log(data);
 
     if (data.mrpData.mrp_code === '') {
-        console.log(data);
+        // console.log(data);
         const response = await axios.post(`/api/mrp/create`, data);
         const result = response.data;
-        console.log(response);
+        console.log(result);
     }
     else {
         // console.log(data.mrpData.mrp_code);
-        return; // 아직 미구현
+
         const response = await axios.put(`/api/mrp/${data.mrpData.mrp_code}`, data);
         const result = response.data;
-        // console.log(result);
+        console.log(result);
     }
 }
 
@@ -89,12 +89,19 @@ watch(() => mrpInfo.value, (newVal) => {
 // 현재 MRP 상세(하위 자재) 정보
 const mrpDetailList = defineModel('subData');
 
+watch(() => mrpDetailList.value, (newVal) => {
+    let idx = 1;
+    mrpDetailList.value.forEach(element => {
+        element.mrp_d_id = idx++;
+    });
+})
+
 </script>
 
 <template>
     <div>
         <MRPManageSearch v-model:data="mrpInfo" @reset-list="resetData" @save-data="saveData"></MRPManageSearch>
-        <MRPManageTable v-model:subData="mrpDetailList" v-model:prdp="prdpCode" :dataKey="'mrp_d_code'" :columns="['mat_name','req_qtt', 'unit','cur_qtt','stock_unit']" title="자재"></MRPManageTable>
+        <MRPManageTable v-model:subData="mrpDetailList" v-model:prdp="prdpCode" :dataKey="'mrp_d_id'" :columns="['mat_name','req_qtt', 'unit','cur_qtt','stock_unit']" title="자재"></MRPManageTable>
     </div>
 
     <!-- 팝업 -->

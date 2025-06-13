@@ -127,6 +127,31 @@ WHERE    pd.prdp_code = ?
 GROUP BY bm.mat_code, bm.mat_name, mstock.cur_qtt, unit
 `;
 
+const selectMatAlll = `
+SELECT mat.mat_code,
+       mat.mat_name,
+       comm_name(mat.unit) AS "unit",
+       mat.note,
+       comm_name(mat.material_type_code) AS "mat_type",
+       mstock.cur_qtt,
+       comm_name(mstock.unit) AS "stock_unit"
+FROM   mat_tbl mat JOIN mat_stock_v mstock
+                     ON mat.mat_code = mstock.mat_code
+ORDER BY mat_code
+`;
+
+const updateMRP = `
+UPDATE mrp_tbl 
+SET mrp_note = ?
+WHERE mrp_code = ?
+`;
+
+const updateMRPDetail = `
+UPDATE mrp_d_tbl 
+SET req_qtt = ?
+WHERE mrp_d_code = ?
+`;
+
 module.exports = {
     selectMRPList,
     selectMRPDetailList,
@@ -139,4 +164,7 @@ module.exports = {
     insertMRP,
     insertMRPDetail,
     selectBOMbyprdpcode,
+    selectMatAlll,
+    updateMRP,
+    updateMRPDetail,
 }
