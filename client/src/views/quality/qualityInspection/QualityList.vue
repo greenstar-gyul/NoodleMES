@@ -43,7 +43,7 @@
         <!-- 조회/초기화 버튼 영역 -->
         <div class="flex justify-center gap-3 mt-4">
             <Button label="초기화" severity="contrast" @click="resetSearch" />
-            <Button label="조회" severity="info" @click="fetchOrders" />
+            <Button label="조회" severity="info" @click="fetchLists" />
         </div>
     </div>
 
@@ -61,6 +61,7 @@
 </template>
 
 <script setup>
+import axios from 'axios';
 import { ref } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
@@ -77,10 +78,13 @@ import SinglePopup from '@/components/popup/SinglePopup.vue';
 
 // 검색조건 데이터 (v-model로 바인딩됨)
 const search = ref({
-    qcr_code: '',
-    po_code: '',
-    inspection_item: null,
-    check_method: ''
+    qio_code: '',
+    pname: '',
+    prod_name: '',
+    prod_code: '',
+    start_date: null,
+    end_date: null,
+    insp_emp_code: ''
 });
 
 // 팝업창 Open/Close 변수
@@ -95,9 +99,25 @@ const orderStatusOptions = [
 ];
 
 // 조회 버튼 기능 (API 호출 자리)
-const fetchOrders = () => {
+const fetchLists = async () => {
     console.log('조회 실행:', search.value);
     // TODO: 실제 API 호출로 데이터 갱신
+     try {
+        const params = { ...search.value };
+
+        // 필요시 날짜 변환 처리
+        if (params.start_date instanceof Date)
+            params.start_date = params.start_date.toISOString().slice(0, 10);
+        if (params.end_date instanceof Date)
+            params.end_date = params.end_date.toISOString().slice(0, 10);
+
+        const response = await axios.get('/api/quality/search', { params });
+        qualitys.value = response.data;
+        console.log('qualitys.value');
+        console.log(qualitys.value);
+    } catch (error) {
+        console.error('조회 실패:', error);
+    }
 };
 
 // 초기화 버튼 기능

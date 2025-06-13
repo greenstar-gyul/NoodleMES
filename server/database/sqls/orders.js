@@ -1,5 +1,5 @@
 
-// 각 변수별로 SQL문을 등록할 떄 백틱(``)을 사용하는 이유는 줄바꿈 허용을 허용하기 떄문.
+// 각 변수별로 SQL문을 등록할 때 백틱(``)을 사용하는 이유는 줄바꿈 허용을 허용하기 떄문.
 // ( 따옴표는 줄을 바꿀 경우 값이 깨지면서 에러발생 )
 
 
@@ -12,7 +12,7 @@ const selectOrderList = `
        , mcode
        , client_code
   FROM ord_tbl
-  ORDER BY ord_code
+  ORDER BY ord_code 
 `;
 
 // 주문 상세 조회

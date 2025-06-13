@@ -7,7 +7,7 @@ import Column from 'primevue/column';
 
 const emit = defineEmits(['row-click']);
 
-const selectedWDE = ref(null); // single일 경우
+const selectedWDE = ref([]); // single일 경우
 
 watch(selectedWDE, (newVal) => {
   if (newVal) {
@@ -75,7 +75,6 @@ watch(
 
 
 // DataTable 선택된 행 (선택 모드)
-const selectedWDE = ref([]);
 
 console.log('📌 columns:', props.columns)
 console.log('📌 mapper:', props.mapper)
