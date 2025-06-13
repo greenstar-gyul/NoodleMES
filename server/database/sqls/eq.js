@@ -68,7 +68,18 @@ function buildSearch(searchParams) {
   return { sql, values };
 }
 
-
+// eq_code 자동생성 
+// SELECT eq_code for new insert
+const selectEqCodeForUpdate = `
+SELECT CONCAT(
+    'EQ-', ?, '-',
+    LPAD(COALESCE(MAX(SUBSTR(eq_code, -4)), 0) + 1, 4, '0')
+) AS next_eq_code
+FROM eq_tbl
+WHERE eq_type = ?
+  AND eq_code LIKE CONCAT('EQ-', ?, '-%')
+FOR UPDATE
+`;
 
 module.exports = {
   // 전체 조회 (첫 화면용)
@@ -97,5 +108,7 @@ module.exports = {
   deleteEq: `
     DELETE FROM eq_tbl 
     WHERE eq_code = ?
-  `
+  `,
+
+  selectEqCodeForUpdate: selectEqCodeForUpdate
 };

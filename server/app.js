@@ -27,6 +27,8 @@ const mrpRouter = require('./routers/mrp_router.js');
 
 const eqRouter = require('./routers/eq_router.js');
 
+const eqichkRouter = require('./routers/eqichk_router.js');
+
 const orderRouter = require('./routers/order_router.js');
 
 const mprRouter = require('./routers/mpr_router.js');
@@ -43,6 +45,7 @@ app.use('/dept', deptRouter);
 app.use('/prdp', prdpRouter);
 app.use('/mrp', mrpRouter);
 app.use('/eq', eqRouter);
+app.use('/eqichk', eqichkRouter);
 app.use('/order', orderRouter);
 app.use('/mpr', mprRouter);
 app.use('/quality', qlsRouter);

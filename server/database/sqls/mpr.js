@@ -24,11 +24,11 @@ const selectSearchMprList =
      , mrp_code
      , mcode
 FROM   mpr_tbl
-WHERE  mpr_code LIKE CONCAT('%', ?, '%') -- mpr_code자리와 LIKE의 %% 사이에 검색값 변수 넣기
-  AND  reqdate BETWEEN (IFNULL(?, '1970-01-01')) AND (IFNULL(?, '9999-12-31')) -- 처음 IFNULL의 첫 매개변수 : from~ , 다음 IFNULL의 첫 매개변수 : to~ 
-  AND  deadline BETWEEN (IFNULL(?, '1970-01-01')) AND (IFNULL(?, '9999-12-31')) -- 처음 IFNULL의 첫 매개변수 : from~ , 다음 IFNULL의 첫 매개변수 : to~ 
-  AND  mrp_code LIKE CONCAT('%', ?, '%') -- mrp_code자리와 LIKE의 %% 사이에 검색값 변수 넣기
-  AND  mcode    LIKE (CONCAT('%',? ,'%')) -- mcode자리와 LIKE의 %% 사이에 검색값 변수 넣기
+WHERE  mpr_code LIKE CONCAT('%', ?, '%')
+  AND  reqdate BETWEEN (IFNULL(?, '1970-01-01')) AND (IFNULL(?, '9999-12-31'))
+  AND  deadline BETWEEN (IFNULL(?, '1970-01-01')) AND (IFNULL(?, '9999-12-31'))
+  AND  mrp_code LIKE CONCAT('%', ?, '%')
+  AND  mcode    LIKE (CONCAT('%',? ,'%'))
 ORDER BY mpr_code
 `;
 
