@@ -79,6 +79,10 @@ const model = ref([
                         to: '/mrp/list'
                     },
                     {
+                        label: '생산실적상세',
+                        to: '/performance/detail'
+                    },
+                    {
                         label: 'Access Denied',
                         to: '/auth/access'
                     }
