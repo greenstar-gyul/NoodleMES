@@ -60,29 +60,30 @@ const openPopup = async () => {
         return;
     }
     // console.log(props.prdp);
+    await loadMatList();
     dialogVisible.value = true;
 };
 
-const popupMatsConfirm = async (values) => {
-    // console.log(values);
-    // values.forEach(element => {
-    //     // console.log(element['mat_code']);
-    //     matList.value.push(element['mat_code']);
-    //     selMatList.value.push(mats.value.find(item => {
-    //         if (element['mat_code'] == item.mat_code) {
-    //             // console.log(item);
-    //             return true;
-    //         }
-    //     }));
+const loadMatList = async () => {
+    if (props.prdp == null || props.prdp == '') {
+        alert('생산계획을 먼저 불러오세요.');
+        return;
+    }
 
-    //     // mats.value.push(element);
-    // });
-
-    // console.log(selMatList.value);
-
-    // const result = await axios.get()
-    // popupMats.value = 
+    // console.log('아제발좀');
+    const response = await axios.get(`/api/mrp/matlist`);
+    // console.log(`response!!!!!!!!!`, response);
+    popupMats.value = await response.data;
 };
+
+const addMat = (values) => {
+    const subDatas = [...props.subData];
+    // console.log(values);
+    subDatas.push(...values);
+    props.subData = subDatas;
+    // console.log(props.subData);
+    emit('update:subData', subDatas);
+}
 
 onMounted(() => {
     mapper.value = MRPMapping.mrpMapping;
@@ -136,8 +137,7 @@ watch(
                     <div class="font-semibold text-2xl">{{ title }}</div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="BOM 불러오기" severity="info" class="min-w-fit whitespace-nowrap"
-                        v-on:click="loadBom" />
+                    <Button label="BOM 불러오기" severity="info" class="min-w-fit whitespace-nowrap" v-on:click="loadBom" />
                     <Button label="자재 추가" severity="success" class="min-w-fit whitespace-nowrap"
                         v-on:click="openPopup" />
                     <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" />
@@ -150,9 +150,41 @@ watch(
             scrollHeight="400px" tableStyle="min-width: 50rem">
             <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-            <Column v-for="item in itemsWAD" :key="item" :field="item" :header="mapper[item] ?? item" />
+            <!-- <Column v-for="item in itemsWAD" :key="item" :field="item" :header="mapper[item] ?? item" /> -->
+            <Column field="mat_name" header="제품유형">
+              <template #body="slotProps">
+                  {{ slotProps.data.mat_name }}
+              </template>
+            </Column>
+            
+            <Column field="req_qtt" header="필요수량" style="width: 230px">
+                <template #body="slotProps">
+                    <InputNumber v-model="slotProps.data.req_qtt" :min="0" showButtons inputStyle="width: 100%" />
+                </template>
+            </Column>
+            
+            <Column field="unit" header="단위">
+              <template #body="slotProps">
+                  {{ slotProps.data.unit }}
+              </template>
+            </Column>
+
+            <Column field="cur_qtt" header="현재재고">
+              <template #body="slotProps">
+                  {{ slotProps.data.cur_qtt }}
+              </template>
+            </Column>
+
+            <Column field="stock_unit" header="단위">
+              <template #body="slotProps">
+                  {{ slotProps.data.stock_unit }}
+              </template>
+            </Column>
         </DataTable>
     </div>
 
-    <MultiplePopup v-model:visible="dialogVisible" :items="popupMats" :mapper="{}" @confirm="popupMatsConfirm" :dataKey="'mat_code'"></MultiplePopup>
+    <MultiplePopup v-model:visible="dialogVisible" :items="popupMats"
+        :selectedHeader="['mat_code', 'mat_name', 'mat_type', 'unit', 'note']"
+        :mapper="{ 'mat_code': '자재코드', 'mat_name': '자재명', 'mat_type': '자재유형', 'unit': '단위', 'note': '비고' }" @confirm="addMat"
+        :dataKey="'mat_code'"></MultiplePopup>
 </template>
