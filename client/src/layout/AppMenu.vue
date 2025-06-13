@@ -100,11 +100,11 @@ const model = ref([
                         to: '/quality/qualityInspection/QualityList'
                     },
                     {
-                        label: '품질검사관리',
+                        label: '품질검사지시관리',
                         to: '/quality/qualityInspection/QualityManage'
                     },
                     {
-                        label: '품질검사결과',
+                        label: '품질검사결과관리',
                         to: '/quality/qualityResults/QualityResults'
                     },
                     {
