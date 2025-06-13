@@ -35,12 +35,12 @@ const props = defineProps({
     },
     columns: {
         type: Array,
-    }
+    },
+    scrollHeight: {             // 부모에서 설정할수있게 추가했습니다
+    type: String,
+    default: '400px'
+  }
 });
-console.log('📌 columns:', props.columns)
-console.log('📌 mapper:', props.mapper)
-console.log('📌 data:', props.data)
-
 </script>
 
 <template>
@@ -65,8 +65,7 @@ console.log('📌 data:', props.data)
             :value="data"
             :dataKey="dataKey"
             showGridlines
-            scrollable
-            scrollHeight="400px"
+            :scrollHeight="scrollHeight"
             tableStyle="min-width: 50rem"
         >
             <Column selectionMode="single" headerStyle="width: 3rem" />
