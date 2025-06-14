@@ -9,6 +9,7 @@ import qaRoutes from './quality';
 import stdRoutes from './standard';
 import auth from './auth';
 import test_router from './test_router';
+import wkoRoutes from './wko';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -121,6 +122,7 @@ const router = createRouter({
                 ...qaRoutes,
                 ...stdRoutes,
                 ...test_router,
+                ...wkoRoutes,
             ]
         },
         {

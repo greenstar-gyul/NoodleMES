@@ -12,6 +12,7 @@ import qaRouter from './router/quality';
 import stdRouter from './router/standard';
 import ordRouter from './router/order';
 import performanceRouter from './router/performace';
+import wkoRouter from './router/wko';
 
 import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -33,6 +34,7 @@ app.use(qaRouter);
 app.use(stdRouter);
 app.use(ordRouter);
 app.use(performanceRouter);
+app.use(wkoRouter);
 
 app.use(PrimeVue, {
     theme: {

@@ -83,6 +83,10 @@ const model = ref([
                         to: '/mrp/list'
                     },
                     {
+                        label: '작업지시서 관리',
+                        to: '/wko/manage'
+                    },
+                    {
                         label: '생산실적상세',
                         to: '/performance/detail'
                     },
