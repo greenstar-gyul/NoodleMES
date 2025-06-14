@@ -152,6 +152,52 @@ SET req_qtt = ?
 WHERE mrp_d_code = ?
 `;
 
+const selectMRPByOptions =  `
+SELECT mrp.mrp_code,
+       prdp.prdp_code,
+       prdp.prdp_name,
+       mat.mat_name,
+       mrd.req_qtt,
+       comm_name(mrd.unit) "unit",
+       mrp.plan_date,
+       mrp.mrp_note
+FROM   mrp_tbl mrp LEFT JOIN mrp_d_tbl mrd
+                          ON mrp.mrp_code = mrd.mrp_code
+                   LEFT JOIN prdp_tbl prdp
+                          ON mrp.prdp_code = prdp.prdp_code
+                   LEFT JOIN mat_tbl mat
+                          ON mat.mat_code = mrd.mat_code
+WHERE 1=1
+  AND (? IS NULL OR mrp.mrp_code LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR prdp.prdp_code LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR prdp.prdp_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR mat.mat_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR mrp.plan_date >= ?)
+  AND (? IS NULL OR mrp.plan_date <= ?)
+ORDER BY mrp.mrp_code
+`;
+
+// 오늘날짜를 기준으로 해당하는 달에 내용만 조회
+const selectMRPMonth = `
+SELECT mrp.mrp_code,
+       prdp.prdp_code,
+       prdp.prdp_name,
+       mat.mat_name,
+       mrd.req_qtt,
+       comm_name(mrd.unit) "unit",
+       mrp.plan_date,
+       mrp.mrp_note
+FROM   mrp_tbl mrp LEFT JOIN mrp_d_tbl mrd
+                          ON mrp.mrp_code = mrd.mrp_code
+                   LEFT JOIN prdp_tbl prdp
+                          ON mrp.prdp_code = prdp.prdp_code
+                   LEFT JOIN mat_tbl mat
+                          ON mat.mat_code = mrd.mat_code
+WHERE YEAR(mrp.plan_date) = YEAR(CURDATE())
+  AND MONTH(mrp.plan_date) = MONTH(CURDATE())
+ORDER BY 1
+`;
+
 module.exports = {
     selectMRPList,
     selectMRPDetailList,
@@ -167,4 +213,6 @@ module.exports = {
     selectMatAlll,
     updateMRP,
     updateMRPDetail,
+    selectMRPByOptions,
+    selectMRPMonth,
 }

@@ -32,20 +32,26 @@ router.get('/matlist', async (req, res) => {
     res.send(result);
 });
 
+// MRP 초기 조회
+router.get('/searchMonth', async (req, res) => {
+    const data = await mrpService.searchMRPMonth(req.query)
+        .catch(err => console.log(err));
+    res.send(data);
+});
+
+// MRP 조회
+router.get('/search', async (req, res) => {
+    const data = await mrpService.searchMRPByOptions(req.query)
+        .catch(err => console.log(err));
+    res.send(data);
+});
+
 // 생산 계획에 따른 MRP 코드
 router.get('/mrpcode/:prdpCode', async (req, res) => {
     const prdpCode = req.params.prdpCode;
     const mrpCode = await mrpService.findMRPCode([prdpCode])
         .catch(err => console.log(err));
     res.send(mrpCode);
-});
-
-// MRP 코드로 MRP 조회
-router.get('/:mrpCode', async (req, res) => {
-    const mrpCode = req.params.mrpCode;
-    const mrp = await mrpService.findMRP([mrpCode])
-        .catch(err => console.log(err));
-    res.send(mrp);
 });
 
 // MRP 코드로 MRP 상세 조회
@@ -62,6 +68,14 @@ router.get('/sub-mat/:prdpCode', async (req, res) => {
     const matList = await mrpService.findMatByBom([prdpCode])
         .catch(err => console.log(err));
     res.send(matList);
+});
+
+// MRP 코드로 MRP 조회
+router.get('/:mrpCode', async (req, res) => {
+    const mrpCode = req.params.mrpCode;
+    const mrp = await mrpService.findMRP([mrpCode])
+        .catch(err => console.log(err));
+    res.send(mrp);
 });
 
 // MRP 신규 등록

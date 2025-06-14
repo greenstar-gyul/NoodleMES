@@ -203,11 +203,42 @@ const modifyMRPTx = async (data) => {
  * BOM에 따른 하위 자재들 조회(생산계획코드 활용)
  */
 const getMatList = async () => {
-  console.log('서비ㅣㅣㅣㅣㅣ스ㅡㅡㅡㅡㅡㅡ');
+  // console.log('서비ㅣㅣㅣㅣㅣ스ㅡㅡㅡㅡㅡㅡ');
   const list = await mariadb.query('selectMatAlll')
     .catch(err => console.log(err));
   return list;
 };
+
+/**
+ * 여러 검색 조건들로 MRP 조회하기
+ * @param {*} params 검색조건
+ * @returns MRP List
+ */
+const searchMRPByOptions = async (params) => {
+  // null이나 undefined도 체크해서 null로 맞춰주기
+  const bindParams = [
+    params.mrp_code ?? null, params.mrp_code ?? null,
+    params.prdp_code ?? null, params.prdp_code ?? null,
+    params.prdp_name ?? null, params.prdp_name ?? null,
+    params.mat_name ?? null, params.mat_name ?? null,
+    params.plan_date_from ?? null, params.plan_date_from ?? null,
+    params.plan_date_to ?? null, params.plan_date_to ?? null
+  ];
+
+  const list = await mariadb.query("selectMRPByOptions", bindParams)
+                            .catch(err => console.log(err));
+  return list;
+};
+
+/**
+ * 최근 1달 MRP 조회
+ * @returns 최근 1달 MRP List
+ */
+const searchMRPMonth = async () => {
+  let list = await mariadb.query("selectMRPMonth")
+                          .catch(err => console.log(err));
+  return list;
+}
 
 /**
  * 데이터 코드로 변환 : 코드명 -> 코드값
@@ -238,4 +269,6 @@ module.exports = {
   findMatByBom,
   modifyMRPTx,
   getMatList,
+  searchMRPByOptions,
+  searchMRPMonth,
 };
