@@ -181,7 +181,7 @@ FOR UPDATE;
 const selectPrdpDCodeForUpdate = `
 SELECT CONCAT('PRDP-D-', 
               LPAD(IFNULL(MAX(CAST(SUBSTRING(prdp_d_code, 9) AS UNSIGNED)), 0) + 1, 4, '0')
-             ) AS new_d_code
+             )
 FROM prdp_d_tbl
 FOR UPDATE;
 `;

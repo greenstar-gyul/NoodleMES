@@ -29,6 +29,10 @@ const model = ref([
                         to: '/auth/access'
                     },
                     {
+                        label: '라인 정보',
+                        to: '/standard/line'
+                    },
+                    {
                         label: '설비 점검 항목 정보',
                         to: '/standard/eqspectype'
                     }
@@ -77,6 +81,10 @@ const model = ref([
                     {
                         label: 'MRP조회',
                         to: '/mrp/list'
+                    },
+                    {
+                        label: '작업지시서 관리',
+                        to: '/wko/manage'
                     },
                     {
                         label: '생산실적상세',

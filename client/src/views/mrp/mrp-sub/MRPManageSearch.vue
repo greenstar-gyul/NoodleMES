@@ -30,10 +30,10 @@ onMounted(() => {
 const loadPlansData = async () => {
     try {
         const response = await axios.get(`/api/mrp/plan-list`);
-        response.result_code = "SUCCESS";
-        response.message = "조회성공";
+        // response.result_code = "SUCCESS";
+        // response.message = "조회성공";
         // console.log(response);
-        prodPlans.value = await response.data;
+        prodPlans.value = await response.data.data;
     }
     catch(err) {
         console.error(err);
@@ -50,7 +50,7 @@ const prdpLoad = async (value) => {
     const prdpCode = value.prdp_code;
 
     const mrpCodeRes = await axios.get(`/api/mrp/mrpcode/${prdpCode}`);
-    const mrpCodeData = await mrpCodeRes.data[0];
+    const mrpCodeData = await mrpCodeRes.data.data[0];
     let mrpCode = '';
     
     if (mrpCodeData) {
@@ -79,7 +79,7 @@ const prdpLoad = async (value) => {
         
         // mrp 조회
         const mrpRes = await axios.get(`/api/mrp/${mrpCode}`);
-        const findMRP = await mrpRes.data[0];
+        const findMRP = await mrpRes.data.data[0];
         
         mrpData.note = findMRP.mrp_note;
         mrpData.emp_code = findMRP.emp_code;
@@ -95,7 +95,7 @@ const openPopup = async () => {
 
 const saveMRP = async () => {
     if (props.data.prdp_code === '') {
-        alert('생산 계획 먼저 선택해라ㅡㅡ');
+        alert('생산계획을 먼저 불러오세요.');
         return;
     }
     emit('saveData')

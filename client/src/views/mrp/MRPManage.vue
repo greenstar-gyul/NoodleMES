@@ -16,6 +16,11 @@ onMounted(() => {
 });
 
 const saveData = async () => {
+    if (!confirm('MRP 정보를 저장하시겠습니까?')) {
+        alert('저장을 취소했습니다.');
+        return;
+    }
+
     const data = {};
     data.mrpData = mrpInfo.value;
     data.detailData = mrpDetailList.value;
@@ -26,13 +31,24 @@ const saveData = async () => {
         const response = await axios.post(`/api/mrp/create`, data);
         const result = response.data;
         console.log(result);
+        if (result.result_code === "SUCCESS") {
+            alert('저장에 성공했습니다.');
+        }
+        else {
+            alert('저장에 실패했습니다. 다시 시도해주세요.');
+        }
     }
     else {
         // console.log(data.mrpData.mrp_code);
-
         const response = await axios.put(`/api/mrp/${data.mrpData.mrp_code}`, data);
         const result = response.data;
         console.log(result);
+        if (result.result_code === "SUCCESS") {
+            alert('저장에 성공했습니다.');
+        }
+        else {
+            alert('저장에 실패했습니다. 다시 시도해주세요.');
+        }
     }
 }
 
@@ -59,7 +75,7 @@ const loadMrpDetail = async (mrpCode) => {
     if (mrpCode != undefined && mrpCode != null && mrpCode != '') {
         // console.log(mrpCode);
         const result = await axios.get(`/api/mrp/detail/${mrpCode}`);
-        mrpDetailList.value = await result.data;
+        mrpDetailList.value = await result.data.data;
     }
     else {
         mrpDetailList.value = [];

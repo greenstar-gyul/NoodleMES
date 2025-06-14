@@ -1,8 +1,9 @@
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted, nextTick } from 'vue';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import InputNumber from 'primevue/inputnumber';
 import axios from 'axios';
 import MRPMapping from '@/service/MRPMapping';
 import bomSubMapping from '@/service/BOMSubMapping';
@@ -46,9 +47,38 @@ const loadBom = async () => {
         return;
     }
 
-    if (confirm('자재 목록이 초기화되는데.....\n계속 할거임?')) {
+    if (confirm('BOM을 불러오시겠습니까?')) {
         const result = await axios.get(`/api/mrp/sub-mat/${props.prdp}`);
-        emit('update:subData', result.data);
+        const subMatList = await result.data.data;
+        const originData = [...props.subData];
+
+        // console.log('subMatList', subMatList, 'originData', originData)
+
+        // 기존 자재에 BOM 자재가 있다면, 값만 변경하고 없으면 추가
+        const originLen = originData.length; // 원래 크기 넘어선 값은 추가된 값이니까.. 그 값 접근 막기 위함.
+        subMatList.forEach(value => {
+            let hasMat = false;
+
+            for (let i = 0; i < originLen; i++) {
+                if (value.mat_code === originData[i].mat_code) {
+                    originData[i] = {...value};
+                    hasMat = true;
+                    break;
+                }
+            }
+
+            // 없는 건 추가
+            if (!hasMat) {
+                originData.push({...value}); 
+            }
+        });
+
+        // 1단계: 빈 배열로 설정 → 모든 InputNumber 컴포넌트 내의 데이터 제거
+        emit('update:subData', []);
+        await nextTick();
+
+        // 2단계: 새 데이터로 설정 → InputNumber 컴포넌트들이 새로운 값으로 다시 생성
+        emit('update:subData', originData);
     }
 
 };
@@ -73,7 +103,7 @@ const loadMatList = async () => {
     // console.log('아제발좀');
     const response = await axios.get(`/api/mrp/matlist`);
     // console.log(`response!!!!!!!!!`, response);
-    popupMats.value = await response.data;
+    popupMats.value = await response.data.data;
 };
 
 const addMat = (values) => {
@@ -159,7 +189,7 @@ watch(
             
             <Column field="req_qtt" header="필요수량" style="width: 230px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.req_qtt" :min="0" showButtons inputStyle="width: 100%" />
+                    <InputNumber v-model="slotProps.data.req_qtt" :min="0" showButtons Style="width: 100%" />
                 </template>
             </Column>
             

@@ -21,7 +21,19 @@ export const matAddMapping = {
     mrp_stat: '상태'
 };
 
-export default { 
+export const mrpListMapping = {
+    mat_name: '자재명',
+    mrp_code: 'MRP 코드',
+    mrp_note: '비고',
+    plan_date: 'MRP 계획일자',
+    prdp_code: '생산계획코드',
+    prdp_name: '생산계획명',
+    req_qtt: '필요수량',
+    unit: '단위',
+}
+
+export default {
     mrpMapping,
     matAddMapping,
- };
+    mrpListMapping,
+};

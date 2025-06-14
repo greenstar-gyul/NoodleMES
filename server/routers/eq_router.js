@@ -76,4 +76,15 @@ router.delete('/multiple/delete', async (req, res) => {
     }
 });
 
+// 설비 점검 조회 팝업
+router.get('/eqiiall', async (req, res) => {
+    try {
+        let eqiiList = await eqService.showEqii();
+        res.send(eqiiList);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: '조회 실패' });
+    }
+})
+
 module.exports = router;

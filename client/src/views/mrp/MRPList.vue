@@ -1,75 +1,69 @@
-<template>
-  <!-- 🔍 검색바 영역 -->
-  <MRPListSearch></MRPListSearch>
-
-  <!-- 📋 결과 테이블 -->
-  <TableList :data="productiondata" :dataKey="'prdp_code'" :mapper="ProductMapper" title="검색결과" />
-
-  <!-- 조건 미일치 메시지 -->
-  <div v-if="productiondata.length === 0" class="text-center text-gray-500 mt-4">
-    조건에 맞는 데이터가 없습니다.
-  </div>
-</template>
-
 <script setup>
-import { ref } from 'vue';
-import Button from 'primevue/button';
-import TableList from '@/components/form/TableWithExcel.vue';
-import SearchText from '@/components/search-bar/SearchText.vue';
-import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import moment from 'moment'; // ✅ moment 추가
+import MRPSearchBar from './mrp-list-sub/MRPSearchBar.vue';
+import MRPTable from './mrp-list-sub/MRPTable.vue';
+import MRPMapping from '../../service/MRPMapping';
 
-import ProductMapper from '@/service/ProductionMapping.js';
+const tableData = ref([]);
 
-import ProductionData from '@/service/ProductionData.js';
-import MRPListSearch from './mrp-sub/MRPListSearch.vue';
+const formatDateFields = (data) => {
+  return data.map(item => ({
+    ...item,
+    plan_date: item.plan_date ? moment(item.plan_date).format('YYYY-MM-DD') : '',
+  }));
+};
 
-// 데이터 및 옵션
-const productiondata = ref(ProductionData);
+// ✅ 초기 리스트 조회
+const loadTableData = async () => {
+  try {
+    const res = await axios.get('/api/mrp/searchMonth');
+    tableData.value = await formatDateFields(res.data.data);
+    // console.log('✅ 조회된 리스트:', tableData.value);
+  } catch (err) {
+    console.error('❌ 리스트 조회 실패:', err);
+  }
+};
 
-// 검색 조건 초기값
-const search = ref({
-  prdp_code: '',
-  prdp_name: '',
-  prdp_date_from: null,
-  prdp_date_to: null,
-  line: ''
+// ✅ 검색 기능
+const handleSearch = async (searchParams) => {
+  const cleanParams = Object.fromEntries(
+    Object.entries(searchParams).map(([key, val]) => [key, val === '' ? null : val])
+  );
+
+  // console.log('👉 정제된 검색 파라미터:', cleanParams);
+
+  try {
+    const response = await axios.get('/api/mrp/search', {
+      params: cleanParams,
+    });
+
+    if (response.data && response.data.result_code === "SUCCESS") {
+      tableData.value = formatDateFields(response.data.data || []);
+    } else if (Array.isArray(response.data.data)) {
+      tableData.value = formatDateFields(response.data.data);
+    } else {
+      console.error('검색 실패:', response.data.data);
+      tableData.value = [];
+    }
+  } catch (error) {
+    console.error('검색 API 호출 실패:', error);
+    tableData.value = [];
+  }
+};
+
+// ✅ 검색 초기화
+const resetSearch = async () => {
+  await loadTableData();
+};
+
+onMounted(() => {
+  loadTableData();
 });
-
-// 초기화
-const resetSearch = () => {
-  search.value = {
-    prdp_code: '',
-    prdp_name: '',
-    prdp_date_from: null,
-    prdp_date_to: null,
-    line: ''
-  };
-  productiondata.value = [...ProductionData];
-};
-
-
-const fetchOrders = () => {
-  productiondata.value = ProductionData.filter(item => {
-    const matchCode = !search.value.prdp_code || item.prdp_code.includes(search.value.prdp_code);
-    const matchName = !search.value.prdp_name || item.prdp_name.includes(search.value.prdp_name);
-
-    const prdpDate = new Date(item.prdp_date);
-    const dueDate = new Date(item.due_date);
-
-    const matchDate =
-      (!search.value.prdp_date_from && !search.value.prdp_date_to) ||
-      ((!search.value.prdp_date_from || prdpDate >= search.value.prdp_date_from) &&
-        (!search.value.prdp_date_to || prdpDate <= search.value.prdp_date_to));
-
-    const matchDueDate =
-      (!search.value.due_date_from && !search.value.due_date_to) ||
-      ((!search.value.due_date_from || dueDate >= search.value.due_date_from) &&
-        (!search.value.due_date_to || dueDate <= search.value.due_date_to));
-
-    return matchCode && matchName && matchDate && matchDueDate;
-  });
-};
-
-
-
 </script>
+
+<template>
+  <MRPSearchBar @search="handleSearch" @reset="resetSearch" />
+  <MRPTable :data="tableData" :mapper="MRPMapping.mrpListMapping" />
+</template>

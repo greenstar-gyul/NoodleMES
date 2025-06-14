@@ -1,35 +1,16 @@
 const express = require('express');
 const router = express.Router();
 
-const mrpService = require('../services/mrp_service.js');
+const wkoService = require('../services/wko_service.js');
 
-// mrp 전체 조회
+// 작업지시서 전체 조회
 router.get('/all', async (req, res) => {
     try {
-        const mrpList = await mrpService.findAll();
+        const wkoList = await wkoService.findAll();
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
-            "data": mrpList
-        });
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({
-            "result_code": "FAIL",
-            "message": "실패",
-            "data": err.message || "서버 오류가 발생했습니다."
-        });
-    }
-});
-
-// mrp 상세 전체 조회
-router.get('/detail-all', async (req, res) => {
-    try {
-        const mrpDetailList = await mrpService.findDetailsAll();
-        res.status(200).json({
-            "result_code": "SUCCESS",
-            "message": "성공",
-            "data": mrpDetailList
+            "data": wkoList
         });
     } catch (err) {
         console.log(err);
@@ -44,7 +25,7 @@ router.get('/detail-all', async (req, res) => {
 // 생산 계획 조회 팝업
 router.get('/plan-list', async (req, res) => {
     try {
-        const prodPlanList = await mrpService.findPlansAll();
+        const prodPlanList = await wkoService.findPlansAll();
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
@@ -60,10 +41,10 @@ router.get('/plan-list', async (req, res) => {
     }
 });
 
-// 자재 목록 불러오기
-router.get('/matlist', async (req, res) => {
+// 제품 목록 불러오기
+router.get('/prodlist', async (req, res) => {
     try {
-        const result = await mrpService.getMatList();
+        const result = await wkoService.getProdList();
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
@@ -79,10 +60,10 @@ router.get('/matlist', async (req, res) => {
     }
 });
 
-// MRP 초기 조회
+// 작업지시서 초기 조회 (최근 1달)
 router.get('/searchMonth', async (req, res) => {
     try {
-        const data = await mrpService.searchMRPMonth(req.query);
+        const data = await wkoService.searchWKOMonth();
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
@@ -98,10 +79,10 @@ router.get('/searchMonth', async (req, res) => {
     }
 });
 
-// MRP 조회
+// 작업지시서 조회
 router.get('/search', async (req, res) => {
     try {
-        const data = await mrpService.searchMRPByOptions(req.query);
+        const data = await wkoService.searchWKOByOptions(req.query);
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
@@ -117,15 +98,16 @@ router.get('/search', async (req, res) => {
     }
 });
 
-// 생산 계획에 따른 MRP 코드
-router.get('/mrpcode/:prdpCode', async (req, res) => {
+// 작업지시서의 공정 목록 조회
+router.get('/processes/:prodCode/:prdpCode', async (req, res) => {
     try {
+        const prodCode = req.params.prodCode;
         const prdpCode = req.params.prdpCode;
-        const mrpCode = await mrpService.findMRPCode([prdpCode]);
+        const processes = await wkoService.findWKOProcesses(prodCode, prdpCode);
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
-            "data": mrpCode
+            "data": processes
         });
     } catch (err) {
         console.log(err);
@@ -137,15 +119,15 @@ router.get('/mrpcode/:prdpCode', async (req, res) => {
     }
 });
 
-// MRP 코드로 MRP 상세 조회
-router.get('/detail/:mrpCode', async (req, res) => {
+// 제품별 생산공정 조회 (참조용)
+router.get('/prod-processes/:prodCode', async (req, res) => {
     try {
-        const mrpCode = req.params.mrpCode;
-        const mrpDetails = await mrpService.findMRPDetail(mrpCode);
+        const prodCode = req.params.prodCode;
+        const processes = await wkoService.findProdProcesses(prodCode);
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
-            "data": mrpDetails
+            "data": processes
         });
     } catch (err) {
         console.log(err);
@@ -157,15 +139,15 @@ router.get('/detail/:mrpCode', async (req, res) => {
     }
 });
 
-// MRP 코드로 MRP 상세 조회
-router.get('/sub-mat/:prdpCode', async (req, res) => {
+// 작업지시서 코드로 작업지시서 조회
+router.get('/:wkoCode', async (req, res) => {
     try {
-        const prdpCode = req.params.prdpCode;
-        const matList = await mrpService.findMatByBom([prdpCode]);
+        const wkoCode = req.params.wkoCode;
+        const wko = await wkoService.findWKO([wkoCode]);
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
-            "data": matList
+            "data": wko
         });
     } catch (err) {
         console.log(err);
@@ -177,31 +159,11 @@ router.get('/sub-mat/:prdpCode', async (req, res) => {
     }
 });
 
-// MRP 코드로 MRP 조회
-router.get('/:mrpCode', async (req, res) => {
-    try {
-        const mrpCode = req.params.mrpCode;
-        const mrp = await mrpService.findMRP([mrpCode]);
-        res.status(200).json({
-            "result_code": "SUCCESS",
-            "message": "성공",
-            "data": mrp
-        });
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({
-            "result_code": "FAIL",
-            "message": "실패",
-            "data": err.message || "서버 오류가 발생했습니다."
-        });
-    }
-});
-
-// MRP 신규 등록
+// 작업지시서 신규 등록
 router.post('/create', async (req, res) => {
     try {
         const data = req.body;
-        const result = await mrpService.insertMRPTx(data);
+        const result = await wkoService.insertWKOTx(data);
         
         res.status(200).json({
             "result_code": "SUCCESS",
@@ -218,11 +180,33 @@ router.post('/create', async (req, res) => {
     }
 });
 
-// MRP 갱신
-router.put('/:mrpCode', async (req, res) => {
+// 작업지시서 갱신
+router.put('/:wkoCode', async (req, res) => {
     try {
+        const wkoCode = req.params.wkoCode;
         const data = req.body;
-        const result = await mrpService.modifyMRPTx(data);
+        const result = await wkoService.modifyWKO(wkoCode, data);
+        
+        res.status(200).json({
+            "result_code": "SUCCESS",
+            "message": "성공",
+            "data": result
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            "result_code": "FAIL",
+            "message": "실패",
+            "data": err.message || "서버 오류가 발생했습니다."
+        });
+    }
+});
+
+// 작업지시서 삭제
+router.delete('/:wkoCode', async (req, res) => {
+    try {
+        const wkoCode = req.params.wkoCode;
+        const result = await wkoService.deleteWKO(wkoCode);
         
         res.status(200).json({
             "result_code": "SUCCESS",

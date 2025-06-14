@@ -28,9 +28,9 @@ const props = defineProps({
     type: Array,
     default: [],
   },
-  selectedHeader : {
-    type : Array,
-    default : [],
+  selectedHeader: {
+    type: Array,
+    default: [],
   }
 });
 
@@ -45,11 +45,11 @@ const visibleFields = ref([]);
 watch(
   () => props.items,
   (newVal) => {
-    if(props.selectedHeader.length > 0) return; // selectedHeader가 있을 경우 watch 종료.
-    
+    if (props.selectedHeader.length > 0) return; // selectedHeader가 있을 경우 watch 종료.
+
     if (Array.isArray(newVal) && newVal.length > 0) {
       visibleFields.value = Object.keys(newVal[0]);
-    } else  {
+    } else {
       visibleFields.value = [];
     }
   },
@@ -59,11 +59,11 @@ watch(
 watch(
   () => props.selectedHeader,
   (newVal) => {
-    if (newVal.length > 0 ) {
+    if (newVal.length > 0) {
       visibleFields.value = newVal;
-    } else if(Array.isArray(props.items) && props.items.length > 0){
+    } else if (Array.isArray(props.items) && props.items.length > 0) {
       visibleFields.value = Object.keys(props.items[0]);
-    }else {
+    } else {
       visibleFields.value = [];
     }
   },
@@ -108,37 +108,25 @@ const handleRowSelect = (event) => {
 </script>
 
 <template>
-  <Dialog :visible="visible" modal :header="title" :style="{ width: '70vw' }" :closable="false">
+  <Dialog :visible="visible" modal :header="title" :style="{ width: '50vw', minWidth: '400px', maxWidth: '800px' }"
+    :closable="false">
     <!-- 검색창 -->
     <div class="flex items-center gap-2 mb-4">
-      <InputText
-        v-model="searchKeyword"
-        :placeholder="props.placeholder"
-        class="flex-1"
-      />
+      <InputText v-model="searchKeyword" :placeholder="props.placeholder" class="flex-1" />
       <Button label="검색" severity="info" @click="searchOrders" />
     </div>
 
     <!-- 데이터 테이블 -->
-    <DataTable
-      :value="items"
-      v-model:selection="selectedItem"
-      selectionMode="single"
-      :dataKey="dataKey"
-      showGridlines
-      scrollable
-      scrollHeight="300px"
-      :rowClass="rowClass"
-      @rowSelect="handleRowSelect"
-    >
+    <DataTable :value="items" v-model:selection="selectedItem" selectionMode="single" :dataKey="dataKey" showGridlines
+      scrollable scrollHeight="300px" :rowClass="rowClass" @rowSelect="handleRowSelect">
       <Column selectionMode="single" headerStyle="width: 3rem" />
-      
-      <Column
-        v-for="field in visibleFields"
-        :key="field"
-        :field="field"
-        :header="mapper[field] ?? field"
-      />
+      <Column v-for="field in visibleFields" :key="field" :field="field" :header="mapper[field] ?? field">
+        <template #body="slotProps">
+          {{ slotProps.field.toLowerCase().includes('date')
+            ? slotProps.data[slotProps.field]?.substring(0, 10)
+            : slotProps.data[slotProps.field] }}
+        </template>
+      </Column>
     </DataTable>
 
     <!-- 버튼 영역 -->
@@ -149,9 +137,8 @@ const handleRowSelect = (event) => {
   </Dialog>
 </template>
 <style scoped>
-  .p-disabled-row {
+.p-disabled-row {
   pointer-events: none;
   opacity: 0.5;
-  }
+}
 </style>
-

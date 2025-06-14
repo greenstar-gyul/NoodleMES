@@ -9,4 +9,9 @@ export default [
         name: 'stdEqspectype',
         component: () => import('@/views/standard/EquipInspectionType.vue')
     },
+    {
+        path: '/standard/line',
+        name: 'stdLine',
+        component: () => import('@/views/standard/Line.vue')
+    },
 ];
