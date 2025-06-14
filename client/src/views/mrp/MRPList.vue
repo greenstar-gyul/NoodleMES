@@ -19,8 +19,8 @@ const formatDateFields = (data) => {
 const loadTableData = async () => {
   try {
     const res = await axios.get('/api/mrp/searchMonth');
-    tableData.value = formatDateFields(res.data);
-    console.log('✅ 조회된 리스트:', tableData.value);
+    tableData.value = await formatDateFields(res.data.data);
+    // console.log('✅ 조회된 리스트:', tableData.value);
   } catch (err) {
     console.error('❌ 리스트 조회 실패:', err);
   }
@@ -32,19 +32,19 @@ const handleSearch = async (searchParams) => {
     Object.entries(searchParams).map(([key, val]) => [key, val === '' ? null : val])
   );
 
-  console.log('👉 정제된 검색 파라미터:', cleanParams);
+  // console.log('👉 정제된 검색 파라미터:', cleanParams);
 
   try {
     const response = await axios.get('/api/mrp/search', {
       params: cleanParams,
     });
 
-    if (response.data && response.data.success) {
+    if (response.data && response.data.result_code === "SUCCESS") {
       tableData.value = formatDateFields(response.data.data || []);
-    } else if (Array.isArray(response.data)) {
-      tableData.value = formatDateFields(response.data);
+    } else if (Array.isArray(response.data.data)) {
+      tableData.value = formatDateFields(response.data.data);
     } else {
-      console.error('검색 실패:', response.data);
+      console.error('검색 실패:', response.data.data);
       tableData.value = [];
     }
   } catch (error) {
@@ -66,7 +66,4 @@ onMounted(() => {
 <template>
   <MRPSearchBar @search="handleSearch" @reset="resetSearch" />
   <MRPTable :data="tableData" :mapper="MRPMapping.mrpListMapping" />
-  <div v-if="tableData.length === 0" class="text-center text-gray-500 mt-4">
-    조건에 맞는 데이터가 없습니다.
-  </div>
 </template>
