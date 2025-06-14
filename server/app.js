@@ -36,6 +36,10 @@ const mprRouter = require('./routers/mpr_router.js');
 const qlsRouter = require('./routers/qlt_router.js');
 
 const bomRouter = require('./routers/bom_router.js');
+
+const lineRouter = require('./routers/line_router.js');
+
+
 // 기본 라우팅
 app.get('/', (req, res) => {
   res.send('Welcome!!');
@@ -50,3 +54,4 @@ app.use('/order', orderRouter);
 app.use('/mpr', mprRouter);
 app.use('/quality', qlsRouter);
 app.use('/bom',bomRouter);
+app.use('/line',lineRouter);

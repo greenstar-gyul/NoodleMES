@@ -31,7 +31,7 @@ const insertBom = `
     VALUES (?, ?, ?, ?, ?, ?, ?)
 `;
 
-// 하위 자재 등록록
+// 하위 자재 등록
 const insertBomMat = `
     INSERT INTO bom_mat (bom_code, 
                         mat_code, 
