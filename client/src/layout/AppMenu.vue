@@ -29,6 +29,10 @@ const model = ref([
                         to: '/auth/access'
                     },
                     {
+                        label: '라인 정보',
+                        to: '/standard/line'
+                    },
+                    {
                         label: '설비 점검 항목 정보',
                         to: '/standard/eqspectype'
                     }

@@ -9,9 +9,6 @@ router.post('/register', async (req, res) => {
   try {
     const data = req.body;
 
-    // 프론트에서 보낸 데이터 로그 확인
-    console.log('📦 BOM 등록 요청 데이터:', data);
-
     const result = await bomService.insertProductAndBomTx(data);
     res.status(200).json({ message: '등록 완료', result });
   } catch (err) {
@@ -51,7 +48,7 @@ router.get('/detail', async (req, res) => {
 // 🔍 자재 + 반제품 팝업용 목록 조회
 router.get('/materials-popup', async (req, res) => {
   try {
-    const result = await bomService.getMaterialsForPopup(); // ✅ 여기서 정확히 일치해야 함
+    const result = await bomService.getMaterialsForPopup(); 
     res.send(result);
   } catch (err) {
     console.error('❌ 자재 팝업 조회 오류:', err);
@@ -63,7 +60,7 @@ router.get('/materials-popup', async (req, res) => {
 router.get('/search', async (req, res) => {
   try {
     const searchParams = req.query; // 프론트에서 넘어온 검색조건들
-    const result = await bomService.searchBomList(searchParams); // ✅ 검색 서비스 사용
+    const result = await bomService.searchBomList(searchParams); 
     res.json(result);
   } catch (err) {
     console.error('❌ BOM 검색 목록 라우터 에러:', err);
@@ -74,8 +71,8 @@ router.get('/search', async (req, res) => {
 // 제품유형 목록 조회 라우터
 router.get('/com-values', async (req, res) => {
   try {
-    const result = await bomService.getComValueOptions(); // ✅ 함수명 바뀐 경우 맞춰주기
-    res.json(result); // ✅ 객체 배열 그대로 전달
+    const result = await bomService.getComValueOptions();
+    res.json(result);
   } catch (err) {
     console.error('❌ 제품유형 목록 조회 실패:', err);
     res.status(500).send('제품유형 목록 조회 실패');
