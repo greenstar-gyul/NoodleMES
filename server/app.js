@@ -39,6 +39,7 @@ const bomRouter = require('./routers/bom_router.js');
 
 const lineRouter = require('./routers/line_router.js');
 
+const wkoRouter = require('./routers/wko_router.js');
 
 // 기본 라우팅
 app.get('/', (req, res) => {
@@ -55,3 +56,4 @@ app.use('/mpr', mprRouter);
 app.use('/quality', qlsRouter);
 app.use('/bom',bomRouter);
 app.use('/line',lineRouter);
+app.use('/wko', wkoRouter);
