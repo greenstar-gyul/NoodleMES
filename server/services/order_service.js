@@ -27,6 +27,59 @@ const findOrderDetails = async (ordCode) => {
   return result;
 };
 
+// 날짜 조건을 반영한 주문 조회
+const findOrdersWithDate = async (fromDate, toDate) => {
+  try {
+    const result = await mariadb.query("selectOrderListWithDate", [fromDate, toDate]);
+    return result;
+  } catch (err) {
+    console.error("날짜 조건 주문 조회 실패:", err);
+    throw err;
+  }
+};
+
+// 검색조건에 맞는 주문 조회
+const findOrdersByCondition = async (conditions) => {
+  const {ord_date_from, ord_date_to, ord_code, ord_name, client_name, ord_stat, prod_qtt_from, prod_qtt_to, delivery_date_from, delivery_date_to} = conditions;
+
+  // 2번씩 값을 넣는 이유는, SQL문에서 같은 조건에 대해 ?가 두 번 사용되기 때문
+  // 예: (? IS NULL OR ord_code LIKE CONCAT('%', ?, '%')) ← ?가 2개!
+  // 각각의 ? 자리에는 동일한 값이 들어가야 하므로, 배열에 같은 값을 두 번 넣음
+  // Node.js의 mariadb.query(sql, values)는 SQL에 등장하는 ?의 순서에 따라 배열 값을 차례대로 매핑하므로
+  // SQL문에 ?가 12개라면, values도 정확히 12개의 값이 있어야 함
+  // => 따라서 ord_date_from, ord_date_to 등은 두 번씩 values에 포함됨
+
+  const clean = (v) => {
+    if (v === '' || v === undefined || v === null) return null;
+    if (typeof v === 'string' && v.trim() === '') return null;
+    return v;
+  };
+
+  const values = [
+    clean(ord_date_from), clean(ord_date_from),
+    clean(ord_date_to), clean(ord_date_to),
+    clean(ord_code), clean(ord_code),
+    clean(ord_name), clean(ord_name),
+    clean(client_name), clean(client_name),
+    clean(ord_stat), clean(ord_stat),
+    clean(prod_qtt_from), clean(prod_qtt_from),
+    clean(prod_qtt_to), clean(prod_qtt_to),
+    clean(delivery_date_from), clean(delivery_date_from),
+    clean(delivery_date_to), clean(delivery_date_to)
+  ];
+
+  try {
+    const result = await mariadb.query("selectOrderListByCondition", values);
+    console.log("🧪 검색 조건 값 확인:", values);
+    return result;
+  } catch (err) {
+    console.error("조건 주문 조회 실패:", err);
+    throw err;
+  }
+};
+
+
+
 // 거래처 목록 조회
 const findClientList = async () => {
   // 거래처 테이블에서 전체 거래처 목록을 가져옴
@@ -35,33 +88,29 @@ const findClientList = async () => {
   return result;
 };
 
+// 주문 상태 목록 조회
+const findOrderStatuses = async () => {
+  // 주문 상태 코드 그룹에서 주문 상태 목록을 가져옴
+  const result = await mariadb.query("selectOrderStatuses")
+    .catch(err => console.log(err));
+  return result;
+};
+
 // 제품 전체 조회
 const findProductList = async () => {
   // 제품 테이블에서 모든 제품 정보 조회
-  const result = await mariadb.query("selectProductList").catch(console.error);
+  const result = await mariadb.query("selectProductList")
+    .catch(err => console.log(err));
   return result;
 };
 
 // 제품명으로 검색
 const findProductByName = async (name) => {
   // 제품명에 특정 문자열이 포함된 제품들만 조회 (LIKE 검색)
-  const result = await mariadb.query("selectProductByName", [name]).catch(console.error);
+  const result = await mariadb.query("selectProductByName", [name])
+    .catch(err => console.log(err));
   return result;
 };
-
-// 공통코드 - 규격
-// const findSpecList = async () => {
-//   // group_value가 '0Z'인 공통코드만 가져와서 규격 옵션으로 사용
-//   const result = await mariadb.query("selectSpecCodes").catch(console.error);
-//   return result;
-// };
-
-// 공통코드 - 단위
-// const findUnitList = async () => {
-//   // group_value가 '0H'인 공통코드만 가져와서 단위 옵션으로 사용
-//   const result = await mariadb.query("selectUnitCodes").catch(console.error);
-//   return result;
-// };
 
 // 주문 등록
 const insertOrder = async (orderData) => {
@@ -155,7 +204,10 @@ module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
     findAllOrders,
     findOrderDetails,
+    findOrdersWithDate,
+    findOrdersByCondition,
     findClientList,
+    findOrderStatuses,
     findProductList,
     findProductByName,
     insertOrder,
