@@ -9,6 +9,13 @@ const findAll = async () => {
   return list;
 };
 
+// 설비 점검 지시서 조회 팝업
+const showEqii = async () => {
+  let list = await mariadb.query("selectEqiiList")
+                          .catch(err => console.log(err));
+  return list;
+}
+
 const searchEquipment = async (searchParams) => {
   const { sql, values } = eqQueries.buildSearch(searchParams);
 
@@ -44,8 +51,7 @@ const insertEq = async (eqData) => {
       eqData.take_date,
       eqData.eq_pos,
       eqData.eq_type,
-      eqData.is_used,
-      eqData.chk_cycle
+      eqData.is_used
     ];
 
     const eqResult = await mariadb.queryConn(conn, "insertEq", eqValues);
@@ -77,7 +83,6 @@ const updateEq = async (eqCode, eqData) => {
       eqData.eq_pos,
       eqData.eq_type,
       eqData.is_used,
-      eqData.chk_cycle,
       eqCode
     ];
 
@@ -128,5 +133,6 @@ module.exports = {
     insertEq,
     updateEq,
     deleteEq,
-    deleteMultiple
+    deleteMultiple,
+    showEqii
 };

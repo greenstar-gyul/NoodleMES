@@ -67,8 +67,8 @@
                 <InputText v-model="eqForm.capacity" type="number" placeholder="용량 입력" class="w-full" />
             </div>
             <div>
-                <label class="font-semibold text-xl block mb-2">점검주기</label>
-                <InputText v-model="eqForm.chk_cycle" type="number" placeholder="점검주기 입력" class="w-full" />
+                <label class="font-semibold text-xl block mb-2">제조사</label>
+                <InputText v-model="eqForm.eq_maker" type="text" placeholder="제조사명 입력" class="w-full" />
             </div>
         </div>
 
@@ -78,14 +78,6 @@
                 <label class="font-semibold text-xl block mb-2">설치위치</label>
                 <InputText v-model="eqForm.eq_pos" type="text" placeholder="설치위치 입력" class="w-full" />
             </div>
-            <div>
-                <label class="font-semibold text-xl block mb-2">제조사</label>
-                <InputText v-model="eqForm.eq_maker" type="text" placeholder="제조사명 입력" class="w-full" />
-            </div>
-        </div>
-
-        <!-- 설치위치 / 사용여부 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">사용여부</label>
                 <Checkbox v-model="isUnused" binary variant="filled" inputId="usage-checkbox" />
