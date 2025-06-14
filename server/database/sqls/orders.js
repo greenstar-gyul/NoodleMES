@@ -36,6 +36,55 @@ const selectOrderDetailList = `
   WHERE od.ord_code = ?
 `;
 
+// 날짜 조건 반영을 위한 주문 조회
+const selectOrderListWithDate = `
+  SELECT DISTINCT o.ord_code,
+         o.ord_name,
+         o.ord_date,
+         o.note,
+         c.client_name,
+         comm_name(o.ord_stat) AS ord_stat,
+         d.prod_amount,
+         d.delivery_date
+  FROM ord_tbl o
+  INNER JOIN ord_d_tbl d ON o.ord_code = d.ord_code
+  LEFT JOIN client_tbl c ON o.client_code = c.client_code
+  WHERE o.ord_date BETWEEN ? AND ?
+  ORDER BY o.ord_code
+`;
+
+//검색조건에 맞는 주문 조회
+const selectOrderListByCondition = `
+  SELECT DISTINCT o.ord_code
+       , o.ord_name
+       , o.ord_date
+       , o.note
+       , o.mcode
+       , o.client_code
+       , c.client_name 
+       , comm_name(o.ord_stat) AS ord_stat
+       , d.prod_amount
+       , d.delivery_date
+  FROM ord_tbl o
+  INNER JOIN ord_d_tbl d ON o.ord_code = d.ord_code
+  INNER JOIN client_tbl c ON o.client_code = c.client_code
+  WHERE 1=1
+    AND (? IS NULL OR o.ord_date >= ?)
+    AND (? IS NULL OR o.ord_date <= ?)
+    AND (? IS NULL OR o.ord_code LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR o.ord_name LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR o.client_code IN (
+      SELECT client_code FROM client_tbl WHERE client_name LIKE CONCAT('%', ?, '%')
+    ))
+    AND (? IS NULL OR o.ord_stat = ?)
+    AND (? IS NULL OR d.prod_amount >= ?)
+    AND (? IS NULL OR d.prod_amount <= ?)
+    AND (? IS NULL OR d.delivery_date >= ?)
+    AND (? IS NULL OR d.delivery_date <= ?)
+  ORDER BY o.ord_code
+`;
+
+
 // 거래처 전체 조회
 const selectClientList = `
   SELECT client_code,
@@ -43,6 +92,14 @@ const selectClientList = `
          client_mname
   FROM client_tbl
   ORDER BY client_name
+`;
+
+// 주문 상태 조회
+const selectOrderStatuses = `
+  SELECT comm_name(com_value) as status_code,
+         comm_name(com_value) as status_name
+  FROM   common_code
+  WHERE  group_value = '0A' -- 주문 상태 코드 그룹
 `;
 
 // 제품 전체 조회
@@ -157,6 +214,9 @@ module.exports = {
   selectClientList,
   selectProductList,
   selectProductByName,
+  selectOrderStatuses,
+  selectOrderListWithDate,
+  selectOrderListByCondition,
 
   // 등록
   selectOrdCodeForUpdate,
