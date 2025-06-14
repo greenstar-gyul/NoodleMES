@@ -70,6 +70,7 @@ WHERE  mrp_code = ?
 const selectMRPDetail = `
 SELECT mrp_d.mrp_code,
        mrp_d.mrp_d_code,
+       mrp_d.mat_code,
        mat.mat_name,
        mrp_d.req_qtt,
        comm_name(mrp_d.unit) as "unit",
