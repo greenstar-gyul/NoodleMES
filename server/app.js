@@ -33,7 +33,7 @@ const orderRouter = require('./routers/order_router.js');
 
 const mprRouter = require('./routers/mpr_router.js');
 
-const qlsRouter = require('./routers/qlt_router.js');
+const qltRouter = require('./routers/qlt_router.js');
 
 const bomRouter = require('./routers/bom_router.js');
 // 기본 라우팅
@@ -48,5 +48,5 @@ app.use('/eq', eqRouter);
 app.use('/eqichk', eqichkRouter);
 app.use('/order', orderRouter);
 app.use('/mpr', mprRouter);
-app.use('/quality', qlsRouter);
+app.use('/quality', qltRouter);
 app.use('/bom',bomRouter);
