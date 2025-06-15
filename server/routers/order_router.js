@@ -27,6 +27,57 @@ router.get('/all', async (req, res) => {
     }
 });
 
+// 날짜 조건을 반영한 주문 조회
+router.get('/date', async (req, res) => {
+    const { ord_date_from, ord_date_to } = req.query;
+
+    try {
+        // 둘 다 존재하는 경우에만 진행
+        if (!ord_date_from || !ord_date_to) {
+            return res.status(400).json({
+                result_code: "FAIL",
+                message: "실패",
+                error: "ord_date_from 또는 ord_date_to가 누락되었습니다."
+            });
+        }
+
+        const result = await orderService.findOrdersWithDate(ord_date_from, ord_date_to);
+
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        console.error("날짜 조건 주문 조회 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
+
+// 검색조건에 맞는 주문 조회
+router.get('/search', async (req, res) => {
+  try {
+    const result = await orderService.findOrdersByCondition(req.query);
+    res.json({
+      result_code: "SUCCESS",
+      message: "성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("조건 검색 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "실패",
+      error: err.message
+    });
+  }
+});
+
+
 // 특정 주문의 상세 목록 조회
 router.get('/:ordCode/details', async (req, res) => {
     try {
@@ -119,7 +170,7 @@ router.delete('/:ordCode', async (req, res) => {
 
 
 // 거래처 목록 조회
-router.get('/orders/clients', async (req, res) => {
+router.get('/clients', async (req, res) => {
     try {
         const result = await orderService.findClientList();
         res.json({
@@ -129,6 +180,25 @@ router.get('/orders/clients', async (req, res) => {
         });
     } catch (err) {
         console.error("거래처 목록 조회 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
+
+// 주문 상태 조회
+router.get('/statuses', async (req, res) => {
+    try {
+        const result = await orderService.findOrderStatuses();
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        console.error("주문 상태 조회 실패:", err);
         res.status(500).json({
             result_code: "FAIL",
             message: "실패",
@@ -175,44 +245,6 @@ router.get("/products/search", async (req, res) => {
     });
   }
 });
-
-// 공통코드 - 규격
-// router.get("/spec", async (req, res) => {
-//   try {
-//     const result = await orderService.findSpecList();
-//     res.json({
-//         result_code: "SUCCESS",
-//         message: "성공",
-//         data: result
-//     });
-//   } catch (err) {
-//     console.error("규격 코드 조회 실패:", err);
-//     res.status(500).json({
-//         result_code: "FAIL",
-//         message: "실패",
-//         error: err.message
-//     });
-//   }
-// });
-
-// 공통코드 - 단위
-// router.get("/unit", async (req, res) => {
-//   try {
-//     const result = await orderService.findUnitList();
-//     res.json({
-//         result_code: "SUCCESS",
-//         message: "성공",
-//         data: result
-//     });
-//   } catch (err) {
-//     console.error("단위 코드 조회 실패:", err);
-//     res.status(500).json({
-//         result_code: "FAIL",
-//         message: "실패",
-//         error: err.message
-//     });
-//   }
-// });
 
 
 // 해당 javascript 파일의 마지막 코드, 모듈화

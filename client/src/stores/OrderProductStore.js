@@ -1,4 +1,4 @@
-// stores/orderProductStore.js
+// stores/OrderProductStore.js
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
