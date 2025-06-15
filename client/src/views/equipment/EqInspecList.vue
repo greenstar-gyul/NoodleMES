@@ -26,8 +26,7 @@
     </div>
   </div>
   <div>
-    <EqEditableTable :data="columns" :mapper="eqiiMapper" :dataKey="'eqii_code'" :initialData="equipmentData"
-      @update="handleInspectionTableUpdate" @loadEquipment="dialogVisible2 = true" title="지시서 항목 정보"
+    <EqEditableTable :data="eqirs" :mapper="eqiiresMapping" :dataKey="'eqir_code'" @update="fetchEqiiR" @loadEquipment="dialogVisible = true" title="지시서 항목 정보"
       scrollHeight="600px" />
   </div>
   <div>
@@ -38,7 +37,7 @@
   <SinglePopup v-model:visible="dialogVisible" :items="eqpops" @confirm="handleInspectionSelect" :mapper="eqiiMapper"
     :dataKey="'eqii_code'"></SinglePopup>
   <SinglePopup v-model:visible="dialogVisible2" :items="filteredEqiilist" @confirm="handleInspectionSelect"
-    :mapper="eqiiMapper" :dataKey="'eqii_code'" :title="`점검지시서 선택 (${eq_name || '설비 미선택'})`" />
+    :mapper="eqiiresMapping" :dataKey="'eqir_code'" :title="`지시정보 선택 (${eq_name || '설비 미선택'})`" />
 </template>
 
 <script setup>
@@ -47,6 +46,7 @@ import EqTable from '@/views/equipment/components/EqTable.vue'
 import SinglePopup from '@/views/equipment/components/EqiiSinglePopup.vue';
 import eqMapper from '@/service/EquipmentMapping';
 import eqiiMapper from '@/service/EquipSpecInstMapping'
+import eqiiresMapping from '../../service/EquipIIResMapping';
 import EqEditableTable from '@/views/equipment/components/EqEditableTable.vue';
 import eqchkMapper from '@/service/EqChkListMapping.js'
 import axios from 'axios';
@@ -55,7 +55,6 @@ import { Button } from 'primevue';
 import LabeledDatePicker from '../../components/registration-bar/LabeledDatePicker.vue';
 import LabeledSelect from '../../components/registration-bar/LabeledSelect.vue';
 
-const columns = ['eqii_code', 'inst_date', 'inst_emp_code', 'eq_chk_type', 'chk_exp_date', 'stat', 'note']
 
 const eqpops = ref([]);
 
@@ -71,6 +70,9 @@ const selectedOrder = ref({
   note: '',
   inst_emp_code: ''
 });
+
+const eqirs = ref([]);
+const eqits = ref([]);
 
 const statOptions = [
   { label: '점검중', value: 'u1' },
@@ -88,21 +90,6 @@ const openPopup = async () => {
   }
 }
 
-const handleInspectionTableUpdate = (updatedData) => {
-  console.log('점검지시서 테이블 업데이트:', updatedData);
-  selectedOrder.value = updatedData;
-}
-
-const handleEquipmentSelect = (selectedEquipment) => {
-  console.log('선택된 설비:', selectedEquipment);
-  eq_code.value = selectedEquipment.eq_code;
-  eq_name.value = selectedEquipment.eq_name;
-  chk_cycle.value = selectedEquipment.chk_cycle;
-
-  dialogVisible.value = false;
-}
-
-
 //팝업 끝
 
 const filteredEqiilist = computed(() => {
@@ -119,13 +106,12 @@ const handleUpdate = (updatedData) => {
   console.log('데이터 업데이트됨!', updatedData)
 }
 
-// 지시정보 불러오기 처리
-const handleLoadEquipment = () => {
-  console.log('지시정보 불러오기 클릭!')
-  // 여기서 API 호출하거나 새 데이터 로드
-}
-
 const formatDate = (date) => date?.split('T')[0] || '';
+
+const handleInspectionTableUpdate = (so) => {
+  console.log('점검지시서 테이블 업데이트:', so);
+  fetchEqiiR(so);
+}
 
 const handleInspectionSelect = (selectedInspection) => {
   console.log('선택된 점검지시서:', selectedInspection);
@@ -145,6 +131,35 @@ const handleInspectionSelect = (selectedInspection) => {
 
   // 팝업 닫기
   dialogVisible.value = false;
+  handleInspectionTableUpdate(selectedOrder.value.eqii_code);
+}
+
+const fetchEqiiR = async (params) => {
+  try {
+    if(!params){
+      eqirs.value = []; // 수정됨
+      return;
+    }
+    const response = await axios.get(`/api/eq/eqirall/${params}`);
+    eqirs.value = response.data;
+  } catch (error) {
+    console.error('데이터 로드 실패:', error);
+    eqirs.value = [];
+  }
+}
+
+const fetchEqiT = async (params) => {
+  try {
+    if(!params){
+      eqits.value = []; // 수정됨
+      return;
+    }
+    const response = await axios.get(`/api/eq/eqitype/${params}`);
+    eqits.value = response.data;
+  } catch (error) {
+    console.error('데이터 로드 실패:', error);
+    eqits.value = [];
+  }
 }
 
 const resetForm = () => {

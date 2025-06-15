@@ -14,6 +14,18 @@ const showEqii = async () => {
   let list = await mariadb.query("selectEqiiList")
                           .catch(err => console.log(err));
   return list;
+};
+
+const showEqiType = async (eqType) => {
+  let list = await mariadb.query("selectEqiType", [eqType])
+                          .catch(err => console.log(err));
+  return list;
+}
+
+const showEqir = async (eqirCode) => {
+  let list = await mariadb.query("selectEqirList", [eqirCode])
+                          .catch(err => console.log(err));
+  return list;
 }
 
 const searchEquipment = async (searchParams) => {
@@ -134,5 +146,7 @@ module.exports = {
     updateEq,
     deleteEq,
     deleteMultiple,
-    showEqii
+    showEqii,
+    showEqir,
+    showEqiType
 };

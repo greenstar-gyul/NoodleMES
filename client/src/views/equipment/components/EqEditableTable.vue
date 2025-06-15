@@ -30,11 +30,6 @@ const props = defineProps({
   columns: {
     type: Array,
     default: () => []
-  },
-
-  initialData: {  // 🎯 초기 데이터 받기
-    type: Array,
-    default: () => []
   }
 })
 
@@ -48,7 +43,7 @@ const selectedRows = ref([]) // 선택된 행
 
 // 초기 데이터 로딩 및 변경사항 감지
 watch(
-  () => props.initialData,
+  () => props.data,
   (newData) => {
     rows.value = [...newData];
   },
@@ -110,9 +105,11 @@ const handleInputChange = () => {
         showGridlines scrollable :scrollHeight="scrollHeight" tableStyle="min-width: 50rem">
         <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-        <Column v-for="col in data" :key="dataKey" :field="col" :header="mapper[col] ?? col">
+        <Column v-for="fieldName in Object.keys(mapper)" :key="fieldName" :field="fieldName"
+          :header="mapper[fieldName]">
           <template #body="slotProps">
-            <InputText v-model="slotProps.data[col]" class="w-full" placeholder="입력해주세요" @input="handleInputChange" />
+            <InputText v-model="slotProps.data[fieldName]" class="w-full" placeholder="입력해주세요"
+              @input="handleInputChange" />
           </template>
         </Column>
       </DataTable>
