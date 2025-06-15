@@ -91,6 +91,10 @@ const model = ref([
                         to: '/performance/detail'
                     },
                     {
+                        label: '생산실적조회',
+                        to: '/performance/list'
+                    },
+                    {
                         label: 'Access Denied',
                         to: '/auth/access'
                     }

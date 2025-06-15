@@ -1,13 +1,11 @@
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
-import ProductionTopzone from './performance-sub/performance-topzone.vue';
-import ProductionBottomzone from './performance-sub/performance-bottomzone.vue';
+import performanceTop from './performance-detail-sub/performance-detail-top.vue'
+import performanceBottom from './performance-detail-sub/performance-detail-bottom.vue'
+
 </script>
+
 <template>
-
-  <ProductionTopzone />
-  
-  <ProductionBottomzone/>
-
+    <performanceTop />
+    
+    <performanceBottom/>
 </template>

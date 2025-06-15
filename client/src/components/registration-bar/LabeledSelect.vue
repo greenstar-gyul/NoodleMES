@@ -7,6 +7,7 @@ const props = defineProps({
   modelValue: { type: [String, Number, Object], default: null },
   options: { type: Array, required: true },
   placeholder: { type: String, default: '선택하세요' },
+  readonly: { type: Boolean, default: false },
   optionLabel: { type: String, default: 'label' },
   optionValue: { type: String, default: 'value' }
 })
@@ -32,6 +33,7 @@ watch(internalValue, (val) => {
       :optionLabel="optionLabel"
       :optionValue="optionValue"
       :placeholder="placeholder"
+      :readonly="readonly"
       class="flex-1"
     />
   </div>
