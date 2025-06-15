@@ -139,7 +139,7 @@ watch(
                 </template>
             </Column>
 
-            <Column field="eq_stat" header="설비상태" style="width: 100px">
+            <!-- <Column field="eq_stat" header="설비상태" style="width: 100px">
                 <template #body="slotProps">
                     <span 
                         :class="{
@@ -151,7 +151,7 @@ watch(
                         {{ slotProps.data.eq_stat }}
                     </span>
                 </template>
-            </Column>
+            </Column> -->
 
             <Column field="planned_qtt" header="계획수량" style="width: 100px">
                 <template #body="slotProps">

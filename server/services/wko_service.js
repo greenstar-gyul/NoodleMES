@@ -161,17 +161,35 @@ const getProdList = async () => {
  * 여러 검색 조건들로 작업지시서 조회하기
  */
 const searchWKOByOptions = async (params) => {
+  // 디버깅용 로그
+  console.log('검색 파라미터 수신:', params);
+  
+  // 빈 문자열을 null로 변환
+  const cleanParams = {
+    wko_code: params.wko_code || null,
+    prdp_code: params.prdp_code || null, 
+    prdp_name: params.prdp_name || null,
+    prod_name: params.prod_name || null,
+    start_date_from: params.start_date_from || null,
+    start_date_to: params.start_date_to || null
+  };
+  
   const bindParams = [
-    params.wko_code ?? null, params.wko_code ?? null,
-    params.prdp_code ?? null, params.prdp_code ?? null,
-    params.prdp_name ?? null, params.prdp_name ?? null,
-    params.prod_name ?? null, params.prod_name ?? null,
-    params.start_date_from ?? null, params.start_date_from ?? null,
-    params.start_date_to ?? null, params.start_date_to ?? null
+    cleanParams.wko_code, cleanParams.wko_code, cleanParams.wko_code,
+    cleanParams.prdp_code, cleanParams.prdp_code, cleanParams.prdp_code,
+    cleanParams.prdp_name, cleanParams.prdp_name, cleanParams.prdp_name,
+    cleanParams.prod_name, cleanParams.prod_name, cleanParams.prod_name,
+    cleanParams.start_date_from, cleanParams.start_date_from,
+    cleanParams.start_date_to, cleanParams.start_date_to
   ];
+
+  console.log('바인딩 파라미터:', bindParams); // 디버깅용
 
   const list = await mariadb.query("selectWKOByOptions", bindParams)
                             .catch(err => console.log(err));
+  
+  console.log('조회 결과 건수:', list?.length || 0); // 디버깅용
+  
   return list;
 };
 
