@@ -1,184 +1,274 @@
-<!-- 페이지 뷰를 나눠서 폴더에 분리 or 부모 뷰의 자식 뷰임을 확실히 알 수 있게 해주기 -->
-<!-- 
-    1. 페이지 별로 쓰이는 컴포넌트 or 뷰(view)를 폴더 별로 묶기
-    2. 메인 뷰(view)를 최상위 폴더에 두고, 하위 뷰(view)를 폴더에 따로 묶기
-    3. 폴더 하나에 다 두기(단, 이름은 잘 구분해야함)
--->
-
 <template>
-    <!-- 우측: 제품 등록 영역 (45%) -->
+    <!-- 우측: 모델 등록/수정 영역 (45%) -->
     <div class="card space-y-6 p-6" style="width: 45%">
-        <!-- 버튼 영역역 -->
+        <!-- 버튼 영역 -->
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
                 <div>
-                    <div class="font-semibold text-2xl">품질기준정보</div>
+                    <div class="font-semibold text-2xl">
+                        {{ isEditMode ? '수정' : '등록' }}
+                    </div>
+                    <div v-if="isEditMode" class="text-sm text-blue-600 mt-1">
+                        선택된 행: {{ eqForm.prod_code }}
+                    </div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="수정" severity="info" class="min-w-fit whitespace-nowrap" outlined />
-                    <Button label="등록" severity="success" class="min-w-fit whitespace-nowrap" outlined />
+                    <Button v-if="isEditMode" label="취소" severity="secondary" class="min-w-fit whitespace-nowrap"
+                        outlined @click="cancelEdit" />
+                    <Button v-if="isEditMode" label="수정" severity="info" class="min-w-fit whitespace-nowrap"
+                        @click="updateEquipment" />
+                    <Button v-if="!isEditMode" label="등록" severity="success" class="min-w-fit whitespace-nowrap"
+                        @click="saveEquipment" />
                 </div>
             </div>
         </div>
-        <!-- 품질기준코드 / 검사대상 -->
+
+        <!-- 설비코드 / 모델명 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">품질기준코드</label>
-                <InputText type="text" placeholder="제품코드" :disabled="true" class="w-full" />
+                <InputText v-model="eqForm.prod_code" type="text" placeholder="자동 생성" :disabled="true" class="w-full" />
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">검사대상</label>
-                <InputText type="text" class="w-full" />
+                <Dropdown v-model="eqForm.eq_type" :options="TypeOptions" optionLabel="label" optionValue="value"
+                    placeholder="유형 선택" class="w-full" />
             </div>
-            </div>
-            
-        <!-- 기준 / 검사항목 -->
+        </div>
+
+        <!-- 모델명 / 제조사 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">기준(상한)</label>
-                <InputText type="text" class="w-full" />
+                <InputText v-model="eqForm.range_top" type="text" placeholder="기준치 입력" class="w-full" />
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">검사항목</label>
-                <Dropdown v-model="search.is_used" :options="orderStatusOptions" optionLabel="label" optionValue="value" placeholder="" class="w-full" />
+                <InputText v-model="eqForm.inspection_item" type="text" placeholder="검사항목 입력" class="w-full" />
             </div>
         </div>
 
-        <!-- 유통기한 / 등록일자 -->
+        <!-- 용량 / 등록일자 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">기준(하한)</label>
-                <InputText type="text" class="w-full" />
+                <InputText v-model="eqForm.range_bot" type="text" placeholder="기준치 입력" class="w-full" />
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">단위</label>
-                <InputText type="text" class="w-full" />
+                <Dropdown v-model="eqForm.unit" :options="eqTypeOptions" optionLabel="label" optionValue="value"
+                    placeholder="유형 선택" class="w-full" />
             </div>
         </div>
-        <!-- 유통기한 / 등록일자 -->
+
+        <!-- 용량 / 등록일자 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="font-semibold text-xl block mb-2">등록일자</label>
-                <InputText type="text" placeholder="자동으로 입력" :disabled="true" class="w-full" />
+                <LabeledDatePicker :key="`regdate_from_${isEditMode}_${eqForm.prod_code}`" v-model="eqForm.regdate_from"
+                    label="등록일자" placeholder="날짜를 선택" :disabled="false" />
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">판정방식</label>
-               <div class="flex items-center">
-                    <RadioButton id="option1" name="option" value="자동" v-model="radioValue" />
-                    <label for="option1" class="leading-none ml-2 mr-7">자동</label>
-                    <RadioButton id="option2" name="option" value="수동" v-model="radioValue" />
-                    <label for="option2" class="leading-none ml-2">수동</label>
-                </div>
+                <Checkbox v-model="isUnused" binary variant="filled" inputId="usage-checkbox" />
+                <label for="usage-checkbox" class="text-lg">
+                {{ isUnused ? ' 수동' : ' 자동' }}
+            </label>
+            </div>
+            <div>
+                <label class="font-semibold text-xl block mb-2">비고</label>
+                <InputText v-model="eqForm.note" type="text" placeholder="" class="w-full" />
             </div>
         </div>
-        </div>
+    </div>
 </template>
 
-
-        <!-- 비고
-        <div>
-            <label class="font-semibold text-xl block mb-2">비고</label>
-            <Textarea placeholder="특이사항 입력" :autoResize="true" rows="5" class="w-full" />
-        </div> -->
-
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, computed, defineProps, defineEmits, nextTick } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
-import Calendar from 'primevue/calendar';
+import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import SearchText from '@/components/search-bar/SearchText.vue';
+import LabeledDatePicker from '../../../components/common/LabeledDatePicker.vue';
+import axios from 'axios';
 
-const radioValue = ref(null);
+// Props 정의 (부모에서 선택된 데이터 받기)
+const props = defineProps({
+    selectedData: {
+        type: Object,
+        default: null
+    }
+});
 
-// 검색조건 데이터 (v-model로 바인딩됨)
-const search = ref({
+// Emits 정의 (부모에게 이벤트 전달)
+const emit = defineEmits(['data-updated']);
+
+// 모델 폼 데이터
+const eqForm = ref({
     prod_code: '',
     prod_name: '',
-    regdate_from: null,
-    regdate_to: null,
+    regdate_from: '',
+    regdate_to: '',
     is_used: ''
 });
 
-// 주문상태 옵션 (예시 데이터)
-const orderStatusOptions = [
-    { label: '활성', value: 'a1' },
-    { label: '비활성', value: 'a2' }
+// 수정 모드 여부 계산
+const isEditMode = computed(() => {
+    return props.selectedData !== null && props.selectedData !== undefined;
+});
+
+// checkbox
+const isUnused = computed({
+    get() {
+        // is_used가 'f1'이면 체크박스가 선택됨 (미사용)
+        return eqForm.value.is_used === 'f1';
+    },
+    set(value) {
+        // 체크박스가 선택되면(true) is_used는 'f1' (미사용)
+        // 체크박스가 해제되면(false) is_used는 'f2' (사용)
+        eqForm.value.is_used = value ? 'f1' : 'f2';
+    }
+});
+
+const TypeOptions = [
+    { label: '배합기', value: 'MIX' },
+    { label: '숙성기', value: 'REM' },
+    { label: '압연기', value: 'ROP' },
+    { label: '절단기', value: 'CUT' },
+    { label: '성형기', value: 'SHM' },
 ];
 
-// 조회 버튼 기능 (API 호출 자리)
-const fetchOrders = () => {
-    console.log('조회 실행:', search.value);
-    // TODO: 실제 API 호출로 데이터 갱신
-};
+// 단위
+const eqTypeOptions = [
+    { label: '단위1', value: 'EA' },
+    { label: '단위1', value: 'EA' },
+    { label: '단위1', value: 'EA' },
+    { label: '단위1', value: 'EA' },
+    { label: '단위1', value: 'EA' },
+];
 
-// 초기화 버튼 기능
-const resetSearch = () => {
-    search.value = {
+// 폼 초기화 함수
+const resetForm = async () => {
+    eqForm.value = {
         prod_code: '',
         prod_name: '',
         regdate_from: null,
         regdate_to: null,
-        is_used: ''
+        is_used: 'f2',
     };
+
+    await nextTick();
 };
 
-// 테이블에 보여줄 제품 데이터 (예시 데이터)
-const products = ref([
-    {
-        prod_code: 'WH001',
-        prod_name: '신라면',
-        edate: '150일',
-        regdate: '2025.06.06',
-        is_used: '활성'
+// 선택된 데이터 변경 감지 (테이블에서 행 선택 시)
+watch(
+    () => props.selectedData,
+    (newData) => {
+        if (newData) {
+            console.log('📝 선택된 데이터를 폼에 설정:', newData);
+            // 선택된 데이터를 폼에 채우기
+            eqForm.value = {
+                prod_code: newData.prod_code || '',
+                prod_name: newData.prod_name || '',
+                regdate_from: newData.regdate_from ? new Date(newData.regdate_from) : null,
+                regdate_to: newData.regdate_to ? new Date(newData.regdate_to) : null,
+                is_used: newData.is_used || 'f2'
+            };
+        } else {
+            // 선택 해제 시 폼 초기화
+            resetForm();
+        }
     },
-    {
-        prod_code: 'WH002',
-        prod_name: '짜파게티',
-        edate: '150일',
-        regdate: '2025.06.07',
-        is_used: '활성'
-    },
-    {
-        prod_code: 'WH001',
-        prod_name: '진진라면',
-        edate: '150일',
-        regdate: '2025.06.01',
-        is_used: '비활성'
-    }
-]);
+    { immediate: true }
+);
 
-const mats = ref([
-    {
-        mat_code: 'RM001',
-        mat_name: '밀가루',
-        mat_type: '원자재',
-        req_qtt: 'EA',
-        unit: '100g',
-        loss_rate: '0.5%'
-    },
-    {
-        mat_code: 'RM002',
-        mat_name: '스프',
-        mat_type: '원자재',
-        req_qtt: 'EA',
-        unit: '20g',
-        loss_rate: '0.5%'
-    },
-    {
-        mat_code: 'RM003',
-        mat_name: '비닐포장지',
-        mat_type: '부자재',
-        req_qtt: 'EA',
-        unit: '100mm',
-        loss_rate: '-'
+const formatDateForDB = (date) => {
+    if (!date) return null;
+    if (date instanceof Date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
-]);
+    return null;
+};
 
-// DataTable 선택된 행 (선택 모드)
-const selectedProducts = ref();
+// 모델 등록 함수
+const saveEquipment = async () => {
+    try {
+        console.log('모델 등록:', eqForm.value);
+
+        // 필수 필드 검증
+        if (!eqForm.value.eq_type || !eqForm.value.prod_name) {
+            alert('모델명은 필수 항목입니다.');
+            return;
+        }
+
+        const submitData = {
+            ...eqForm.value,
+            regdate_from: formatDateForDB(eqForm.value.regdate_from) || formatDateForDB(new Date()),
+            regdate_to: formatDateForDB(eqForm.value.regdate_to) || formatDateForDB(new Date()),
+            is_used: eqForm.value.is_used
+        };
+
+
+        const response = await axios.post('/api/eq', submitData);
+
+        if (response.data.success) {
+            console.log('등록 완료');
+            alert('성공적으로 등록되었습니다.');
+            await resetForm();
+            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+        } else {
+            console.error('등록 실패:', response.data.error);
+            alert('등록에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('등록 실패:', error);
+        alert('등록 중 오류가 발생했습니다.');
+    }
+};
+
+// 모델 수정 함수
+const updateEquipment = async () => {
+    try {
+        console.log('수정:', eqForm.value);
+
+        // 필수 필드 검증
+        if (!eqForm.value.prod_name) {
+            alert('코드명은 필수입니다.');
+            return;
+        }
+
+        const submitData = {
+            ...eqForm.value,
+            regdate_from: formatDateForDB(eqForm.value.regdate_from) || formatDateForDB(new Date()),
+            regdate_to: formatDateForDB(eqForm.value.regdate_to) || formatDateForDB(new Date()),
+            is_used: eqForm.value.is_used
+        };
+
+
+        const response = await axios.put(`/api/eq/${eqForm.value.prod_code}`, submitData);
+
+        if (response.data.success) {
+            console.log('모델 수정 완료');
+            alert('모델명이 성공적으로 수정되었습니다.');
+            await resetForm();
+            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+        } else {
+            console.error('수정 실패:', response.data.error);
+            alert('모델 수정에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('모델 수정 실패:', error);
+        alert('모델 수정 중 오류가 발생했습니다.');
+    }
+};
+
+// 수정 취소 함수
+const cancelEdit = () => {
+    console.log('수정 취소');
+    emit('data-updated'); // 부모에서 선택 해제하도록 알림
+};
 </script>
 
 <style scoped>

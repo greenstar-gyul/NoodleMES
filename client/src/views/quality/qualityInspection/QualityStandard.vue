@@ -47,7 +47,6 @@
             <!-- 우측: 품질 등록 영역 (45%) -->
             <QualitySTDForm :selectedData="selectedEquipment" @data-updated="onDataUpdated" />
         </div>
-
 </template>
 
 <script setup>
@@ -58,7 +57,7 @@ import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
-import TableWDE from '@/components/form/TableWithDelExcel.vue';
+
 import QualityMapping from '@/service/QualityMapping';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
