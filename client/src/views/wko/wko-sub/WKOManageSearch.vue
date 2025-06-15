@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from 'vue';
 import Button from 'primevue/button';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
+import WKOSearchPopup from './WKOSearchPopup.vue';
 import prodPlanMapping from '../../../service/ProductionPlanMapping';
 import LabeledTextarea from '../../../components/registration-bar/LabeledTextarea.vue';
 import LabeledInput from '../../../components/registration-bar/LabeledInput.vue';
@@ -48,6 +49,19 @@ const loadProdData = async () => {
 }
 
 /**
+ * 작업지시서 목록 불러오기
+ */
+const loadWKOListData = async () => {
+    try {
+        const response = await axios.get(`/api/wko/searchMonth`);
+        wkoList.value = await response.data.data;
+    }
+    catch(err) {
+        console.error(err);
+    }
+}
+
+/**
  * 생산 계획 선택
  */
 const prdpLoad = async (value) => {
@@ -86,22 +100,28 @@ const prodLoad = async (values) => {
 }
 
 /**
- * 기존 작업지시서 불러오기 (코드 직접 입력)
+ * 기존 작업지시서 선택
  */
-const loadExistingWKO = async () => {
-    const wkoCode = wkoCodeInput.value?.trim();
-    if (!wkoCode) {
-        alert('작업지시서 코드를 입력하세요.');
-        return;
-    }
-    
-    emit('loadWko', wkoCode);
-    wkoCodeInput.value = '';
+const loadExistingWKO = async (value) => {
+    emit('loadWko', value.wko_code);
+}
+
+const openWKOPopup = async () => {
+    await loadWKOListData();
+    wkoPopupVisible.value = true;
 }
 
 const openPrdpPopup = async () => {
     await loadPlansData();
     prdpPopupVisible.value = true;
+}
+
+/**
+ * 작업자 선택 팝업 (필요시 구현)
+ */
+const openEmpPopup = async () => {
+    // 작업자 선택 팝업 로직 (필요시 구현)
+    alert('작업자 선택 기능은 추후 구현 예정입니다.');
 }
 
 const openProdPopup = async () => {
@@ -124,12 +144,11 @@ const saveWKO = async () => {
     }
     emit('saveData')
 }
-
-const prdpPopupVisible = ref(false);
 const prodPopupVisible = ref(false);
+const wkoPopupVisible = ref(false);
 const prodPlans = ref([]);
 const products = ref([]);
-const wkoCodeInput = ref('');
+const wkoList = ref([]);
 
 // 제품타입 옵션
 const prodTypeOptions = ref([
@@ -163,118 +182,67 @@ const statOptions = ref([
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit" />
                     <Button label="초기화" severity="contrast" class="min-w-fit" v-on:click="emit('resetList')" />
-                    <Button label="저장" severity="info" class="min-w-fit" v-on:click="saveWKO"/>
+                    <Button label="저장" severity="info" class="min-w-fit" v-on:click="saveWKO" />
+                    <Button label="작업지시서 불러오기" severity="success" @click="openWKOPopup" />
                 </div>
             </div>
         </div>
-        
-        <!-- 기존 작업지시서 불러오기 -->
-        <div class="bg-blue-50 p-4 rounded border border-blue-200">
-            <h3 class="text-lg font-semibold mb-3">🔍 기존 작업지시서 불러오기</h3>
-            <div class="flex gap-2">
-                <LabeledInput 
-                    label="작업지시서 코드" 
-                    v-model="wkoCodeInput" 
-                    placeholder="WKO-20241215-001" 
-                    class="flex-1" />
-                <Button 
-                    label="불러오기" 
-                    severity="info" 
-                    @click="loadExistingWKO" 
-                    class="mt-6" />
-            </div>
-        </div>
-        
+
         <!-- 작업지시서 정보 -->
         <div class="bg-white p-4 rounded border">
-            <h3 class="text-lg font-semibold mb-4">📋 작업지시서 정보</h3>
-            
+
             <!-- 첫 번째 행: 코드 정보 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <LabeledInput 
-                    label="작업지시서코드" 
-                    :model-value="data.wko_code" 
-                    :disabled="true" 
+                <LabeledInput label="작업지시코드" :model-value="data.wko_code" :disabled="true"
                     placeholder="저장 시 자동으로 생성됩니다." />
                 <div class="flex gap-2">
-                    <LabeledInput 
-                        label="생산계획코드" 
-                        :model-value="data.prdp_code" 
-                        :disabled="true" 
-                        class="flex-1" />
-                    <Button 
-                        label="선택" 
-                        severity="success" 
-                        @click="openPrdpPopup" 
-                        class="mt-6" />
+                    <LabeledInput label="생산계획코드" :model-value="data.prdp_code" :disabled="true" class="flex-1" />
+                    <Button icon="pi pi-search" @click="openPrdpPopup" />
                 </div>
-                <div class="flex gap-2">
-                    <LabeledInput 
-                        label="제품" 
-                        :model-value="data.prod_name" 
-                        :disabled="true" 
-                        class="flex-1" />
-                    <Button 
-                        label="선택" 
-                        severity="success" 
-                        @click="openProdPopup" 
-                        class="mt-6" />
-                </div>
+                <LabeledInput label="작업시작일" v-model="data.start_date" type="date" />
             </div>
             
             <!-- 두 번째 행: 작업 정보 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <LabeledInput 
-                    label="작업시작일" 
-                    v-model="data.start_date" 
-                    type="date" />
-                <LabeledSelect 
-                    label="제품타입" 
-                    v-model="data.prod_type" 
-                    :options="prodTypeOptions" />
-                <LabeledSelect 
-                    label="작업상태" 
-                    v-model="data.stat" 
-                    :options="statOptions" />
+                <div class="flex gap-2">
+                    <LabeledInput label="작업자" :model-value="data.emp_name" :disabled="true" class="flex-1" />
+                    <Button icon="pi pi-user" @click="openEmpPopup" />
+                </div>
+                <div class="flex gap-2">
+                    <LabeledInput label="제품" :model-value="data.prod_name" :disabled="true" class="flex-1" />
+                    <Button icon="pi pi-search" @click="openProdPopup" />
+                </div>
+                <LabeledInput label="생산수량" v-model="data.planned_qtt" type="number" />
             </div>
-            
+
             <!-- 세 번째 행: 담당자, 비고 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <LabeledInput 
-                    label="담당자" 
-                    :model-value="data.emp_name" 
-                    :disabled="true" />
-                <div></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <LabeledSelect label="제품타입" v-model="data.prod_type" :options="prodTypeOptions" />
+                <LabeledInput label="지시생성일" :model-value="data.created_date" :disabled="true" />
+                <LabeledSelect label="작업상태" v-model="data.stat" :options="statOptions" />
             </div>
-            
+
             <div class="grid grid-cols-1 gap-4 mt-4">
-                <LabeledTextarea 
-                    label="비고" 
-                    v-model="data.note" 
-                    placeholder="특이사항 입력" 
-                    :rows="2" />
+                <LabeledTextarea label="비고" v-model="data.note" placeholder="특이사항 입력" :rows="2" />
             </div>
         </div>
     </div>
 
+    <!-- 작업지시서 검색 팝업 -->
+    <WKOSearchPopup 
+        v-model:visible="wkoPopupVisible" 
+        @confirm="loadExistingWKO">
+    </WKOSearchPopup>
+
     <!-- 생산계획 선택 팝업 -->
-    <SinglePopup 
-        v-model:visible="prdpPopupVisible" 
-        :items="prodPlans" 
-        @confirm="prdpLoad" 
-        :mapper="prodPlanMapping"
-        :dataKey="'prdp_code'" 
-        :placeholder="'생산계획 선택'">
+    <SinglePopup v-model:visible="prdpPopupVisible" :items="prodPlans" @confirm="prdpLoad" :mapper="prodPlanMapping"
+        :dataKey="'prdp_code'" :placeholder="'생산계획 선택'">
     </SinglePopup>
-    
+
     <!-- 제품 선택 팝업 -->
-    <MultiplePopup 
-        v-model:visible="prodPopupVisible" 
-        :items="products"
+    <MultiplePopup v-model:visible="prodPopupVisible" :items="products"
         :selectedHeader="['prod_code', 'prod_name', 'prod_type', 'unit']"
-        :mapper="{ 'prod_code': '제품코드', 'prod_name': '제품명', 'prod_type': '제품유형', 'unit': '단위' }" 
-        @confirm="prodLoad"
-        :dataKey="'prod_code'"
-        :singleSelect="true">
+        :mapper="{ 'prod_code': '제품코드', 'prod_name': '제품명', 'prod_type': '제품유형', 'unit': '단위' }" @confirm="prodLoad"
+        :dataKey="'prod_code'" :singleSelect="true">
     </MultiplePopup>
 </template>

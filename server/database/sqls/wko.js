@@ -16,25 +16,22 @@ ORDER BY wko_code
 const selectPRDPList = `
 SELECT   prdp.prdp_code,
          prdp.prdp_name,
-         prdd.prdp_d_code,
-         prdd.prod_code,
-         prod.prod_name,
-         prdd.planned_qtt,
+         TO_CHAR(prdp.prdp_date, 'yyyy-MM-dd') AS "prdp_date",
+         TO_CHAR(prdp.start_date, 'yyyy-MM-dd') AS "start_date",
+         TO_CHAR(prdp.end_date, 'yyyy-MM-dd') AS "end_date",
          TO_CHAR(prdp.due_date, 'yyyy-MM-dd') AS "due_date",
-         prdp.note,
-         prdd.line_code
-FROM     prdp_tbl prdp LEFT JOIN prdp_d_tbl prdd
-                              ON prdp.prdp_code = prdd.prdp_code
-                       LEFT JOIN prod_tbl prod
-                              ON prod.prod_code = prdd.prod_code
-WHERE    prdp.end_date > curdate()
-ORDER BY prdp_code
+         emp.emp_name AS "reg",
+         emp.emp_code,
+         prdp.note
+FROM     prdp_tbl prdp JOIN emp_tbl emp
+                         ON prdp.reg = emp.emp_code
+ORDER BY prdp_code;
 `;
 
-// 작업지시서 코드로 작업지시서 조회
+// 작업지시서 코드로 작업지시서 조회 - datetime 포맷 추가
 const selectWKO = `
 SELECT wko.wko_code,
-       wko.start_date,
+       DATE_FORMAT(wko.start_date, '%Y-%m-%d') AS "start_date",
        comm_name(wko.prod_type) AS "prod_type",
        comm_name(wko.stat) AS "stat",
        wko.note,
@@ -133,7 +130,7 @@ DELETE FROM wko_tbl
 WHERE wko_code = ?
 `;
 
-// 여러 조건으로 작업지시서 조회
+// 여러 조건으로 작업지시서 조회 - datetime 타입 고려
 const selectWKOByOptions =  `
 SELECT wko.wko_code,
        prdp.prdp_code,
@@ -141,23 +138,23 @@ SELECT wko.wko_code,
        prod.prod_name,
        comm_name(wko.prod_type) AS "prod_type",
        comm_name(wko.stat) AS "stat",
-       wko.start_date,
+       DATE_FORMAT(wko.start_date, '%Y-%m-%d') AS "start_date",
        wko.note
 FROM   wko_tbl wko JOIN prdp_tbl prdp
                      ON wko.prdp_code = prdp.prdp_code
                    JOIN prod_tbl prod
                      ON wko.prod_code = prod.prod_code
 WHERE 1=1
-  AND (? IS NULL OR wko.wko_code LIKE CONCAT('%', ?, '%'))
-  AND (? IS NULL OR prdp.prdp_code LIKE CONCAT('%', ?, '%'))
-  AND (? IS NULL OR prdp.prdp_name LIKE CONCAT('%', ?, '%'))
-  AND (? IS NULL OR prod.prod_name LIKE CONCAT('%', ?, '%'))
-  AND (? IS NULL OR wko.start_date >= ?)
-  AND (? IS NULL OR wko.start_date <= ?)
-ORDER BY wko.wko_code
+  AND (? IS NULL OR ? = '' OR wko.wko_code LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR ? = '' OR prdp.prdp_code LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR ? = '' OR prdp.prdp_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR ? = '' OR prod.prod_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR DATE(wko.start_date) >= ?)
+  AND (? IS NULL OR DATE(wko.start_date) <= ?)
+ORDER BY wko.start_date DESC, wko.wko_code DESC
 `;
 
-// 최근 1달 작업지시서 조회
+// 최근 1달 작업지시서 조회 (팝업용) - datetime 타입 고려
 const selectWKOMonth = `
 SELECT wko.wko_code,
        prdp.prdp_code,
@@ -165,15 +162,15 @@ SELECT wko.wko_code,
        prod.prod_name,
        comm_name(wko.prod_type) AS "prod_type",
        comm_name(wko.stat) AS "stat",
-       wko.start_date,
+       DATE_FORMAT(wko.start_date, '%Y-%m-%d') AS "start_date",
        wko.note
 FROM   wko_tbl wko JOIN prdp_tbl prdp
                      ON wko.prdp_code = prdp.prdp_code
                    JOIN prod_tbl prod
                      ON wko.prod_code = prod.prod_code
-WHERE YEAR(wko.start_date) = YEAR(CURDATE())
-  AND MONTH(wko.start_date) = MONTH(CURDATE())
-ORDER BY wko.wko_code
+WHERE  wko.start_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+  AND  wko.start_date < DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+ORDER BY wko.start_date DESC, wko.wko_code DESC
 `;
 
 module.exports = {
@@ -189,4 +186,4 @@ module.exports = {
     deleteWKO,
     selectWKOByOptions,
     selectWKOMonth,
-};
+}
