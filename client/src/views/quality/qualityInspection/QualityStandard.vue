@@ -43,26 +43,11 @@
             <WDETable style="margin-bottom:0px; height : 100%" ref="eqTableRef" :data="qualitys" :dataKey="'qcr_code'"
                 :columns="tableColumns" :mapper="QualityMapping" title="기준 목록" @selection-change="onSelectionChange"
                 @delete="handleDelete" />
-        </div>
-    <!-- 📋 검색 조회 테이블 영역 -->
-    <div class="flex flex-col lg:flex-row gap-6 mt-6">
-        <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
-        <div class="space-y-6" style="width: 45%">
-            <!-- title 속성 추가해서 제목 추가 -->
-            <!-- 검색결과 테이블 -->
-
-            <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
-
-
-            <!-- 하위자재 구성 테이블
-            <TableWAD :data="mats" :dataKey="'mat_code'" :mapper="bomSubMapper" @open-popup="openPopup()"></TableWAD> -->
+            </div>
+            <!-- 우측: 품질 등록 영역 (45%) -->
+            <QualitySTDForm :selectedData="selectedEquipment" @data-updated="onDataUpdated" />
         </div>
 
-        <!-- 우측: 품질 등록 영역 (45%) -->
-        <QualitySTDForm />
-    </div>
-
-    <SinglePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></SinglePopup>
 </template>
 
 <script setup>
@@ -73,7 +58,6 @@ import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
-import QualityInputForm from '../../../components/form/QualityInputForm.vue';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
 import QualityMapping from '@/service/QualityMapping';
 import MultiplePopup from '@/components/popup/MultiplePopup.vue';
