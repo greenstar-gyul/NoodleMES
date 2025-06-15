@@ -13,12 +13,12 @@ export const useOrderListStore = defineStore('orderListStore', () => {
     ord_name: '',
     ord_date_from: null,
     ord_date_to: null,
-    client_name: '',
+    client_name: null,
     prod_qtt_from: null,
     prod_qtt_to: null,
     delivery_date_from: null,
     delivery_date_to: null,
-    ord_stat: ''
+    ord_stat: null
   });
   // 거래처 목록
   const clients = ref([]);
@@ -28,6 +28,13 @@ export const useOrderListStore = defineStore('orderListStore', () => {
   // moment사용으로 날짜 문자열로 변환
   const formatDate = (date) => {
     return moment(date).format('YYYY-MM-DD'); // YYYY-MM-DD 형식으로 변환
+  };
+
+  // 날짜를 안전하게 포맷팅하는 함수
+  // null이나 undefined인 경우 그대로 반환
+  const safeFormat = (date) => {
+    if (!date) return null; // null 그대로 유지
+    return moment(date).format('YYYY-MM-DD');
   };
 
   function getToday() {
@@ -48,29 +55,22 @@ export const useOrderListStore = defineStore('orderListStore', () => {
   // 기본 날짜 조건 주문 목록 조회
   async function fetchOrdersByDate() {
     try {
-      // if (!search.value.ord_date_from || !search.value.ord_date_to) {
-      //   console.warn('날짜가 설정되지 않았습니다.');
-      //   return;
-      // }
+      if (!search.value.ord_date_from || !search.value.ord_date_to) {
+        // console.warn('날짜가 설정되지 않았습니다.');
+        return;
+      }
       const params = {
         ...search.value,
-        ord_date_from: formatDate(search.value.ord_date_from),
-        ord_date_to: formatDate(search.value.ord_date_to),
-        delivery_date_from: formatDate(search.value.delivery_date_from),
-        delivery_date_to: formatDate(search.value.delivery_date_to)
+        ord_date_from: safeFormat(search.value.ord_date_from),
+        ord_date_to: safeFormat(search.value.ord_date_to),
+        delivery_date_from: safeFormat(search.value.delivery_date_from),
+        delivery_date_to: safeFormat(search.value.delivery_date_to)
       };
-      // const params = {
-      //   ord_code: search.value.ord_code || '',
-      //   ord_name: search.value.ord_name || '',
-      //   client_name: search.value.client_name || '',
-      //   ord_stat: search.value.ord_stat || '',
-      //   ord_date_from: formatDate(search.value.ord_date_from),
-      //   ord_date_to: formatDate(search.value.ord_date_to),
-      // };
       const res = await axios.get('/api/order/date', { params });
         orders.value = res.data.data.map(order => ({
         ...order,
-        ord_date: formatDate(order.ord_date)
+        ord_date: formatDate(order.ord_date),
+        delivery_date: formatDate(order.delivery_date)
       }));
     } catch (err) {
       console.error('주문 목록 조회 실패:', err);
@@ -82,25 +82,26 @@ export const useOrderListStore = defineStore('orderListStore', () => {
   try {
     const params = {
       ...search.value,
-      ord_date_from: formatDate(search.value.ord_date_from),
-      ord_date_to: formatDate(search.value.ord_date_to),
-      delivery_date_from: formatDate(search.value.delivery_date_from),
-      delivery_date_to: formatDate(search.value.delivery_date_to)
+      ord_stat: search.value.ord_stat ?? null,
+      ord_date_from: safeFormat(search.value.ord_date_from),
+      ord_date_to: safeFormat(search.value.ord_date_to),
+      delivery_date_from: safeFormat(search.value.delivery_date_from),
+      delivery_date_to: safeFormat(search.value.delivery_date_to)
     };
     const res = await axios.get('/api/order/search', { params });
     orders.value = res.data.data.map(order => ({
       ...order,
-      ord_date: formatDate(order.ord_date)
+      ord_date: formatDate(order.ord_date),
+      delivery_date: formatDate(order.delivery_date)
     }));
-    console.log("🔍 검색 파라미터 전송 확인:", params);
-
+    // console.log("🔍 검색 파라미터 전송 확인:", params);
     console.log("🔍 [디버그] 검색 조건 원본:", search.value);
-    console.log("🧪 [디버그] 날짜 파싱 후 params:", {
-      ord_date_from: formatDate(search.value.ord_date_from),
-      ord_date_to: formatDate(search.value.ord_date_to),
-      delivery_date_from: formatDate(search.value.delivery_date_from),
-      delivery_date_to: formatDate(search.value.delivery_date_to),
-    });
+    // console.log("🧪 [디버그] 날짜 파싱 후 params:", {
+    //   ord_date_from: formatDate(search.value.ord_date_from),
+    //   ord_date_to: formatDate(search.value.ord_date_to),
+    //   delivery_date_from: formatDate(search.value.delivery_date_from),
+    //   delivery_date_to: formatDate(search.value.delivery_date_to),
+    // });
   } catch (err) {
     console.error('검색 조건 주문 조회 실패:', err);
   }
@@ -112,7 +113,7 @@ export const useOrderListStore = defineStore('orderListStore', () => {
       const res = await axios.get('/api/order/clients'); 
       clients.value = res.data.data.map(client => ({
         label: client.client_name,
-        value: client.client_code
+        value: client.client_name
       }));
     } catch (err) {
       console.error('거래처 조회 실패:', err);
@@ -139,16 +140,14 @@ export const useOrderListStore = defineStore('orderListStore', () => {
     s.ord_name = '';
     s.ord_date_from = getDateNDaysAgo(7);
     s.ord_date_to = getToday();
-    s.client_name = '';
+    s.client_name = null;
     s.prod_qtt_from = null;
     s.prod_qtt_to = null;
     s.delivery_date_from = null;
     s.delivery_date_to = null;
-    s.ord_stat = '';
+    s.ord_stat = null;
 
     orders.value = []; // 결과 테이블 비우기
-
-    console.log("🔁 ord_stat 초기화됨:", s.ord_stat);
   }
 
   return {

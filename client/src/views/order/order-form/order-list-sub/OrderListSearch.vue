@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useOrderListStore } from '@/stores/OrderListStore';
 import SearchText from '@/components/search-bar/SearchText.vue';
 import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
-import SearchDropdown from '@/components/search-bar/SearchDropdown.vue';
+import SearchDropdownValue from '../../../../components/search-bar/SearchDropdownValue.vue';
 import SearchNumberBetween from '@/components/search-bar/SearchNumberBetween.vue';
 import Button from 'primevue/button';
 
@@ -65,7 +65,7 @@ const onSearch = () => {
         @update:to="search.ord_date_to = $event"
       />
 
-      <SearchDropdown label="거래처" v-model="search.client_name" :options="clientOptions" />
+      <SearchDropdownValue label="거래처" v-model="search.client_name" :options="clientOptions" />
       
       <SearchNumberBetween label="수량" v-model:from="search.prod_qtt_from" v-model:to="search.prod_qtt_to" />
       
@@ -77,7 +77,7 @@ const onSearch = () => {
         @update:to="search.delivery_date_to = $event"
       />
 
-      <SearchDropdown label="상태" v-model="search.ord_stat" :options="orderStatusOptions" />
+      <SearchDropdownValue label="상태" v-model="search.ord_stat" :options="orderStatusOptions" />
     </div>
 
     <!-- 버튼 영역 -->
@@ -85,6 +85,5 @@ const onSearch = () => {
       <Button label="초기화" severity="contrast" @click="onReset" />
       <Button label="조회" severity="info" @click="onSearch" />
     </div>
-    <pre>🔎 현재 상태 값: {{ search.ord_stat }}</pre>
   </div>
 </template>

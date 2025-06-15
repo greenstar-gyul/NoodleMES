@@ -1,12 +1,17 @@
 <script setup>
 import { ref, watch } from 'vue'
+import Calendar from 'primevue/calendar'
 
 const props = defineProps({
   label: { type: String, required: true },
   modelValue: { type: Date, default: null },
   placeholder: { type: String, default: '날짜 선택' },
+  disabled: { type: Boolean, default: false },
+  showIcon: { type: Boolean, default: true },
+  showTime: { type: Boolean, default: true },
   readonly: { type: Boolean, default: false },
 })
+
 const emit = defineEmits(['update:modelValue'])
 
 const dateValue = ref(props.modelValue)
@@ -21,16 +26,23 @@ watch(() => props.modelValue, (newVal) => {
   }
 })
 </script>
+
+
 <template>
   <div class="flex items-center gap-3">
     <div class="font-semibold text-xl w-32">{{ label }}</div>
     <Calendar
       v-model="dateValue"
       :placeholder="placeholder"
-      class="flex-1"
-      :showIcon="true"
+      :disabled="disabled"
+      :showIcon="showIcon"
+      :showTime="showTime"
+      :showSeconds="false"
       :readonly="readonly"
-      dateFormat="yy-mm-dd"
+      dateFormat="yy-mm-dd HH:mm"
+      class="flex-1"
     />
   </div>
 </template>
+
+
