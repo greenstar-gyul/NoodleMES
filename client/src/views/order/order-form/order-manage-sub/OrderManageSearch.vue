@@ -166,7 +166,12 @@ const handleConfirm = async (selectedOrder) => {
     props.ordDate.value = moment(selectedOrder.ord_date).format("YYYY-MM-DD");
     props.note.value = selectedOrder.note || '';
     props.selectedClient.value = selectedOrder.client_code;
-    props.empCode.value.value = selectedOrder.mcode;
+    // props.empCode.value.value = selectedOrder.mcode;
+    if (props.empCode?.value) {
+      props.empCode.value.value = selectedOrder.mcode;
+    } else {
+      props.empCode.value = { value: selectedOrder.mcode };
+    }
   } catch (err) {
     console.error('주문 상세 조회 실패:', err);
   }
@@ -188,7 +193,7 @@ onMounted(async () => {
     }));
 
     // 전체 거래처 목록 조회
-    const clientRes = await axios.get('/api/order/orders/clients');
+    const clientRes = await axios.get('/api/order/clients');
     const clientList = clientRes.data.data;
 
     // 전체 목록 저장

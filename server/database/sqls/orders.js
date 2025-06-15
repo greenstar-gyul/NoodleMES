@@ -59,8 +59,6 @@ const selectOrderListByCondition = `
        , o.ord_name
        , o.ord_date
        , o.note
-       , o.mcode
-       , o.client_code
        , c.client_name 
        , comm_name(o.ord_stat) AS ord_stat
        , d.prod_amount

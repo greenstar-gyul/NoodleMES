@@ -9,6 +9,7 @@ const ord_name = ref({});
 const ord_date = ref({});
 const selectedClient = ref({});
 const empCode = ref({ value: "EMP-10001" }); // 로그인 후 전역상태에서 받아오기
+// const empCode = ref("EMP-10001");
 const note = ref({});
 </script>
 
