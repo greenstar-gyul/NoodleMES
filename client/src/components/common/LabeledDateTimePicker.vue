@@ -43,7 +43,7 @@ watch(internalValue, (val) => {
       :showIcon="showIcon"
       showTime
       showSeconds
-      dateFormat="yy.mm.dd"
+      dateFormat="yy-mm-dd"
     />
   </div>
 </template>
