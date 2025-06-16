@@ -42,12 +42,52 @@ router.get('/search', async (req, res)=>{
 
 // 등록
 router.post('/', async (req, res) => {
+  const { mpr, details } = req.body;
+
+  const regMpr = {
+    mprData: mpr,
+    detailData: details,
+  }
+
   try {
-    const result = await mprService.insertMpr(req.body);
-  } catch (error) {
-    console.error(err);
+    const result = await mprService.insertMpr(regMpr);
+
+    res.json({
+      result_code: "SUCCESS",
+      message: "성공",
+      data: result
+    });
+
+  } catch (err) {
+      console.error("등록 실패 : ", err);
+      res.status(500).json({
+        result_code: "FAIL",
+        message: "실패",
+        error: err.message
+      });
   }
 });
+
+// mpr 정보 삭제 (미완성)
+router.delete('/:mprCode', async (req, res) => {
+    try {
+        const { mprCode } = req.params;
+        const result = await mprService.deleteMpr(mprCode);
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        console.error("MPR 삭제 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
+
 
 // 해당 javascript 파일의 마지막 코드, 모듈화
 // 위에 선언한 기능(변수, 함수 등)들 중 외부로 노출할 대상을 설정 
