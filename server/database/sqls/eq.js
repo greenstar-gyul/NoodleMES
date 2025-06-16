@@ -25,6 +25,20 @@ SELECT eqii_code
 FROM   eqii_tbl
 `;
 
+const BASE_QUERY_FOR_EQIR = `
+SELECT r.eqir_code
+       ,e.eq_name
+       ,r.chk_start_date
+       ,r.chk_end_date
+       ,r.chk_detail
+       ,r.chk_result
+       ,r.eqi_stat
+       ,COALESCE(r.note, '내용없음')
+FROM   eqir_tbl as r
+LEFT JOIN eq_tbl as e
+ON r.eq_code = e.eq_code
+`;
+
 // 파라미터별 검색
 function buildSearch(searchParams) {
   const hasCondition = searchParams &&
@@ -90,11 +104,27 @@ WHERE eq_type = ?
 FOR UPDATE
 `;
 
+const selectEqiType = `
+SELECT c.eq_type
+       ,c.chk_text
+       ,c.chk_mth
+       ,c.range_top
+       ,c.range_bot
+       ,c.unit
+       ,c.jdg_mth
+FROM eqi_type_tbl AS c
+LEFT JOIN eq_tbl AS e
+ON e.eq_type = c.eq_type
+WHERE e.eq_type = ?;
+`;
+
 module.exports = {
   // 전체 조회 (첫 화면용)
   selectEqList: BASE_QUERY + ' ORDER BY eq_code',
 
   selectEqiiList: BASE_QUERY_FOR_EQII + ' ORDER BY eqii_code',
+
+  selectEqirList: BASE_QUERY_FOR_EQIR + ' WHERE eqii_code = ?',
 
   // 동적 검색 (검색 조건 유무에 따라 전체, 조건부 검색)
   buildSearch: buildSearch,
@@ -121,5 +151,6 @@ module.exports = {
     WHERE eq_code = ?
   `,
 
-  selectEqCodeForUpdate: selectEqCodeForUpdate
+  selectEqCodeForUpdate: selectEqCodeForUpdate,
+  selectEqiType: selectEqiType
 };

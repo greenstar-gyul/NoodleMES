@@ -87,4 +87,28 @@ router.get('/eqiiall', async (req, res) => {
     }
 })
 
+// 점검결과 조회
+router.get('/eqirall/:code', async (req, res) => {
+    try {
+        let eqirCode = req.params.code;
+        let eqirList = await eqService.showEqir(eqirCode);
+        res.send(eqirList);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: '조회 실패' });
+    }
+})
+
+// 점검결과 조회
+router.get('/eqitype/:type', async (req, res) => {
+    try {
+        let Type = req.params.type;
+        let TypeList = await eqService.showEqiType(Type);
+        res.send(TypeList);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: '조회 실패' });
+    }
+})
+
 module.exports = router;
