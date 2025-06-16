@@ -57,10 +57,10 @@ const model = ref([
                         label: '출고관리',
                         to: '/releaseForm/management'
                     },
-                    {
-                        label: '주문통계 및 보고서',
-                        to: '/releaseForm/management'
-                    }
+                    // {
+                    //     label: '주문통계 및 보고서',
+                    //     to: '/statistics/statis'
+                    // }
                 ]
             },
             {
