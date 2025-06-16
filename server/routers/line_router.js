@@ -96,4 +96,18 @@ router.get('/product', async (req, res) => {
   }
 });
 
+// 제품 선택 시 해당 제품의 공정 흐름도 상세 목록 조회
+router.get('/equipment', async (req, res) => {
+  const { prod_code } = req.query;
+   console.log('🔍 설비 조회 요청 prod_code:', prod_code); // ✅ 요청 값 로그
+  try {
+    const detailList = await lineService.getProdProcessDetail(prod_code);
+    console.log('✅ 조회된 공정목록:', detailList); // ✅ 조회 결과 로그
+    res.send(detailList);
+  } catch (err) {
+    console.error('❌ 라인 설비 구성 조회 에러:', err);
+    res.status(500).send('DB 조회 오류');
+  }
+});
+
 module.exports = router;

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineExpose, defineProps } from 'vue';
+import { ref, defineExpose, defineProps, watch } from 'vue';
 import axios from 'axios';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
@@ -29,16 +29,13 @@ const handleLineRowClick  = (row) => {
 // ✔ 라인 테이블 데이터
 const lineRows = ref([]);
 const selectedLines = ref([]);
-const currentEditingRow = ref(null);
 
-//  공정 팝업 세팅
-const processPopupVisible = ref(false);
+const currentEditingRow = ref(null); 
+
 // 설비 팝업 세팅
 const facilitiePopupVisible = ref(false);
 
 
-// ✔ 공정 목록 
-const processList = ref([]);
 // ✔ 설비 목록 
 const facilitieList = ref([]);
 
@@ -80,19 +77,6 @@ const deleteSelected = () => {
   selectedLines.value = [];
 };
 
-// 공정 팝업 열기
-const openProcessPopup = async (row) => {
-  currentEditingRow.value = row;
-
-  try {
-    const res = await axios.get('/api/line/process-popup');
-    processList.value = res.data;
-    processPopupVisible.value = true; // 성공적으로 불러오면 팝업 열기
-  } catch (err) {
-    console.error(' 프로세스 흐름 목록 불러오기 실패:', err);
-    alert('프로세스 흐름 목록을 불러오지 못했습니다.');
-  }
-};
 
 // 설비 팝업 열기 
 const openFacilitiePopup = async (row) => {
@@ -109,18 +93,7 @@ const openFacilitiePopup = async (row) => {
   }
 };
 
-// 공정 팝업 확인 후 값 반영
-const handleProcessConfirm = (selectedItem) => {
-  if (!currentEditingRow.value || !selectedItem) return;
 
-
-  currentEditingRow.value.no = selectedItem.no;
-  currentEditingRow.value.po_code = selectedItem.po_code;
-  currentEditingRow.value.po_name = selectedItem.po_name;
-  currentEditingRow.value.pp_code = selectedItem.pp_code; // ✅ 추가
-
-  processPopupVisible.value = false;
-};
 
 // 설비 팝업 확인 후 값 반영
 const handleFacilitieConfirm = (selectedItem) => {
@@ -128,15 +101,31 @@ const handleFacilitieConfirm = (selectedItem) => {
   if (!currentEditingRow.value || !selectedItem) return;
 
   currentEditingRow.value.eq_code = selectedItem.eq_code;
-  currentEditingRow.value.eq_name = selectedItem.eq_name;
 
   facilitiePopupVisible.value = false;
 };
 
-defineProps({
-  data: {
-    type: Array,
-    required: true
+// props 정의
+const props = defineProps({
+  data: { type: Array, required: true },          // 검색 결과
+  tableData: { type: Array, default: () => [] },  // 제품 선택 시 설비 구성 리스트
+});
+
+// tableData 감지
+watch(() => props.tableData, (newData) => {
+  console.log('✅ 설비 구성 데이터 감지됨:', newData);
+  if (newData && Array.isArray(newData)) {
+    lineRows.value = newData.map(item => ({
+      id: Date.now() + Math.random(),
+      no: item.no,
+      po_code: item.po_code,
+      po_name: item.po_name,
+      eq_type: item.eq_type,
+      eq_type_name: item.eq_type_name,
+      eq_code: '',
+      eq_name: '',
+      pp_code: item.pp_code ?? ''
+    }));
   }
 });
 
@@ -200,6 +189,12 @@ defineProps({
           </template>
         </Column>
 
+        <Column field="eq_type" header="설비유형" style="width: 160px">
+          <template #body="slotProps">
+            <InputText v-model="slotProps.data.eq_type" style="width: 100%" :disabled="true" />
+          </template>
+        </Column>
+
         <Column field="eq_code" header="설비코드" style="width: 150px">
           <template #body="slotProps">
             <div class="flex gap-2">
@@ -210,27 +205,13 @@ defineProps({
           </template>
         </Column>
 
-        <Column field="eq_name" header="설비명" style="width: 160px">
-          <template #body="slotProps">
-            <InputText v-model="slotProps.data.eq_name" style="width: 100%" :disabled="true" />
-          </template>
-        </Column>
-
         <Column field="pp_code" style="display: none" />
 
       </DataTable>
+      
     </div>
   </div>
 
-  <!-- 공정 선택 팝업 -->
-  <SinglePopup
-    v-model:visible="processPopupVisible"
-    :items="processList"
-    :dataKey="'no'"
-    :mapper="processMapping"
-    @confirm="handleProcessConfirm"
-    placeholder="자재코드 또는 자재명 또는 자재유형 검색"
-  />
   <!-- 설비 선택 팝업 -->
   <SinglePopup
     v-model:visible="facilitiePopupVisible"

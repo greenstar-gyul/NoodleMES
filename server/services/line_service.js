@@ -141,6 +141,7 @@ const findLineOne = async (line_code) => {
   }
 };
 
+// 제품 목록 조회
 const selectProdList = async () => {
   const list = await mariadb.query('selectProdList')
                             .catch(err => {
@@ -150,6 +151,22 @@ const selectProdList = async () => {
   return list;
 };
 
+// 제품 선택 시 해당 제품의 공정 흐름도 상세 목록 조회
+const getProdProcessDetail = async (prod_code) => {
+  let conn;
+  try {
+    conn = await mariadb.connectionPool.getConnection();
+    
+    const result = await conn.query(linesql.selectProdDetail, [prod_code]);
+    return result;  // 여러 행이므로 그대로 리턴
+  } catch (err) {
+    console.error('❌ 제품 공정 흐름도 상세 조회 에러:', err);
+    throw err;
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 module.exports ={
     getLineList,
     searchLineList,
@@ -157,5 +174,6 @@ module.exports ={
     getFacilitieListPopup,
     insertLineAndLineD,
     findLineOne,
-    selectProdList
+    selectProdList,
+    getProdProcessDetail
 };

@@ -14,7 +14,8 @@ const formRef = ref()
 
 // 목록 데이터
 const lineList = ref([])
-
+// 제품선택시 설비구성
+const equipmentList = ref([])
 
 // 🔄 페이지 최초 진입 시 전체 목록 조회
 onMounted(() => {
@@ -130,6 +131,21 @@ const handleReset = async () => {
   // 4️⃣ 전체 목록 다시 조회
   await fetchLineList()
 }
+
+// 👉 제품 선택 시 설비 구성 조회
+const handleProductSelected = async (product) => {
+  console.log('📦 emit 받은 제품:', product); // ✅ 로그 확인
+  try {
+    const res = await axios.get('/api/line/equipment', {
+      params: { prod_code: product.prod_code }
+    });
+    console.log('✅ 서버 응답:', res.data); // ✅ 응답 확인
+    equipmentList.value = res.data;
+  } catch (err) {
+    console.error('❌ 설비 구성 조회 실패:', err);
+  }
+};
+
 </script>
 
 <template>
@@ -142,6 +158,7 @@ const handleReset = async () => {
     <LineTable
       ref="tableRef"
       :data="lineList"
+      :tableData="equipmentList" 
       @rowSelected="handleRowSelected"
       class="flex-1"
     />
@@ -150,7 +167,9 @@ const handleReset = async () => {
     <LineInputForm
       ref="formRef"
       class="w-full lg:w-[40%]"
+      :tableData="equipmentList"
       @register="handleRegister"
+      @product-selected="handleProductSelected"
     />
   </div>
 </template>

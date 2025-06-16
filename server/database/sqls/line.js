@@ -124,6 +124,21 @@ const selectProdList =
 FROM prod_tbl
 ORDER BY prod_code`;
 
+// 제품 선택시 제품흐름도상세 조회
+const selectProdDetail =`
+SELECT 
+    ppd.no,
+    ppd.po_code,
+    po.po_name,
+    ppd.eq_type,
+    comm_name(ppd.eq_type) AS eq_type_name
+FROM prod_proc_tbl pp
+JOIN prod_proc_d_tbl ppd ON pp.prod_proc_code = ppd.prod_proc_code
+JOIN po_tbl po ON ppd.po_code = po.po_code
+WHERE pp.prod_code = ?
+ORDER BY ppd.no;
+`;
+
 module.exports = {
     selectLineList,
     searchLineList,
@@ -135,5 +150,6 @@ module.exports = {
     selectLECodeForUpdate,
     selectLineOne,
     selectLineDetail,
-    selectProdList
+    selectProdList,
+    selectProdDetail
 };

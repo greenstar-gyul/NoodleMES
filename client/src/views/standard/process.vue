@@ -82,7 +82,7 @@ const handleRegister = async () => {
     console.log('✅ 등록 성공:', response.data)
     alert('등록 완료되었습니다!')
 
-    await fetchBomList() // 등록 후 목록 새로고침
+    await fetchprocList() // 등록 후 목록 새로고침
     formRef.value.resetForm()     // ✅ 입력폼 초기화
     tableRef.value.resetRows()    // ✅ 자재 테이블 초기화
     
