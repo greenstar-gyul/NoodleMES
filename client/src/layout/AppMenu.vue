@@ -33,6 +33,10 @@ const model = ref([
                         to: '/standard/line'
                     },
                     {
+                        label: '공정 흐름도 등록',
+                        to: '/standard/proc'
+                    },
+                    {
                         label: '설비 점검 항목 정보',
                         to: '/standard/eqspectype'
                     }

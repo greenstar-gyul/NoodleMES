@@ -141,6 +141,7 @@ const updatePrdpDetail = `
   WHERE prdp_d_code = ?;
 `;
 
+// 제품 검색 
 const searchPrdp =  `
     SELECT  prdp_code
           , prdp_name 

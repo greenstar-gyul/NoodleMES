@@ -141,11 +141,21 @@ const findLineOne = async (line_code) => {
   }
 };
 
+const selectProdList = async () => {
+  const list = await mariadb.query('selectProdList')
+                            .catch(err => {
+                              console.error('❌ 제품 목록 조회 실패:', err);
+                              return [];
+                            });
+  return list;
+};
+
 module.exports ={
     getLineList,
     searchLineList,
     getProcessListPopup,
     getFacilitieListPopup,
     insertLineAndLineD,
-    findLineOne
+    findLineOne,
+    selectProdList
 };

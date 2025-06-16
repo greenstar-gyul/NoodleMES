@@ -43,6 +43,9 @@ const wkoRouter = require('./routers/wko_router.js');
 
 const prdrRouter = require('./routers/prdr_router.js');
 
+const procRouter = require('./routers/proc_router.js');
+
+
 // 기본 라우팅
 app.get('/', (req, res) => {
   res.send('Welcome!!');
@@ -60,3 +63,4 @@ app.use('/bom',bomRouter);
 app.use('/line',lineRouter);
 app.use('/wko', wkoRouter);
 app.use('/prdr', prdrRouter);
+app.use('/proc', procRouter);

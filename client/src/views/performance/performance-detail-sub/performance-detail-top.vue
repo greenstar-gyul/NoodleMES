@@ -1,10 +1,31 @@
 <script setup>
-import { ref } from 'vue';
+import { ref,defineProps } from 'vue';
 import axios from 'axios';
 
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import LabeledDateTimePicker from '@/components/registration-bar/LabeledDateTimePicker.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
+
+defineProps({
+  data: {
+    type: Object,
+    required: true
+  }
+});
+
+const {
+  prdr_code,
+  prod_code,
+  work_order_code,
+  line_code,
+  start_date,
+  end_date,
+  total_time,
+  emp_code,
+  wko_qtt,
+  production_qtt,
+  peform_rate,
+  note } = data;
 </script>
 
 <template>

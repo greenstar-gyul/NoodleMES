@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 import moment from 'moment';
 import performanceListSearchbar from './performanceList-sub/performanceList-searchbar.vue';
@@ -7,6 +8,8 @@ import performanceListTable from './performanceList-sub/performanceList-table.vu
 import PrdrMapper from '@/service/PrdrMapping';
 
 const tableData = ref([]);
+
+const router = useRouter();
 
 const start = moment().startOf('month').format('YYYY-MM-DD 00:00:00');
 const end = moment().endOf('month').format('YYYY-MM-DD 23:59:59');
@@ -68,12 +71,16 @@ const handleSearch = async (searchParams) => {
   }
 };
 
+const handleRowClick = (row) => {
+  router.push(`/performance/detail/${row.prdr_code}`);
+};
+
 </script>
 
 <template>
     <performanceListSearchbar @search="handleSearch" @reset="resetSearch"/>
 
-    <performanceListTable :data="tableData" :mapper="PrdrMapper"/>
+    <performanceListTable :data="tableData" :mapper="PrdrMapper" @row-click="handleRowClick"/>
     <div v-if="tableData.length === 0" class="text-center text-gray-500 mt-4">
     조건에 맞는 데이터가 없습니다.
     </div>
