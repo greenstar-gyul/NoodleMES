@@ -16,11 +16,17 @@ router.get('/all', async (req, res)=>{
 });
 
 // 해당하는 달 조회
-router.get('/selectMonth', async (req, res)=>{
-    let monthList = await prdpService.selectMonth()
-                                    .catch(err => console.log(err));
-    res.send(monthList); 
+router.get('/selectMonth', async (req, res) => {
+    try {
+        const monthList = await prdpService.selectMonth();
+        res.send(monthList);
+    } catch (err) {
+        console.error('❌ 월별 생산계획 조회 실패:', err);
+        res.status(500).send('서버 오류');
+    }
 });
+
+// 주문 목록 조회
 router.get('/order-list', async (req, res) => {
   try {
     let orderList = await prdpService.findOrder();

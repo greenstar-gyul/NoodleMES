@@ -8,6 +8,7 @@ import ProductMapper from '@/service/ProductionMapping';
 
 const tableData = ref([]);
 
+// 날자 변환 함수 
 const formatDateFields = (data) => {
   return data.map(item => ({
     ...item,
@@ -22,8 +23,14 @@ const formatDateFields = (data) => {
 const loadTableData = async () => {
   try {
     const res = await axios.get('/api/prdp/selectMonth');
-    tableData.value = formatDateFields(res.data);
-    console.log('✅ 조회된 리스트:', tableData.value);
+    console.log('📦 받은 데이터:', res.data);
+
+    if (!Array.isArray(res.data)) {
+      console.error('❌ 배열 아님:', res.data);
+      return;
+    }
+
+    tableData.value = formatDateFields(res.data);  // 여기에 출력됨
   } catch (err) {
     console.error('❌ 리스트 조회 실패:', err);
   }
