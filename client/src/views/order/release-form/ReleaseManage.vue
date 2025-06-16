@@ -7,6 +7,8 @@ import ReleaseManageProduct from './release-manage-sub/ReleaseManageProduct.vue'
 const ord_code = ref({});
 const ord_date = ref({});
 const selectedClient = ref({});
+const empCode = ref({});
+const note = ref({});
 </script>
 
 <template>
@@ -15,6 +17,8 @@ const selectedClient = ref({});
     :ord-code="ord_code"
     :ord-date="ord_date"
     :selected-client="selectedClient"
+    :emp-code="empCode"
+    :note="note"
   />
 
   <!-- ===== 제품 영역 ===== -->

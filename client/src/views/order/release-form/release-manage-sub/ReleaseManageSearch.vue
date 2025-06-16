@@ -7,6 +7,7 @@ import axios from 'axios';
 import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
+import releaseMapping from '@/service/ReleaseMapping';
 
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
@@ -47,6 +48,9 @@ const ordersRef = ref([]);
 // 전체 거래처 목록
 const allClients = ref([]);
 
+// 출고 정보 목록
+const releaseList = ref([]);
+
 
 /* ===== FUNCTIONS ===== */
 //초기화
@@ -58,26 +62,26 @@ const handleReset = () => {
 
     // 제품 목록 초기화, store 함수 사용
     resetProductRows();
-    console.log('초기화 완료 (주문 + 제품 목록)');
+    console.log('초기화 완료 (출고 + 제품 목록)');
 };
 
 //삭제
 const handleDelete = async () => {
     if (!props.ordCode.value) {
-        alert('주문코드가 없습니다. 삭제할 주문을 먼저 선택하세요!');
+        alert('출고코드가 없습니다. 삭제할 출고를 먼저 선택하세요!');
         return;
     }
 
-    const confirmed = confirm('정말로 이 주문을 삭제하시겠습니까?');
+    const confirmed = confirm('정말로 이 출고를 삭제하시겠습니까?');
     if (!confirmed) return;
 
     try {
       await axios.delete(`/api/order/${props.ordCode.value}`);
       handleReset(); // 초기화 함수 호출
-      alert('주문이 삭제되었습니다.');
+      alert('출고가 삭제되었습니다.');
     } catch (error) {
-      console.error('주문 삭제 실패:', error);
-      alert('주문 삭제 중 오류가 발생했습니다.');
+      console.error('출고 삭제 실패:', error);
+      alert('출고 삭제 중 오류가 발생했습니다.');
     }
 };
 
@@ -88,33 +92,59 @@ const handleSave = async () => {
     return;
   }
 
-  // 주문 본문의 데이터 객체
-  const order = {
-    ord_name: props.ordName.value,
-    ord_date: moment().format('YYYY-MM-DD'),
-    client_code: props.selectedClient.value
-  };
-
-  const details = productRows.value.map(item => ({
-    unit: item.unit,
-    spec: item.spec,
-    prod_amount: item.prod_amount,
-    prod_price: item.prod_price,
-    delivery_date:moment(item.delivery_date).format("YYYY-MM-DD"),
-    ord_priority: item.ord_priority,
-    total_price: item.total_price,
-    prod_code: item.prod_code
-  }));
+  const confirmed = confirm('출고 정보를 저장하시겠습니까?');
+  if (!confirmed) return;
 
   try {
-    await axios.post('/api/order', { order, details });
-    alert('주문이 등록되었습니다.');
+    // 전체 출고 제품 목록 데이터 구성
+    const details = productRows.value.map(row => {
+      const req_qtt = Number(row.prod_amount);
+      const outbnd_qtt = Number(row.out_req_d_amount);
+      const outbound_request_code = row.outbound_request_code;
+
+      if (outbnd_qtt > req_qtt) {
+        throw new Error(`제품 ${row.prod_name}의 출고수량이 주문수량보다 많습니다.`);
+      }
+
+      return {
+        poutbnd_code: row.poutbnd_code || '', // 수정 시 사용
+        prod_code: row.prod_code,
+        prod_name: row.prod_name,
+        req_qtt,
+        outbnd_qtt,
+        delivery_date: row.delivery_date,
+        client_code: props.selectedClient.value,
+        mcode: props.empCode.value ?? 'EMP-10001',
+        note: props.note.value,
+        outbound_request_code
+      };
+    });
+
+    // 등록 vs 수정 구분
+    const isAllNew = details.every(d => !d.poutbnd_code);
+
+    if (isAllNew) {
+      // 전체 등록
+      const payload = {
+        client_code: props.selectedClient.value,
+        mcode: props.empCode.value ?? 'EMP-10001',
+        details
+      };
+      await axios.post('/api/order/releases', payload);
+    } else {
+      // 전체 수정
+      const poutbnd_code = details[0].poutbnd_code;
+      await axios.put(`/api/order/releases/${poutbnd_code}`, { details });
+    }
+
+    alert('출고 정보가 저장되었습니다.');
     handleReset();
   } catch (err) {
-    console.error('주문 저장 실패:', err);
-    alert('주문 저장 중 오류 발생');
+    console.error('출고 저장 실패:', err);
+    alert(err.message || '출고 저장 중 오류 발생');
   }
 };
+
 
 
 // 주문정보 팝업 Confirm 핸들러
@@ -131,6 +161,7 @@ const orderHandleConfirm = async (selectedOrder) => {
     details.forEach((item, idx) => {
       item.ord_d_code = item.ord_d_code || `row-${idx}`;
       item.delivery_date = moment(item.delivery_date).format('YYYY-MM-DD');
+      item.outbound_request_code = props.ordCode.value;
     });
 
     setProductRows(details);
@@ -146,6 +177,39 @@ const orderHandleConfirm = async (selectedOrder) => {
     console.error('주문 상세 조회 실패:', err);
   }
 };
+
+// 출고정보 팝업 Confirm 핸들러
+const releaseHandleConfirm = async (selectedRelease) => {
+  try {
+    const poutbnd_code = selectedRelease.poutbnd_code;
+
+    // 서버에서 상세정보 조회
+    const res = await axios.get(`/api/order/releases/${poutbnd_code}`);
+    const details = res.data.data;
+
+    // 포맷 처리
+    details.forEach((item, idx) => {
+      item.ord_d_code = item.ord_d_code || `row-${idx}`;
+      item.delivery_date = moment(item.delivery_date).format("YYYY-MM-DD");
+    });
+
+    // 제품 목록 저장
+    setProductRows(details);
+
+    // 주문 기본정보 설정
+    props.ordCode.value = details[0].outbound_request_code;
+    props.ordDate.value = moment(details[0].deadline).format("YYYY-MM-DD");
+
+    // 거래처 이름 매핑
+    const client = allClients.value.find(c => c.client_code === details[0].client_code);
+    props.selectedClient.value = client ? client.client_name : '';
+
+  } catch (err) {
+    console.error("출고 상세 조회 실패:", err);
+    alert("출고 상세정보 불러오기에 실패했습니다.");
+  }
+};
+
 
 // 최초 로딩 시 주문 목록과 거래처 목록 조회
 onMounted(async () => {
@@ -167,6 +231,13 @@ onMounted(async () => {
 
     // 전체 목록 저장
     allClients.value = clientList;
+
+    // 출고 정보 목록 조회
+    const releaseRes = await axios.get('/api/order/releases');
+    releaseList.value = releaseRes.data.data.map(release => ({
+      ...release,
+      poutbnd_date: moment(release.poutbnd_date).format('YYYY-MM-DD')
+    }));
   } catch (err) {
     console.error('데이터 로딩 실패:', err);
   }
@@ -229,14 +300,8 @@ onMounted(async () => {
       </div>
   </div>
   <!-- ===== 주문정보 팝업 ===== -->
-  <SinglePopup
-      v-model:visible="orderPopupVisible"
-      :items="ordersRef"
-      @confirm="orderHandleConfirm"
-      :mapper="orderMapping"
-      :dataKey="'ord_code'"
-  />
+  <SinglePopup v-model:visible="orderPopupVisible" :items="ordersRef" @confirm="orderHandleConfirm" :mapper="orderMapping" :dataKey="'ord_code'" />
 
   <!-- ===== 출고정보 팝업 ===== -->
-  <SinglePopup v-model:visible="releasePopupVisible" />
+  <SinglePopup v-model:visible="releasePopupVisible" :items="releaseList" @confirm="releaseHandleConfirm" :mapper="releaseMapping" :dataKey="'poutbnd_code'"/>
 </template>

@@ -112,84 +112,6 @@ const findProductByName = async (name) => {
   return result;
 };
 
-// 출고 요청 전체 조회
-const selectReleaseList = async () => {
-  const result = await mariadb.query("selectReleaseList").catch(err => console.log(err));
-  return result;
-};
-
-//출고 요청 등록
-const insertReleaseTx = async (data) => {
-  const conn = await mariadb.connectionPool.getConnection();
-
-  try {
-    await conn.beginTransaction();
-
-    // 출고요청 코드 생성
-    const codeRes = await mariadb.queryConn(conn, "selectOutReqCodeForUpdate");
-    const outReqCode = codeRes[0].out_req_code;
-
-    data.releaseData.out_req_code = outReqCode;
-
-    const headerCols = ['out_req_code', 'out_req_date', 'ord_predict_date', 'note', 'ord_code', 'mcode', 'client_code'];
-    const detailCols = ['out_req_d_code', 'out_req_d_amount', 'prod_type', 'ord_amount', 'out_req_code', 'prod_code'];
-
-    // 출고요청 헤더 insert
-    await mariadb.queryConn(conn, "insertOutReq", convertObjToAry(data.releaseData, headerCols));
-
-    // 출고요청 상세 insert
-    for (const row of data.detailData) {
-      const detailCodeRes = await mariadb.queryConn(conn, "selectOutReqDCodeForUpdate");
-      const outReqDCode = detailCodeRes[0].out_req_d_code;
-
-      row.out_req_code = outReqCode;
-      row.out_req_d_code = outReqDCode;
-
-      await mariadb.queryConn(conn, "insertOutReqDetail", convertObjToAry(row, detailCols));
-    }
-
-    await conn.commit();
-    return { success: true };
-  } catch (err) {
-    await conn.rollback();
-    console.error("출고요청 등록 실패:", err);
-    throw err;
-  } finally {
-    conn.release();
-  }
-};
-
-// 출고 등록
-const insertFinalRelease = async (release) => {
-  // 출고 상태 계산
-  let stat = "";
-  const { req_qtt, outbnd_qtt } = release;
-
-  if (outbnd_qtt === 0) {
-    stat = "출고대기";
-  } else if (outbnd_qtt < req_qtt) {
-    stat = "부분출고";
-  } else if (outbnd_qtt === req_qtt) {
-    stat = "출고완료";
-  }
-
-  const values = [
-    release.poutbnd_code,
-    req_qtt,
-    outbnd_qtt,
-    release.deadline,
-    stat,
-    release.outbound_request_code,
-    release.lot_num,
-    release.prod_code,
-    release.client_code,
-    release.mcode
-  ];
-
-  const result = await mariadb.query("insertRelease", values).catch(err => console.log(err));
-  return result;
-};
-
 
 // 주문 등록
 const insertOrder = async (orderData) => {
@@ -261,6 +183,202 @@ const insertOrderTx = async (data) => {
   }
 };
 
+
+// 출고 등록(제품 하나만.. 사용안할거임)
+const insertRelease = async (release) => {
+  const conn = await mariadb.connectionPool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // 출고 코드 자동 생성
+    const codeRes = await mariadb.queryConn(conn, "selectReleaseCodeForUpdate");
+    const poutbnd_code = codeRes[0].poutbnd_code;
+
+    const { req_qtt, outbnd_qtt } = release;
+
+    if (outbnd_qtt > req_qtt) {
+      throw new Error("출고 수량은 요청 수량을 초과할 수 없습니다.");
+    }
+
+    let stat = "출고대기";
+    if (outbnd_qtt === req_qtt) stat = "출고완료";
+    else if (outbnd_qtt > 0) stat = "부분출고";
+
+    const values = [
+      poutbnd_code,
+      req_qtt,
+      outbnd_qtt,
+      release.deadline,
+      stat,
+      release.outbound_request_code,
+      release.lot_num,
+      release.prod_code,
+      release.client_code,
+      release.mcode ?? "EMP-10001"
+    ];
+
+    await mariadb.queryConn(conn, "insertRelease", values);
+    await conn.commit();
+
+    return { success: true, poutbnd_code };
+  } catch (err) {
+    await conn.rollback();
+    console.error("출고 등록 실패:", err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+
+// 출고 등록(하나의 출고 요청에 여러 제품 등록)
+const insertFinalRelease = async (release) => {
+  const conn = await mariadb.connectionPool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // 출고 코드 자동 생성 (공통 출고코드 하나)
+    const codeRes = await mariadb.queryConn(conn, "selectReleaseCodeForUpdate");
+    const poutbnd_code = codeRes[0].poutbnd_code;
+
+    for (const item of release.details) {
+      console.log("📦 받은 item 내용:", item);
+      const req_qtt = item.req_qtt;
+      const outbnd_qtt = item.outbnd_qtt;
+
+      console.log("🧮 req_qtt:", req_qtt, "outbnd_qtt:", outbnd_qtt);
+
+      if (outbnd_qtt > req_qtt) {
+        throw new Error("출고 수량은 주문 수량을 초과할 수 없습니다.");
+      }
+
+      
+
+      // 상태 계산
+      let stat = "출고대기";
+      if (outbnd_qtt === req_qtt) stat = "출고완료";
+      else if (outbnd_qtt > 0) stat = "부분출고";
+
+      const values = [
+        poutbnd_code,
+        req_qtt,
+        outbnd_qtt,
+        item.delivery_date,
+        stat,
+        item.outbound_request_code,
+        null, // lot_num
+        item.prod_code,
+        release.client_code,
+        release.mcode ?? "EMP-10001"
+      ];
+
+      console.log("📝 insertRelease values:", values);
+
+      await mariadb.queryConn(conn, "insertRelease", values);
+    }
+
+    await conn.commit();
+    return { success: true, poutbnd_code };
+  } catch (err) {
+    await conn.rollback();
+    console.error("출고 등록 실패:", err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+
+// 출고 수정(하나의 출고 요청에 하나의 제품 수정)
+const updateRelease = async (poutbnd_code, release) => {
+  // 출고 상태 계산
+  const { req_qtt, outbnd_qtt } = release;
+
+  if (outbnd_qtt > req_qtt) {
+    throw new Error("출고 수량은 요청 수량을 초과할 수 없습니다.");
+  }
+
+  let stat = "출고대기";
+  if (outbnd_qtt === req_qtt) stat = "출고완료";
+  else if (outbnd_qtt > 0) stat = "부분출고";
+
+  const values = [
+    req_qtt,
+    outbnd_qtt,
+    release.deadline,
+    stat,
+    release.outbound_request_code,
+    release.lot_num,
+    release.prod_code,
+    release.client_code,
+    release.mcode ?? "EMP-10001",
+    poutbnd_code // WHERE 조건용
+  ];
+
+  const result = await mariadb.query("updateRelease", values).catch(err => console.log(err));
+  return result;
+};
+
+// 출고 수정(하나의 출고 요청에 여러 제품 수정)
+const updateFinalRelease = async (poutbnd_code, releaseDetails) => {
+  const conn = await mariadb.connectionPool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    for (const item of releaseDetails) {
+      const { req_qtt, outbnd_qtt } = item;
+
+      if (outbnd_qtt > req_qtt) {
+        throw new Error("출고 수량은 주문 수량을 초과할 수 없습니다.");
+      }
+
+      let stat = "출고대기";
+      if (outbnd_qtt === req_qtt) stat = "출고완료";
+      else if (outbnd_qtt > 0) stat = "부분출고";
+
+      const values = [
+        req_qtt,
+        outbnd_qtt,
+        item.delivery_date,
+        stat,
+        null, // outbound_request_code
+        null, // lot_num
+        item.prod_code,
+        item.client_code,
+        item.mcode ?? "EMP-10001",
+        poutbnd_code
+      ];
+
+      await mariadb.queryConn(conn, "updateRelease", values);
+    }
+
+    await conn.commit();
+    return { success: true };
+  } catch (err) {
+    await conn.rollback();
+    console.error("출고 수정 실패:", err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+// 출고 상세 조회
+const findReleaseDetails = async (poutbnd_code) => {
+  const result = await mariadb.query("selectReleaseDetailList", [poutbnd_code])
+    .catch(err => {
+      console.error("출고 상세 조회 실패:", err);
+      throw err;
+    });
+  return result;
+};
+
+
+
+
 // 주문 삭제 (트랜잭션)
 const deleteOrderTx = async (ordCode) => {
   const conn = await mariadb.connectionPool.getConnection();
@@ -269,25 +387,6 @@ const deleteOrderTx = async (ordCode) => {
     // 상세 먼저 삭제 → 마스터 삭제
     await mariadb.queryConn(conn, "deleteOrderDetail", [ordCode]);
     await mariadb.queryConn(conn, "deleteOrder", [ordCode]);
-    await conn.commit();
-    return { success: true };
-  } catch (err) {
-    await conn.rollback();
-    console.error("삭제 실패:", err);
-    throw err;
-  } finally {
-    conn.release();
-  }
-};
-
-// 출고 삭제 (트랜잭션)
-const deleteReleaseTx = async (outReqCode) => {
-  const conn = await mariadb.connectionPool.getConnection();
-
-  try {
-    await conn.beginTransaction();    
-    await mariadb.queryConn(conn, "deleteReleaseDetail", [outReqCode]);
-    await mariadb.queryConn(conn, "deleteRelease", [outReqCode]);
     await conn.commit();
     return { success: true };
   } catch (err) {
@@ -336,11 +435,12 @@ module.exports ={
     insertOrderDetail,
     insertOrderTx,
     deleteOrderTx,
-    selectReleaseList,
-    insertReleaseTx,
-    deleteReleaseTx,
     findReleaseStatuses,
     findReleaseList,
     updateReleaseStat,
-    insertFinalRelease
+    insertRelease,
+    updateRelease,
+    insertFinalRelease,
+    updateFinalRelease,
+    findReleaseDetails,
 };
