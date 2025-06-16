@@ -7,7 +7,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 export const useMprStore = defineStore('mprStore', () => {
-  const MprRows = ref([]);
+  const mprRows = ref([]);
   const selectedMpr = ref([]);
 
   // 목록 데이터 저장

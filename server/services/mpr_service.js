@@ -6,7 +6,7 @@ const { convertObjToAry } = require('../utils/converts.js');
 // 실제 제공할 서비스 등록 영역
 
 // 자재구매요청 (MPR) 전체조회
-const findAll = async () => {
+const findAllMpr = async () => {
   // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
   // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
   let list = await mariadb.query("selectAllMprList")
@@ -15,13 +15,29 @@ const findAll = async () => {
 };
 
 // 검색 결과 조회
-const findSearch = async (values) => {  
+const findSearchMpr = async (values) => {  
   // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
   // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
   let list = await mariadb.query("selectSearchMprList", values)
                           .catch(err => console.log(err));
   return list;
 };
+
+// 선택한 MPR 상세 정보 조회
+const findMprDetails = async (mprCode) => {
+  // 주문 상세 테이블과 제품 테이블 JOIN해서 제품 정보까지 가져옴
+  // 전달받은 ordCode는 WHERE 조건의 바인딩 값으로 들어감
+  // SQL 쿼리에서 ?를 사용한 경우, 해당 ?에 들어갈 값을 배열로 넘겨야 정상 동작
+  // 하나만 넘기더라도 배열로 감싸서 [ordCode] 형태로 전달해야 함
+  // 만약, 이미 데이터가 배열로 구성되어 있으면 []로 감쌀 필요가 없음
+  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
+  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
+  const result = await mariadb.query("selectMprDList", [mprCode])
+    .catch(err => console.log(err));
+  return result;
+};
+// end of findMprDetail
+
 
 // MPR 등록
 const insertMpr = async (mprData) => {
@@ -80,15 +96,6 @@ const insertMprAll = async(data) => {
 };
 // end of insertMpr
 
-// MPR 상세 조회
-const findMprDetail = async(values) => {
-  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
-  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
-  let list = await mariadb.query("selectMprDList", values)
-                          .catch(err => console.log(err));
-  return list;
-}
-// end of findMprDetail
 
 // MPR 정보 삭제
 const deleteMpr = async (mprCode) => {
@@ -110,11 +117,11 @@ const deleteMpr = async (mprCode) => {
 // end of deleteMpr
 
 module.exports ={
-    findAll,
-    findSearch,
+    findAllMpr,
+    findSearchMpr,
+    findMprDetails,
     insertMpr,
     insertMprDetail,
     insertMprAll,
-    findMprDetail,
     deleteMpr,
 };

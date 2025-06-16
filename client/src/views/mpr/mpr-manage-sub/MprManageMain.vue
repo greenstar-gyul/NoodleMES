@@ -1,21 +1,27 @@
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
-import {} from '@/stores/mprStore';
-import Button from 'primevue/button';
+import { useMprStore } from '@/stores/mprStore';
 import SearchText from '@/components/search-bar/SearchText.vue';
 import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
 import MprData from '@/service/MprData.js';
-import LabeledInput from '../../../components/registration-bar/LabeledInput.vue';
+import axios from 'axios';
+import moment from 'moment';
+import SinglePopup from '@/components/popup/SinglePopup.vue';
+import orderMapping from '@/service/OrderMapping';
+
+import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
+import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
+import Button from 'primevue/button';
 
 // 상위에서 전달받은 props
 const mprs = defineProps({
-  mpr_code: { type: Object, required: true },
-  reqdate: { type: Object, required: true },
-  deadline: { type: Object, required: true },
-  mrp_code: { type: Object, required: true },
-  mcode: { type: Object, required: true },
+  mprCode: { type: Object, required: true },
+  reqDate: { type: Object, required: true },
+  deadLine: { type: Object, required: true },
+  mrpCode: { type: Object, required: true },
+  mCode: { type: Object, required: true },
 });
 
 // pinia
@@ -23,24 +29,81 @@ const mprStore = useMprStore();
 
 // 상태는 반응형으로 가져오기
 const { mprRows } = storeToRefs(mprStore);
-// 함수는 그대로 가져오기
+// 순서대로 목록데이터 저장, 초기화, 선택목록 저장
 const { setMprRows, resetMprRows, setSelectedMpr } = mprStore;
 
+/* ===== DATA ===== 여기 잘 모르겠음 ㅇㅅㅇ*/ 
+// 주문 팝업
+const orderPopupVisible = ref(false);
+
+// 주문 데이터
+const mprRef = ref([]);
+
+// 전체 거래처 목록
+const allClients = ref([]);
+
+//거래처 셀렉트박스
+const clientOptions = ref([]);
+
+//거래처담당자 셀렉트박스
+const managerOptions = ref([]);
 
 
 
 //초기화
 const handleReset = () => {
     // mpr 기본정보 초기화
-    mprs.mpr_code.value = '';
-    mprs.reqdate.value = '';
-    mprs.deadline.value = '';
-    mprs.mrp_code.value = '';
-    mprs.mcode.value = null;
+    mprs.mprCode.value = '';
+    mprs.reqDate.value = '';
+    mprs.deadLine.value = '';
+    mprs.mrpCode.value = '';
+    mprs.mCode.value = null;
 
     // 제품 목록 초기화, store 함수 사용
     resetMprRows();
     console.log('mpr 기본정보 초기화 완료');
+};
+
+//저장
+const handleSave = async () => {
+  console.log("등록자 코드 (mCode):", mprs.mCode.value);
+  
+  if (!mprs.reqDate.value || !mprs.deadLine.value || !mprs.mrpCode.value) {
+    alert('요청일자, 납기일자, MRP 계획번호는 필수입니다.');
+    return;
+  }
+  if (mprRows.value.length === 0) {
+    alert('제품 목록이 비어 있습니다. 최소 하나의 제품을 추가해주세요.');
+    return;
+  }
+
+  // mpr 기본정보의 데이터 객체
+  const mpr = {
+    mpr_code: mprs.mprCode.value,
+    reqdate: moment().format('YYYY-MM-DD'),
+    deadline: moment().format('YYYY-MM-DD'),
+    mrp_code: mprs.mrpcode.value,
+    mcode: mprs.empCode.value,
+  };
+
+  const details = mprRows.value.map(item => ({
+    mpr_d_code: item.mprDCode,
+    mat_code: item.matCode,
+    req_qtt: item.reqQtt,
+    unit: item.unit,
+    mpr_code: item.mpr_code,
+    mat_sup: item.mat_sup,
+    note: item.note,
+  }));
+
+  try {
+    await axios.post('/api/mpr', { mpr, details });
+    alert('자재구매요청이 등록되었습니다.');
+    handleReset();
+  } catch (err) {
+    console.error('자재구매요청 저장 실패:', err);
+    alert('자재구매요청 저장 중 오류 발생');
+  }
 };
 
 
@@ -55,7 +118,7 @@ const handleDelete = async () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`/api/order/${mprs.ordCode.value}`);
+      await axios.delete(`/api/mpr/${mprs.mprCode.value}`);
       handleReset(); // 초기화 함수 호출
       alert('mpr 정보가 삭제되었습니다.');
     } catch (error) {
@@ -63,6 +126,75 @@ const handleDelete = async () => {
       alert('삭제 중 오류가 발생했습니다.');
     }
 };
+
+// MPR 팝업 Confirm 핸들러 / 이거 잘 모르겠음 ㅇㅅㅇ
+const handleConfirm = async (selectedMpr) => {
+  console.log('선택된 MPR:', selectedMpr);
+
+  try {
+    // 주문 상세 조회
+    const detailRes = await axios.get(`/api/mpr/${selectedMpr.mpr_code}/details`);
+    const details = detailRes.data.data;//store 함수 사용
+
+    // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
+    details.forEach((item, idx) => {
+      item.mpr_d_code = item.mpr_d_code || `row-${idx}`;
+      item.delivery_date = moment(item.delivery_date).format('YYYY-MM-DD');
+    });
+
+    setMprRows(details);
+
+    // 주문 기본 정보 설정
+    mprs.ordCode.value = selectedMpr.ord_code;
+    mprs.ordName.value = selectedMpr.ord_name;
+    mprs.ordDate.value = moment(selectedMpr.ord_date).format("YYYY-MM-DD");
+    mprs.note.value = selectedMpr.note || '';
+    mprs.selectedClient.value = selectedMpr.client_code;
+    mprs.empCode.value= selectedMpr.mcode;
+  } catch (err) {
+    console.error('주문 상세 조회 실패:', err);
+  }
+};
+
+// 최초 로딩 시 MPR 목록 조회
+onMounted(async () => {
+  try {
+    // 주문 목록 조회
+    const res = await axios.get('/api/mpr/all');
+    //ordersRef.value = res.data;
+
+    //moment 패키지 사용
+    //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들어주는 함수
+    mprRef.value = res.data.data.map(mpr => ({
+      //기존 order 객체를 그대로 복사하면서 ord_date 값만 YYYY-MM-DD 포맷으로 변환해서 덮어쓰기
+      ...mpr,
+      _date: moment(mpr.ord_date).format('YYYY-MM-DD')
+    }));
+
+    // // 전체 거래처 목록 조회
+    // const clientRes = await axios.get('/api/order/clients');
+    // const clientList = clientRes.data.data;
+
+    // 전체 목록 저장
+    allClients.value = clientList;
+
+    // 거래처 셀렉트 박스에 사용될 label + value 구성
+    clientOptions.value = clientList.map(client => ({
+      label: client.client_name,
+      value: client.client_code
+    }));
+
+    // 거래처 담당자 셀렉트 박스도 따로 구성 (담당자 이름만 쓰는 구조면 이렇게)
+    managerOptions.value = clientList.map(client => ({
+      label: client.client_mname,
+      value: client.client_mname
+    }));
+
+  } catch (err) {
+    console.error('데이터 로딩 실패:', err);
+  }
+});
+
 
 </script>
 

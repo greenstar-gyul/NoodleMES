@@ -82,7 +82,7 @@ SELECT mprd.mat_code
 FROM   mpr_d_tbl mprd
 LEFT OUTER JOIN mat_tbl mat
 ON mprd.mat_code = mat.mat_code
-WHERE  mpr_code = ?;
+WHERE  mprd.mpr_code = ?;
 `;
 
 // 자재구매요청 코드 생성
