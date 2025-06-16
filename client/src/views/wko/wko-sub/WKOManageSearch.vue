@@ -40,8 +40,19 @@ const loadPlansData = async () => {
  */
 const loadProdData = async () => {
     try {
-        const response = await axios.get(`/api/wko/prodlist`);
-        products.value = await response.data.data;
+        console.log('props.data.prdp_code', props.data.prdp_code);
+        if (!props.data.prdp_code || props.data.prdp_code !== '') {
+            const response = await axios.get(`/api/wko/prodlist`, {
+                params: {
+                    prdp_code: props.data.prdp_code // 선택된 생산계획 코드로 필터링
+                }
+            });
+            products.value = await response.data.data;
+        }
+        else {
+            const response = await axios.get(`/api/wko/prodall`);
+            products.value = await response.data.data;
+        }
     }
     catch(err) {
         console.error(err);
@@ -62,13 +73,32 @@ const loadWKOListData = async () => {
 }
 
 /**
+ * 사원 목록 불러오기
+ */
+const loadEmpListData = async () => {
+    try {
+        const response = await axios.get(`/api/wko/emp-list`);
+        empList.value = await response.data.data;
+    }
+    catch(err) {
+        console.error(err);
+    }
+}
+
+/**
  * 생산 계획 선택
  */
 const prdpLoad = async (value) => {
+    await emit('resetList');
+
     // 생산 계획 정보만 설정
     const updatedData = {
         ...props.data,
+        wko_code: '', // 신규 등록 시 코드 비워두기
         prdp_code: value.prdp_code,
+        reg_date: new Date().toISOString().split('T')[0], // 현재 날짜로 설정
+        reg_name: '김영업',
+        reg_code: 'EMP-10001',
         // 제품 정보는 별도 선택까지 대기
         prod_code: '',
         prod_name: '',
@@ -80,14 +110,12 @@ const prdpLoad = async (value) => {
 /**
  * 제품 선택
  */
-const prodLoad = async (values) => {
-    if (values && values.length > 0) {
-        const selectedProd = values[0]; // 단일 선택
-        
+const prodLoad = async (value) => {
+    if (value && value.prod_code) {
         const updatedData = {
             ...props.data,
-            prod_code: selectedProd.prod_code,
-            prod_name: selectedProd.prod_name,
+            prod_code: value.prod_code,
+            prod_name: value.prod_name,
         };
 
         emit('update:data', updatedData);
@@ -96,6 +124,20 @@ const prodLoad = async (values) => {
         if (updatedData.prdp_code && updatedData.prod_code) {
             emit('prodPlanSelected', updatedData.prdp_code, updatedData.prod_code);
         }
+    }
+}
+
+/**
+ * 작업자 선택
+ */
+const empLoad = async (value) => {
+    if (value && value.emp_code) {
+        const updatedData = {
+            ...props.data,
+            emp_code: value.emp_code,
+            emp_name: value.emp_name,
+        };
+        emit('update:data', updatedData);
     }
 }
 
@@ -121,23 +163,17 @@ const openPrdpPopup = async () => {
  */
 const openEmpPopup = async () => {
     // 작업자 선택 팝업 로직 (필요시 구현)
-    alert('작업자 선택 기능은 추후 구현 예정입니다.');
+    // alert('작업자 선택 기능은 추후 구현 예정입니다.');
+    await loadEmpListData();
+    empPopupVisible.value = true;
 }
 
 const openProdPopup = async () => {
-    if (!props.data.prdp_code) {
-        alert('먼저 생산계획을 선택하세요.');
-        return;
-    }
     await loadProdData();
     prodPopupVisible.value = true;
 }
 
 const saveWKO = async () => {
-    if (!props.data.prdp_code) {
-        alert('생산계획을 선택하세요.');
-        return;
-    }
     if (!props.data.prod_code) {
         alert('제품을 선택하세요.');
         return;
@@ -145,24 +181,20 @@ const saveWKO = async () => {
     emit('saveData')
 }
 const prodPopupVisible = ref(false);
+const prdpPopupVisible = ref(false);
 const wkoPopupVisible = ref(false);
+const empPopupVisible = ref(false);
 const prodPlans = ref([]);
+const empList = ref([]);
 const products = ref([]);
 const wkoList = ref([]);
 
-// 제품타입 옵션
-const prodTypeOptions = ref([
-    { label: '일반', value: '일반' },
-    { label: '긴급', value: '긴급' },
-    { label: '특별', value: '특별' }
-]);
-
 // 작업 상태 옵션
 const statOptions = ref([
-    { label: '대기', value: '대기' },
-    { label: '진행중', value: '진행중' },
-    { label: '완료', value: '완료' },
-    { label: '중단', value: '중단' }
+    { label: '대기', value: 'v4' },
+    { label: '진행중', value: 'v1' },
+    { label: '완료', value: 'v2' },
+    { label: '중단', value: 'v3' }
 ]);
 
 </script>
@@ -199,31 +231,31 @@ const statOptions = ref([
                     <LabeledInput label="생산계획코드" :model-value="data.prdp_code" :disabled="true" class="flex-1" />
                     <Button icon="pi pi-search" @click="openPrdpPopup" />
                 </div>
-                <LabeledInput label="작업시작일" v-model="data.start_date" type="date" />
+                <!-- <LabeledInput label="작업시작일" v-model="data.start_date" type="date" /> -->
+                <div class="flex gap-2">
+                    <LabeledInput label="작업자" :model-value="data.emp_name" :disabled="true" class="flex-1" />
+                    <Button icon="pi pi-user" @click="openEmpPopup" />
+                </div>
             </div>
             
             <!-- 두 번째 행: 작업 정보 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div class="flex gap-2">
-                    <LabeledInput label="작업자" :model-value="data.emp_name" :disabled="true" class="flex-1" />
-                    <Button icon="pi pi-user" @click="openEmpPopup" />
-                </div>
-                <div class="flex gap-2">
                     <LabeledInput label="제품" :model-value="data.prod_name" :disabled="true" class="flex-1" />
                     <Button icon="pi pi-search" @click="openProdPopup" />
                 </div>
-                <LabeledInput label="생산수량" v-model="data.planned_qtt" type="number" />
+                <div class="flex gap-2">
+                    <LabeledInput label="생산라인" :model-value="data.prod_name" :disabled="true" class="flex-1" />
+                    <Button icon="pi pi-search" @click="openProdPopup" />
+                </div>
+                <LabeledInput label="생산수량" v-model="data.wko_qtt" type="number" />
             </div>
 
             <!-- 세 번째 행: 담당자, 비고 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <LabeledSelect label="제품타입" v-model="data.prod_type" :options="prodTypeOptions" />
-                <LabeledInput label="지시생성일" :model-value="data.created_date" :disabled="true" />
-                <LabeledSelect label="작업상태" v-model="data.stat" :options="statOptions" />
-            </div>
-
-            <div class="grid grid-cols-1 gap-4 mt-4">
-                <LabeledTextarea label="비고" v-model="data.note" placeholder="특이사항 입력" :rows="2" />
+                <LabeledInput label="지시자" :model-value="data.reg_name" :disabled="true" />
+                <LabeledInput label="지시생성일" :model-value="data.reg_date" :disabled="true" />
+                <LabeledTextarea label="비고" v-model="data.note" placeholder="특이사항 입력" :rows="1" />
             </div>
         </div>
     </div>
@@ -234,15 +266,20 @@ const statOptions = ref([
         @confirm="loadExistingWKO">
     </WKOSearchPopup>
 
+    <!-- 작업자 선택 팝업 -->
+    <SinglePopup v-model:visible="empPopupVisible" :items="empList" @confirm="empLoad" :mapper="{ 'emp_code': '사원코드', 'emp_name': '사원명', 'emp_job': '직책', 'dept_name': '부서명' }"
+        :dataKey="'emp_code'" :placeholder="'작업자 선택'">
+    </SinglePopup>
+
     <!-- 생산계획 선택 팝업 -->
     <SinglePopup v-model:visible="prdpPopupVisible" :items="prodPlans" @confirm="prdpLoad" :mapper="prodPlanMapping"
         :dataKey="'prdp_code'" :placeholder="'생산계획 선택'">
     </SinglePopup>
 
     <!-- 제품 선택 팝업 -->
-    <MultiplePopup v-model:visible="prodPopupVisible" :items="products"
-        :selectedHeader="['prod_code', 'prod_name', 'prod_type', 'unit']"
-        :mapper="{ 'prod_code': '제품코드', 'prod_name': '제품명', 'prod_type': '제품유형', 'unit': '단위' }" @confirm="prodLoad"
-        :dataKey="'prod_code'" :singleSelect="true">
-    </MultiplePopup>
+    <SinglePopup v-model:visible="prodPopupVisible" :items="products"
+        :selectedHeader="['prod_code', 'prod_name', 'planned_qtt', 'note']" 
+        :mapper="{ 'prod_code': '제품코드', 'prod_name': '제품명', 'planned_qtt': '계획수량', 'note': '비고' }" @confirm="prodLoad"
+        :dataKey="'prod_code'">
+    </SinglePopup>
 </template>

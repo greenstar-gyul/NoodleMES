@@ -2,7 +2,6 @@
 const selectWKOList = `
 SELECT   wko_code,
          start_date,
-         comm_name(prod_type) AS "prod_type",
          comm_name(stat) AS "stat", 
          note,
          prdp_code,
@@ -25,26 +24,40 @@ SELECT   prdp.prdp_code,
          prdp.note
 FROM     prdp_tbl prdp JOIN emp_tbl emp
                          ON prdp.reg = emp.emp_code
+WHERE    prdp.end_date >= CURDATE()
 ORDER BY prdp_code;
+`;
+
+const selectEMPList = `
+SELECT emp.emp_code,
+       emp.emp_name,
+       comm_name(emp.emp_job_id) AS "emp_job",
+       dept.dept_name
+FROM   emp_tbl emp JOIN dept_tbl dept
+                     ON emp.dept_code = dept.dept_code
 `;
 
 // 작업지시서 코드로 작업지시서 조회 - datetime 포맷 추가
 const selectWKO = `
 SELECT wko.wko_code,
        DATE_FORMAT(wko.start_date, '%Y-%m-%d') AS "start_date",
-       comm_name(wko.prod_type) AS "prod_type",
-       comm_name(wko.stat) AS "stat",
+       wko.stat AS "stat",
        wko.note,
        wko.prdp_code,
        wko.prod_code,
        prod.prod_name,
+       wko.wko_qtt,
        comm_name(prod.unit) AS "unit",
        wko.emp_code,
-       emp.emp_name
+       emp.emp_name,
+       emp2.emp_name AS "reg_name",
+       TO_CHAR(wko.reg_date, 'yyyy-MM-dd') AS "reg_date"
 FROM   wko_tbl wko JOIN prod_tbl prod
                      ON wko.prod_code = prod.prod_code
                    JOIN emp_tbl emp
                      ON wko.emp_code = emp.emp_code
+                   JOIN emp_tbl emp2
+                      ON wko.reg_code = emp2.emp_code
 WHERE  wko.wko_code = ?
 `;
 
@@ -99,28 +112,39 @@ SELECT CONCAT(
 FROM wko_tbl
 WHERE SUBSTR(wko_code, 5, 8) = DATE_FORMAT( CURDATE(), '%Y%m%d')
 FOR UPDATE
-`
+`;
 
 const insertWKO = `
-INSERT INTO wko_tbl(wko_code, start_date, prod_type, stat, note, prdp_code, prod_code, emp_code)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-`
+INSERT INTO wko_tbl(wko_code, stat, note, prdp_code, prod_code, emp_code, wko_qtt, reg_date, reg_code)
+VALUES (?, 'v4', ?, ?, ?, ?, ?, CURDATE(), ?)
+`;
+
+// 계획에 따른 제품 목록 조회
+const selectProdList = `
+SELECT prod.prod_code,
+       prod.prod_name,
+       prdd.planned_qtt,
+       prod.note
+FROM   prod_tbl prod JOIN prdp_d_tbl prdd
+                       ON prod.prod_code = prdd.prod_code
+                     JOIN prdp_tbl prdp
+                       ON prdd.prdp_code = prdp.prdp_code
+WHERE  1 = 1
+AND    (? IS NULL OR ? = '' OR prdp.prdp_code LIKE CONCAT('%', ?, '%'))
+`;
 
 // 전체 제품 목록 조회
 const selectProdAll = `
-SELECT prod.prod_code,
-       prod.prod_name,
-       comm_name(prod.unit) AS "unit",
-       prod.note,
-       prod.prod_type
-FROM   prod_tbl prod
-WHERE  comm_name(prod.is_used) = '사용'
-ORDER BY prod_code
+SELECT prod_code,
+       prod_name,
+       '-' AS "planned_qtt",
+       note
+FROM   prod_tbl
 `;
 
 const updateWKO = `
 UPDATE wko_tbl 
-SET start_date = ?, prod_type = ?, stat = ?, note = ?
+SET note = ?, wko_qtt = ?
 WHERE wko_code = ?
 `;
 
@@ -136,7 +160,6 @@ SELECT wko.wko_code,
        prdp.prdp_code,
        prdp.prdp_name,
        prod.prod_name,
-       comm_name(wko.prod_type) AS "prod_type",
        comm_name(wko.stat) AS "stat",
        DATE_FORMAT(wko.start_date, '%Y-%m-%d') AS "start_date",
        wko.note
@@ -160,7 +183,6 @@ SELECT wko.wko_code,
        prdp.prdp_code,
        prdp.prdp_name,
        prod.prod_name,
-       comm_name(wko.prod_type) AS "prod_type",
        comm_name(wko.stat) AS "stat",
        DATE_FORMAT(wko.start_date, '%Y-%m-%d') AS "start_date",
        wko.note
@@ -186,4 +208,6 @@ module.exports = {
     deleteWKO,
     selectWKOByOptions,
     selectWKOMonth,
+    selectEMPList,
+    selectProdList,
 }
