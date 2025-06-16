@@ -125,25 +125,6 @@ const selectProductByName = `
    ORDER BY prod_name
 `;
 
-// 출고 요청 전체 조회
-const selectOutReqList = `
-  SELECT r.out_req_code,
-         r.ord_code,
-         r.out_req_date,
-         r.mcode,
-         r.note,
-         d.out_req_d_code,
-         d.prod_code,
-         d.out_req_d_amount,
-         d.delivery_date,
-         p.prod_name,
-         comm_name(p.com_value) AS com_value
-    FROM out_req_tbl r
-    JOIN out_req_d_tbl d ON r.out_req_code = d.out_req_code
-    JOIN prod_tbl p ON d.prod_code = p.prod_code
-   ORDER BY r.out_req_code, d.out_req_d_code
-`;
-
 // 출고 상태 조회
 const selectReleaseStatuses = `
   SELECT com_value AS status_code,
@@ -168,7 +149,7 @@ const selectReleaseList = `
     FROM poutbnd_tbl p
     JOIN prod_tbl prod ON p.prod_code = prod.prod_code
     JOIN client_tbl c ON p.client_code = c.client_code
-    JOIN emp_tbl e ON p.mcode = e.mcode
+    JOIN emp_tbl e ON p.mcode = e.emp_code
    ORDER BY p.poutbnd_code
 `;
 
@@ -201,6 +182,20 @@ const selectOutReqDCodeForUpdate = `
     FROM out_req_d_tbl
     FOR UPDATE
 `;
+
+// 출고코드 자동 생성 (형식: OUT-YYYYMMDD-0001)
+const selectReleaseCodeForUpdate = `
+  SELECT CONCAT(
+           'OUT-', 
+           DATE_FORMAT(CURDATE(), '%Y%m%d'), 
+           '-', 
+           LPAD(IFNULL(MAX(CAST(SUBSTRING(poutbnd_code, 13) AS UNSIGNED)), 0) + 1, 4, '0')
+         ) AS poutbnd_code
+    FROM poutbnd_tbl
+   WHERE SUBSTRING(poutbnd_code, 5, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+   FOR UPDATE
+`;
+
 
 // 주문 코드 생성용 (FOR UPDATE 잠금)
 const selectOrdCodeForUpdate = `
@@ -306,15 +301,46 @@ const deleteOrderDetail = `
   DELETE FROM ord_d_tbl WHERE ord_code = ?
 `;
 
-// 출고요청 상세 삭제
-const deleteOutReqDetail = `
-  DELETE FROM out_req_d_tbl WHERE out_req_code = ?
+// 출고 정보 수정
+const updateRelease = `
+  UPDATE poutbnd_tbl
+     SET req_qtt = ?,
+         outbnd_qtt = ?,
+         deadline = ?,
+         stat = ?,
+         outbound_request_code = ?,
+         lot_num = ?,
+         prod_code = ?,
+         client_code = ?,
+         mcode = ?
+   WHERE poutbnd_code = ?
 `;
 
-// 출고요청 삭제
-const deleteOutReq = `
-  DELETE FROM out_req_tbl WHERE out_req_code = ?
+
+// 출고 상세 정보 조회
+const selectReleaseDetailList = `
+  SELECT p.poutbnd_code,
+         p.req_qtt,
+         p.outbnd_qtt,
+         p.deadline,
+         p.stat,
+         p.outbound_request_code,
+         p.lot_num,
+         p.prod_code,
+         pr.prod_name,
+         comm_name(pr.com_value) AS prod_type,
+         p.client_code,
+         c.client_name,
+         p.mcode,
+         e.emp_name
+    FROM poutbnd_tbl p
+    JOIN prod_tbl pr ON p.prod_code = pr.prod_code
+    JOIN client_tbl c ON p.client_code = c.client_code
+    JOIN emp_tbl e ON p.mcode = e.emp_code
+   WHERE p.poutbnd_code = ?
 `;
+
+
 
 
 module.exports = {
@@ -327,9 +353,9 @@ module.exports = {
   selectOrderStatuses,
   selectOrderListWithDate,
   selectOrderListByCondition,
-  selectOutReqList,
   selectReleaseStatuses,
   selectReleaseList,
+  selectReleaseDetailList,
 
   // 등록
   selectOrdCodeForUpdate,
@@ -339,6 +365,7 @@ module.exports = {
   updateReleaseStatus,
   selectOutReqCodeForUpdate,
   selectOutReqDCodeForUpdate,
+  selectReleaseCodeForUpdate,
   insertOutReq,
   insertOutReqDetail,
   insertRelease,
@@ -346,6 +373,7 @@ module.exports = {
   // 삭제
   deleteOrder,
   deleteOrderDetail,
-  deleteOutReqDetail,
-  deleteOutReq
+
+  // 수정
+  updateRelease
 };
