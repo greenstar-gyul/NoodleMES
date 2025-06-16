@@ -54,9 +54,10 @@ const findWKO = async (wkoCode) => {
 /** 
  * 작업지시서의 공정 목록 조회
  */
-const findWKOProcesses = async (prodCode, prdpCode) => {
-  const list = await mariadb.query("selectWKOProcesses", [prodCode, prdpCode])
+const findWKOProcesses = async (lineCode) => {
+  const list = await mariadb.query("selectWKOProcesses", [lineCode])
     .catch(err => console.log(err));
+  console.log('아오!!!!!!!!!!!!', list);
   return list;
 };
 
@@ -73,7 +74,18 @@ const findProdProcesses = async (prodCode) => {
  * 작업자 목록 조회
  */
 const findEmpList = async (empName) => {
-  const list = await mariadb.query('selectEMPList', [empName])
+  const list = await mariadb.query('selectEMPList', [empName, empName, empName])
+    .catch(err => console.log(err));
+  return list;
+};
+
+/**
+ * 제품의 라인 목록 조회
+ */
+const findLineList = async (values) => {
+  const prodCode = values[0];
+  const lineName = values[1];
+  const list = await mariadb.query('selectLineList', [prodCode, prodCode, lineName, lineName, lineName])
     .catch(err => console.log(err));
   return list;
 };
@@ -102,6 +114,7 @@ const insertWKOTx = async (data) => {
       data.emp_code || null,
       data.wko_qtt,
       data.reg_code,
+      data.line_code,
     ];
     
     const result = await mariadb.queryConn(conn, "insertWKO", wkoData);
@@ -151,8 +164,12 @@ const deleteWKO = async (wkoCode) => {
  * 생산 계획에 따른 제품 목록 조회
  */
 const getProdList = async (prdpCode) => {
-  const list = await mariadb.query('selectProdList', [prdpCode, prdpCode, prdpCode])
+  const list = await mariadb.query('selectProdListForWKO', [prdpCode, prdpCode, prdpCode])
     .catch(err => console.log(err));
+  
+  for (let i = 0; i < list.length; i++) {
+    list[i].prod_id = i + 1;
+  }
   return list;
 };
 
@@ -162,6 +179,38 @@ const getProdList = async (prdpCode) => {
 const getProdAll = async () => {
   const list = await mariadb.query('selectProdAll')
     .catch(err => console.log(err));
+  
+  for (let i = 0; i < list.length; i++) {
+    list[i].prod_id = i + 1;
+  }
+  return list;
+};
+
+/**
+ * 생산 계획에 따른 제품 목록 검색
+ */
+const getProdSearchByPrdp = async (values) => {
+  const list = await mariadb.query('selectProdListForWKOByName', values)
+    .catch(err => console.log(err));
+  
+  for (let i = 0; i < list.length; i++) {
+    list[i].prod_id = i + 1;
+  }
+  return list;
+};
+
+/**
+ * 생산 계획에 따른 제품 목록 검색
+ */
+const getProdSearch = async (values) => {
+  const list = await mariadb.query('selectProdAllForWKOByName', values)
+    .catch(err => console.log(err));
+  
+  console.log('아니 개빡치네:', values);
+
+  for (let i = 0; i < list.length; i++) {
+    list[i].prod_id = i + 1;
+  }
   return list;
 };
 
@@ -178,8 +227,8 @@ const searchWKOByOptions = async (params) => {
     prdp_code: params.prdp_code || null, 
     prdp_name: params.prdp_name || null,
     prod_name: params.prod_name || null,
-    start_date_from: params.start_date_from || null,
-    start_date_to: params.start_date_to || null
+    reg_date_from: params.reg_date_from || null,
+    reg_date_to: params.reg_date_to || null
   };
   
   const bindParams = [
@@ -187,8 +236,8 @@ const searchWKOByOptions = async (params) => {
     cleanParams.prdp_code, cleanParams.prdp_code, cleanParams.prdp_code,
     cleanParams.prdp_name, cleanParams.prdp_name, cleanParams.prdp_name,
     cleanParams.prod_name, cleanParams.prod_name, cleanParams.prod_name,
-    cleanParams.start_date_from, cleanParams.start_date_from,
-    cleanParams.start_date_to, cleanParams.start_date_to
+    cleanParams.reg_date_from, cleanParams.reg_date_from,
+    cleanParams.reg_date_to, cleanParams.reg_date_to
   ];
 
   console.log('바인딩 파라미터:', bindParams); // 디버깅용
@@ -236,4 +285,7 @@ module.exports = {
   searchWKOMonth,
   findEmpList,
   getProdAll,
+  getProdSearchByPrdp,
+  getProdSearch,
+  findLineList,
 };

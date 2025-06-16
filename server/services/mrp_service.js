@@ -98,22 +98,22 @@ const findMatByBom = async (prdpCode) => {
 const insertMRPTx = async (data) => {
   //Node.js가 MariaDB에 SQL을 실행하기 위해 열어놓는 통신 연결 통로
   const conn = await mariadb.connectionPool.getConnection();
-  
+
   // 트랜잭션 내에서 실행
   try {
     await conn.beginTransaction(); // 트랜잭션 BEGIN;
-    
+
     // MRP 코드 새로 생성해 가져오기
     const mrpCodeRes = await mariadb.queryConn(conn, "selectMRPCodeForUpdate"); // 트랜잭션 발생 및 잠그기
     const mrpCode = mrpCodeRes[0].mrp_code;
-    
+
     // MRP 코드 저장
     data.mrpData.mrp_code = mrpCode;
     // console.log('아아앙아아악!!!!!!!!', data.mrpData);
-    
+
     const mrpData = convertObjToAry(data.mrpData, ['mrp_code', 'prdp_date', 'start_date', 'note', 'prdp_code', 'emp_code']);
     const result = await mariadb.queryConn(conn, "insertMRP", mrpData); // MRP 등록
-    
+
     // MRP 상세
     for (const values of data.detailData) {
       const mrpDCodeRes = await mariadb.queryConn(conn, "selectMRPDetailCode"); // MRP 상세 코드 가져오기
@@ -121,20 +121,20 @@ const insertMRPTx = async (data) => {
       values.mrp_d_code = mrpDCode;
       values.mrp_code = mrpCode;
       values.unit = convertLabelToCode(values.unit, '단위');
-      
+
       const mrpData = convertObjToAry(values, ['mrp_d_code', 'unit', 'req_qtt', 'mrp_code', 'mat_code']);
       await mariadb.queryConn(conn, "insertMRPDetail", mrpData); // MRP 상세 등록
     }
-    
+
     // 커밋 수행
     await conn.commit();
-    
+
     return result;
   }
   catch (err) {
     await conn.rollback(); // 트랜잭션 실패 시 롤백 후 오류 알림
     console.error('트랜잭션 실패:', err);
-    
+
     throw err;
   }
   finally {
@@ -154,21 +154,21 @@ const insertMRPTx = async (data) => {
 const modifyMRPTx = async (data) => {
   //Node.js가 MariaDB에 SQL을 실행하기 위해 열어놓는 통신 연결 통로
   const conn = await mariadb.connectionPool.getConnection();
-  
+
   // 트랜잭션 내에서 실행
   try {
     await conn.beginTransaction(); // 트랜잭션 BEGIN;
 
     const mrpCode = data.mrpData.mrp_code;
-    const result = await mariadb.queryConn(conn, "updateMRP", [ data.mrpData.note, data.mrpData.mrp_code ]); // MRP 등록
-    
+    const result = await mariadb.queryConn(conn, "updateMRP", [data.mrpData.note, data.mrpData.mrp_code]); // MRP 등록
+
     // MRP 상세
     for (const values of data.detailData) {
       // 이미 저장된 상세 정보인지?
       // 이미 저장된 상세 정보면 갱신만
       let mrpDCodeChk = values.mrp_d_code;
       if (mrpDCodeChk) {
-        await mariadb.queryConn(conn, "updateMRPDetail", [ values.req_qtt, values.mrp_d_code ]); // MRP 상세 수정
+        await mariadb.queryConn(conn, "updateMRPDetail", [values.req_qtt, values.mrp_d_code]); // MRP 상세 수정
       }
       // 없는 정보면 신규 등록
       else {
@@ -182,16 +182,16 @@ const modifyMRPTx = async (data) => {
         await mariadb.queryConn(conn, "insertMRPDetail", mrpData); // MRP 상세 등록
       }
     }
-    
+
     // 커밋 수행
     await conn.commit();
-    
+
     return result;
   }
   catch (err) {
     await conn.rollback(); // 트랜잭션 실패 시 롤백 후 오류 알림
     console.error('트랜잭션 실패:', err);
-    
+
     throw err;
   }
   finally {
@@ -226,7 +226,7 @@ const searchMRPByOptions = async (params) => {
   ];
 
   const list = await mariadb.query("selectMRPByOptions", bindParams)
-                            .catch(err => console.log(err));
+    .catch(err => console.log(err));
   return list;
 };
 
@@ -236,7 +236,16 @@ const searchMRPByOptions = async (params) => {
  */
 const searchMRPMonth = async () => {
   let list = await mariadb.query("selectMRPMonth")
-                          .catch(err => console.log(err));
+    .catch(err => console.log(err));
+  return list;
+}
+
+/**
+ * MRP 관리 자재 추가 팝업 검색
+ */
+const searchMat = async (matName) => {
+  const list = await mariadb.query("selectMatForPopup", [matName, matName, matName])
+    .catch(err => console.log(err));
   return list;
 }
 
@@ -250,12 +259,12 @@ const searchMRPMonth = async () => {
  * @returns 
  */
 const convertLabelToCode = (label, group = null) => {
-    if (group == null) {
-      return codeMapper[label];
-    }
+  if (group == null) {
+    return codeMapper[label];
+  }
 
-    let groupCode = codeMapper[group];
-    return codeMapper[groupCode][label];
+  let groupCode = codeMapper[group];
+  return codeMapper[groupCode][label];
 }
 
 module.exports = {
@@ -271,4 +280,5 @@ module.exports = {
   getMatList,
   searchMRPByOptions,
   searchMRPMonth,
+  searchMat,
 };

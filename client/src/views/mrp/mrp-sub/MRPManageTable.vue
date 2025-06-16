@@ -115,6 +115,17 @@ const addMat = (values) => {
     emit('update:subData', subDatas);
 }
 
+const searchMat = async (value) => {
+    const matName = value ?? '';
+    const response = await axios.get(`/api/mrp/search-mat`, {
+        params: {
+            mat_name: matName,
+        }
+    });
+    popupMats.value = await response.data.data;
+    console.log(popupMats.value);
+}
+
 onMounted(() => {
     mapper.value = MRPMapping.mrpMapping;
 })
@@ -216,5 +227,5 @@ watch(
     <MultiplePopup v-model:visible="dialogVisible" :items="popupMats"
         :selectedHeader="['mat_code', 'mat_name', 'mat_type', 'unit', 'note']"
         :mapper="{ 'mat_code': '자재코드', 'mat_name': '자재명', 'mat_type': '자재유형', 'unit': '단위', 'note': '비고' }" @confirm="addMat"
-        :dataKey="'mat_code'"></MultiplePopup>
+        :dataKey="'mat_code'" @search="searchMat"></MultiplePopup>
 </template>

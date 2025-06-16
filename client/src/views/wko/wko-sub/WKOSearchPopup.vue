@@ -27,8 +27,8 @@ const searchParams = ref({
   prdp_code: '',
   prdp_name: '',
   prod_name: '',
-  start_date_from: null,
-  start_date_to: null
+  reg_date_from: null,
+  reg_date_to: null
 });
 
 // 기본 날짜 범위 설정 (최근 1달) - 새로운 객체 생성
@@ -38,12 +38,12 @@ const setDefaultDateRange = () => {
   oneMonthAgo.setMonth(today.getMonth() - 1);
   
   // 새로운 Date 객체 생성해서 참조 문제 방지
-  searchParams.value.start_date_from = new Date(oneMonthAgo.getTime());
-  searchParams.value.start_date_to = new Date(today.getTime());
+  searchParams.value.reg_date_from = new Date(oneMonthAgo.getTime());
+  searchParams.value.reg_date_to = new Date(today.getTime());
   
   console.log('기본 날짜 설정:', {
-    from: searchParams.value.start_date_from,
-    to: searchParams.value.start_date_to
+    from: searchParams.value.reg_date_from,
+    to: searchParams.value.reg_date_to
   });
 };
 
@@ -88,8 +88,8 @@ const searchWKO = async () => {
       prdp_code: searchParams.value.prdp_code || null,
       prdp_name: searchParams.value.prdp_name || null,
       prod_name: searchParams.value.prod_name || null,
-      start_date_from: formatDate(searchParams.value.start_date_from),
-      start_date_to: formatDate(searchParams.value.start_date_to),
+      reg_date_from: formatDate(searchParams.value.reg_date_from),
+      reg_date_to: formatDate(searchParams.value.reg_date_to),
     };
 
     console.log('검색 파라미터:', params); // 디버깅용
@@ -113,8 +113,8 @@ const resetSearch = () => {
     prdp_code: '',
     prdp_name: '',
     prod_name: '',
-    start_date_from: null,
-    start_date_to: null
+    reg_date_from: null,
+    reg_date_to: null
   };
   setDefaultDateRange(); // 기본 날짜 범위 재설정
   loadInitialData();
@@ -134,7 +134,7 @@ watch(
 
 // 디버깅용 - 날짜 변경 감지
 watch(
-  () => [searchParams.value.start_date_from, searchParams.value.start_date_to],
+  () => [searchParams.value.reg_date_from, searchParams.value.reg_date_to],
   (newVal, oldVal) => {
     console.log('날짜 변경 감지:', {
       from: { old: oldVal[0], new: newVal[0] },
@@ -151,6 +151,7 @@ const cancel = () => {
 
 const confirm = () => {
   if (selectedWKO.value) {
+    console.log('팝업에서 선택된 데이터', selectedWKO.value);
     emit('confirm', selectedWKO.value);
     emit('update:visible', false);
   }
@@ -162,16 +163,16 @@ const onRowDoubleClick = (event) => {
   confirm();
 };
 
-// 상태별 스타일 클래스
-const getStatusClass = (stat) => {
-  const statusMap = {
-    '대기': 'bg-yellow-100 text-yellow-800',
-    '진행중': 'bg-blue-100 text-blue-800', 
-    '완료': 'bg-green-100 text-green-800',
-    '중단': 'bg-red-100 text-red-800'
-  };
-  return `px-2 py-1 rounded text-xs ${statusMap[stat] || 'bg-gray-100 text-gray-800'}`;
-};
+// // 상태별 스타일 클래스
+// const getStatusClass = (stat) => {
+//   const statusMap = {
+//     '대기': 'bg-yellow-100 text-yellow-800',
+//     '진행중': 'bg-blue-100 text-blue-800', 
+//     '완료': 'bg-green-100 text-green-800',
+//     '중단': 'bg-red-100 text-red-800'
+//   };
+//   return `px-2 py-1 rounded text-xs ${statusMap[stat] || 'bg-gray-100 text-gray-800'}`;
+// };
 
 </script>
 
@@ -227,9 +228,9 @@ const getStatusClass = (stat) => {
         </div> -->
         <div class="col-span-2">
           <SearchDateBetween 
-            label="작업시작일" 
-            v-model:from="searchParams.start_date_from" 
-            v-model:to="searchParams.start_date_to">
+            label="작업등록일" 
+            v-model:from="searchParams.reg_date_from" 
+            v-model:to="searchParams.reg_date_to">
           </SearchDateBetween>
         </div>
       </div>
@@ -248,8 +249,8 @@ const getStatusClass = (stat) => {
       <!-- 날짜 범위 안내 -->
       <!-- <div class="text-xs text-gray-500 mb-2">
         💡 기본적으로 최근 1개월 범위로 설정됩니다. 
-        <span v-if="searchParams.start_date_from && searchParams.start_date_to" class="font-medium text-blue-600">
-          ({{ searchParams.start_date_from.toLocaleDateString() }} ~ {{ searchParams.start_date_to.toLocaleDateString() }})
+        <span v-if="searchParams.reg_date_from && searchParams.reg_date_to" class="font-medium text-blue-600">
+          ({{ searchParams.reg_date_from.toLocaleDateString() }} ~ {{ searchParams.reg_date_to.toLocaleDateString() }})
         </span>
       </div> -->
     </div>
@@ -277,9 +278,9 @@ const getStatusClass = (stat) => {
       @rowDblclick="onRowDoubleClick"
       emptyMessage="조회된 작업지시서가 없습니다.">
       
-      <Column selectionMode="single" headerStyle="width: 3rem" />
+      <Column selectionMode="single" headerStyle="width: 1%" />
       
-      <Column field="wko_code" header="작업지시서코드" style="width: 140px">
+      <Column field="wko_code" header="작업지시서코드" style="width: 10%">
         <template #body="slotProps">
           <span class="font-mono text-blue-600 font-medium">
             {{ slotProps.data.wko_code }}
@@ -287,53 +288,49 @@ const getStatusClass = (stat) => {
         </template>
       </Column>
       
-      <Column field="prdp_code" header="생산계획코드" style="width: 140px">
+      <Column field="prdp_code" header="생산계획코드" style="width: 10%">
         <template #body="slotProps">
           <span class="font-mono text-purple-600">
-            {{ slotProps.data.prdp_code }}
+            {{ slotProps.data.prdp_code ?? '-' }}
           </span>
         </template>
       </Column>
       
-      <Column field="prdp_name" header="생산계획명" style="min-width: 150px">
+      <Column field="prdp_name" header="생산계획명" style="min-width: 10%">
         <template #body="slotProps">
-          <span class="font-medium">{{ slotProps.data.prdp_name }}</span>
+          <span class="font-medium">{{ slotProps.data.prdp_name ?? '-' }}</span>
         </template>
       </Column>
       
-      <Column field="prod_name" header="제품명" style="min-width: 120px">
+      <Column field="prod_name" header="제품명" style="min-width: 10%">
         <template #body="slotProps">
           {{ slotProps.data.prod_name }}
         </template>
       </Column>
       
-      <Column field="prod_type" header="제품타입" style="width: 80px">
+      <!-- <Column field="prod_type" header="제품타입" style="width: 80px">
         <template #body="slotProps">
           <span class="text-sm px-2 py-1 bg-gray-100 rounded">
             {{ slotProps.data.prod_type }}
           </span>
         </template>
-      </Column>
+      </Column> -->
       
-      <Column field="stat" header="작업상태" style="width: 80px">
+      <Column field="stat" header="작업상태" style="width: 10%">
         <template #body="slotProps">
-          <span :class="getStatusClass(slotProps.data.stat)">
             {{ slotProps.data.stat }}
-          </span>
         </template>
       </Column>
       
-      <Column field="start_date" header="작업시작일" style="width: 100px">
+      <Column field="reg_date" header="작업등록일" style="width: 10%">
         <template #body="slotProps">
-          {{ slotProps.data.start_date }}
+          {{ slotProps.data.reg_date }}
         </template>
       </Column>
       
-      <Column field="note" header="비고" style="min-width: 100px">
+      <Column field="note" header="비고" style="min-width: 20%">
         <template #body="slotProps">
-          <span class="text-gray-600 text-sm">
             {{ slotProps.data.note }}
-          </span>
         </template>
       </Column>
     </DataTable>

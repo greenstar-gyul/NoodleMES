@@ -50,18 +50,20 @@ const resetData = () => {
     processList.value = [];
     wkoInfo.value = {
         wko_code: '',
-        start_date: '',
+        reg_date: '',
         stat: 'v4',
         note: '',
         prdp_code: '',
         prod_code: '',
         prod_name: '',
-        emp_code: 'EMP-10002',
+        emp_code: '',
         emp_name: '',
         reg_code: 'EMP-10001',
         reg_name: '김영업',
         wko_qtt: 0,
         reg_date: '',
+        line_code: '',
+        line_name: '',
     };
 }
 
@@ -70,6 +72,7 @@ const loadWKO = async (wkoCode) => {
         try {
             const result = await axios.get(`/api/wko/${wkoCode}`);
             const wkoData = result.data.data[0];
+            console.log('로딩된 작업 지시서', wkoData);
             if (wkoData) {
                 wkoInfo.value = { ...wkoData };
                 await loadProcessList();
@@ -81,10 +84,12 @@ const loadWKO = async (wkoCode) => {
 }
 
 const loadProcessList = async () => {
-    if (wkoInfo.value.prod_code && wkoInfo.value.prdp_code) {
+    if (wkoInfo.value.line_code) {
         try {
-            const result = await axios.get(`/api/wko/processes/${wkoInfo.value.prod_code}/${wkoInfo.value.prdp_code}`);
+            const result = await axios.get(`/api/wko/processes/${wkoInfo.value.line_code}`);
             processList.value = result.data.data || [];
+
+            console.log('로드된 공정 목록', processList.value);
             
             // 공정 목록에 ID 추가
             processList.value.forEach((process, index) => {
@@ -110,24 +115,26 @@ const onProdPlanSelected = (prdpCode, prodCode) => {
 const wkoInfo = defineModel('data');
 wkoInfo.value = {
     wko_code: '',
-    start_date: '',
+    reg_date: '',
     stat: 'v4',
     note: '',
     prdp_code: '',
     prod_code: '',
     prod_name: '',
-    emp_code: 'EMP-10002',
+    emp_code: '',
     emp_name: '',
     reg_code: 'EMP-10001',
     reg_name: '김영업',
     wko_qtt: 0,
     reg_date: '',
+    line_code: '',
+    line_name: '',
 };
 
 // 작업지시서 정보가 바뀔 때 공정 목록 갱신
-watch(() => [wkoInfo.value.prod_code, wkoInfo.value.prdp_code], 
-    ([newProdCode, newPrdpCode]) => {
-        if (newProdCode && newPrdpCode) {
+watch(() => wkoInfo.value.line_code, 
+    (newLineCode) => {
+        if (newLineCode) {
             loadProcessList();
         }
     }

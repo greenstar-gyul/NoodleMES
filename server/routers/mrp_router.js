@@ -117,6 +117,26 @@ router.get('/search', async (req, res) => {
     }
 });
 
+// 자재 추가 팝업 자재 검색
+router.get('/search-mat', async (req, res) => {
+    try {
+        const matName = req.query.mat_name;
+        const data = await mrpService.searchMat(matName);
+        res.status(200).json({
+            "result_code": "SUCCESS",
+            "message": "성공",
+            "data": data
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            "result_code": "FAIL",
+            "message": "실패",
+            "data": err.message || "서버 오류가 발생했습니다."
+        });
+    }
+});
+
 // 생산 계획에 따른 MRP 코드
 router.get('/mrpcode/:prdpCode', async (req, res) => {
     try {

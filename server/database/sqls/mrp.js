@@ -83,6 +83,7 @@ FROM   mrp_d_tbl mrp_d JOIN mat_tbl mat
 WHERE  mrp_d.mrp_code = ?
 `;
 
+// MRP 코드 생성하면서 트랜잭션 발생
 const selectMRPCodeForUpdate = `
 SELECT CONCAT(
               CONCAT('MRP-', DATE_FORMAT( CURDATE(), '%Y%m%d-')), 
@@ -93,6 +94,7 @@ WHERE SUBSTR(mrp_code, 5, 8) = DATE_FORMAT( CURDATE(), '%Y%m%d')
 FOR UPDATE
 `
 
+// MRP 상세 코드 발급
 const selectMRPDetailCode = `
 SELECT CONCAT(
               'MRP-D-',
@@ -101,16 +103,19 @@ SELECT CONCAT(
 FROM mrp_d_tbl
 `
 
+// MRP 등록
 const insertMRP = `
 INSERT INTO mrp_tbl(mrp_code, plan_date, start_date, mrp_note, prdp_code, emp_code)
 VALUES (?, ?, ?, ?, ?, ?)
 `
 
+// MRP 상세 등록
 const insertMRPDetail = `
 INSERT INTO mrp_d_tbl(mrp_d_code, unit, req_qtt, mrp_code, mat_code)
 VALUES (?, ?, ?, ?, ?)
 `
 
+// BOM에서 자재 목록 가져와서 자재 목록 추가하기
 const selectBOMbyprdpcode = `
 SELECT   bm.mat_code,
          bm.mat_name,
@@ -128,6 +133,7 @@ WHERE    pd.prdp_code = ?
 GROUP BY bm.mat_code, bm.mat_name, mstock.cur_qtt, unit
 `;
 
+// 전체 자재 목록 가져오기
 const selectMatAlll = `
 SELECT mat.mat_code,
        mat.mat_name,
@@ -141,18 +147,21 @@ FROM   mat_tbl mat JOIN mat_stock_v mstock
 ORDER BY mat_code
 `;
 
+// MRP 수정
 const updateMRP = `
 UPDATE mrp_tbl 
 SET mrp_note = ?
 WHERE mrp_code = ?
 `;
 
+// MRP 상세 수정
 const updateMRPDetail = `
 UPDATE mrp_d_tbl 
 SET req_qtt = ?
 WHERE mrp_d_code = ?
 `;
 
+// 조건에 맞는 MRP 조회
 const selectMRPByOptions =  `
 SELECT mrp.mrp_code,
        prdp.prdp_code,
@@ -199,6 +208,22 @@ WHERE YEAR(mrp.plan_date) = YEAR(CURDATE())
 ORDER BY 1
 `;
 
+// MRP의 자재 추가 팝업에서 자재 검색
+const selectMatForPopup = `
+SELECT mat.mat_code,
+       mat.mat_name,
+       comm_name(mat.unit) AS "unit",
+       mat.note,
+       comm_name(mat.material_type_code) AS "mat_type",
+       mstock.cur_qtt,
+       comm_name(mstock.unit) AS "stock_unit"
+FROM   mat_tbl mat JOIN mat_stock_v mstock
+                     ON mat.mat_code = mstock.mat_code
+WHERE  1 = 1
+  AND  (? IS NULL OR mat.mat_name LIKE CONCAT('%', ?, '%'))
+ORDER BY mat_code
+`;
+
 module.exports = {
     selectMRPList,
     selectMRPDetailList,
@@ -216,4 +241,5 @@ module.exports = {
     updateMRPDetail,
     selectMRPByOptions,
     selectMRPMonth,
+    selectMatForPopup,
 }
