@@ -1,5 +1,5 @@
 // 주문 전체 조회 품질검사목록
-const selectAll =
+const fetchOrders =
 `SELECT 
     qio.qio_code,
     qio.prod_code,
@@ -35,5 +35,5 @@ ORDER BY prdp_date;
 
 module.exports = {
     selectList,
-    selectAll
+    fetchOrders
 }

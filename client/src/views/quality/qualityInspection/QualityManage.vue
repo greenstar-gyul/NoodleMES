@@ -1,6 +1,7 @@
 <script setup>
 /* ===== IMPORT ===== */
 import { ref } from 'vue';
+import EqEditableTable from '../../equipment/components/EqEditableTable.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import QualityMapping from '../../../service/QualityMapping';
 import qio from '../../../service/QualityInspectionOrder';
@@ -230,14 +231,8 @@ const qualityResults = ref([
             />
         </div>
     </div>
-    <!-- 📋 검색 조회 테이블 영역 -->
-  <div class="flex flex-col lg:flex-row gap-6 mt-6">
-    <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
-    <div class="space-y-6" style="width: 100%">
-      <!-- 검색결과 테이블 -->
-    <EqIITable style="margin-bottom:0px; height:730px" :data="products" :dataKey="'eqii_code'" :mapper="QualityMapping" />
-    </div>
-  </div>
+
+  
 
     <!-- ===== 팝업 영역 ===== -->
     <SinglePopup

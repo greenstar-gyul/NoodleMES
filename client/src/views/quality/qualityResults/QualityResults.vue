@@ -11,7 +11,7 @@ import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import LabeledReadonlyInput from '@/components/registration-bar/LabeledReadonlyInput.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
-import EditableTable from '@/components/form/EditableTable.vue';
+import EqIITable from '../../equipment/components/EqIITable.vue';
 
 /* ===== DATA ===== */
 // 팝업
@@ -231,13 +231,18 @@ const qualitys = ref([
             <LabeledInput label="불량수량" v-model="qio_code" :readonly="isReadonly" />    
             <LabeledInput label="비고" :value="prod_code" placeholder="제품명" :disabled="true" />
         </div>
+
     </div>
-<!-- 📋 검색 조회 테이블 영역 -->
-    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
-        <div class="grid grid-cols-1 gap-4">
-            <TableWDE :data="qualitys" :dataKey="'qcr_code'" :mapper="QualityMapping"/>
-        </div>
+    <!-- 📋 검색 조회 테이블 영역 -->
+  <div class="flex flex-col lg:flex-row gap-6 mt-6">
+    <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
+    <div class="space-y-6" style="width: 100%">
+      <!-- 검색결과 테이블 -->
+      <EqIITable style="margin-bottom:0px; height:730px" :data="products" :dataKey="'eqii_code'" :mapper="QualityMapping" />
     </div>
+  </div>
+
+  
     <!-- ===== 팝업 영역 ===== -->
     <SinglePopup
         v-model:visible=" qioVisible"
