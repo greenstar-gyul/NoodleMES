@@ -147,26 +147,6 @@ router.delete('/:ordCode', async (req, res) => {
         });
     }
 });
-router.delete('/:ordCode', async (req, res) => {
-    try {
-        const { ordCode } = req.params;
-
-        await orderService.deleteOrderTx(ordCode); // 삭제만 하고 결과값 따로 받을 필요 없음
-
-        res.json({
-            result_code: "SUCCESS",
-            message: `주문 ${ordCode}가 삭제되었습니다.`,
-            data: { ordCode } // 삭제한 주문 코드
-        });
-    } catch (err) {
-        console.error("주문 삭제 실패:", err);
-        res.status(500).json({
-            result_code: "FAIL",
-            message: "주문 삭제 중 오류가 발생했습니다.",
-            error: err.message
-        });
-    }
-});
 
 
 // 거래처 목록 조회
@@ -242,6 +222,155 @@ router.get("/products/search", async (req, res) => {
         result_code: "FAIL",
         message: "실패",
         error: err.message
+    });
+  }
+});
+
+// 출고요청 전체 목록 조회
+router.get('/release', async (req, res) => {
+  try {
+    const result = await orderService.findReleaseList();
+    res.json({
+      result_code: "SUCCESS",
+      message: "출고요청 목록 조회 성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고요청 목록 조회 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "출고요청 목록 조회 실패",
+      error: err.message
+    });
+  }
+});
+
+// 출고요청 상세 조회
+router.get('/release/:outReqCode/details', async (req, res) => {
+  try {
+    const { outReqCode } = req.params;
+    const result = await orderService.findReleaseDetailList(outReqCode);
+    res.json({
+      result_code: "SUCCESS",
+      message: "출고요청 상세 조회 성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고요청 상세 조회 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "출고요청 상세 조회 실패",
+      error: err.message
+    });
+  }
+});
+
+// 출고요청 등록
+router.post('/release', async (req, res) => {
+  const { release, details } = req.body;
+
+  const data = {
+    releaseData: release,
+    detailData: details
+  };
+
+  try {
+    const result = await orderService.insertReleaseTx(data);
+    res.json({
+      result_code: "SUCCESS",
+      message: "출고요청 등록 성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고요청 등록 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "출고요청 등록 실패",
+      error: err.message
+    });
+  }
+});
+
+// 출고요청 삭제
+router.delete('/release/:outReqCode', async (req, res) => {
+  try {
+    const { outReqCode } = req.params;
+    const result = await orderService.deleteReleaseTx(outReqCode);
+    res.json({
+      result_code: "SUCCESS",
+      message: "출고요청 삭제 성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고요청 삭제 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "출고요청 삭제 실패",
+      error: err.message
+    });
+  }
+});
+
+// 출고 상태 목록 조회
+router.get("/releases/statuses", async (req, res) => {
+  try {
+    const result = await orderService.findReleaseStatuses();
+    res.json({
+        result_code: "SUCCESS",
+        message: "성공",
+        data: result
+    });
+  } catch (err) {
+    console.error("출고 상태 조회 실패:", err);
+    res.status(500).json({
+        result_code: "FAIL",
+        message: "실패",
+        error: err.message
+    });
+  }
+});
+
+// 출고 상태 변경
+router.put("/releases/:poutbndCode/status", async (req, res) => {
+  try {
+    const { poutbndCode } = req.params;
+    const { stat } = req.body;
+
+    const result = await orderService.updateReleaseStat(stat, poutbndCode);
+
+    res.json({
+      result_code: "SUCCESS",
+      message: "출고 상태 업데이트 성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고 상태 업데이트 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "출고 상태 업데이트 실패",
+      error: err.message
+    });
+  }
+});
+
+// 최종 출고 등록
+router.post("/releases", async (req, res) => {
+  try {
+    const release = req.body;
+
+    const result = await orderService.insertFinalRelease(release);
+
+    res.json({
+      result_code: "SUCCESS",
+      message: "출고 등록 성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고 등록 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "출고 등록 실패",
+      error: err.message
     });
   }
 });

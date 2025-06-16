@@ -1,175 +1,132 @@
-<template>
-  <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
-    <div class="grid grid-cols-1 gap-4">
-      <div class="flex justify-between">
-        <div>
-          <div class="font-semibold text-2xl">설비 점검지시서 정보</div>
-        </div>
-        <div class="flex items-center gap-2 flex-nowrap">
-          <Button label="삭제" severity="danger" class="min-w-fit" />
-          <Button label="초기화" severity="contrast" class="min-w-fit" @click="resetForm" />
-          <Button label="저장" severity="info" class="min-w-fit" />
-          <Button label="점검지시서 불러오기" severity="success" class="min-w-fit whitespace-nowrap" @click="openPopup()" />
-        </div>
-      </div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledInput label="점검지시서 코드" v-model="selectedOrder.eqii_code" />
-      <LabeledDatePicker label="지시일자" :modelValue="formatDate(selectedOrder.inst_date)"
-        @update:modelValue="selectedOrder.inst_date = $event" />
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledDatePicker label="점검 예정일자" :modelValue="formatDate(selectedOrder.chk_exp_date)"
-        @update:modelValue="selectedOrder.chk_exp_date = $event" />
-      <LabeledSelect label="상태" v-model="selectedOrder.stat" :options="statOptions" optionLabel="label"
-        optionValue="value" placeholder="전체" class="flex-1" />
-    </div>
-  </div>
-  <div>
-    <EqEditableTable :data="columns" :mapper="eqiiMapper" :dataKey="'eqii_code'" :initialData="equipmentData"
-      @update="handleInspectionTableUpdate" @loadEquipment="dialogVisible2 = true" title="지시서 항목 정보"
-      scrollHeight="600px" />
-  </div>
-  <div>
-    <EqTable :data="filteredEqoplist" :mapper="eqchkMapper" :dataKey="'eq_code'"
-      :title="`점검항목 (${selectedOrder.eq_code || '설비 미선택'})`" />
-  </div>
-  <!-- 팝업 -->
-  <SinglePopup v-model:visible="dialogVisible" :items="eqpops" @confirm="handleInspectionSelect" :mapper="eqiiMapper"
-    :dataKey="'eqii_code'"></SinglePopup>
-  <SinglePopup v-model:visible="dialogVisible2" :items="filteredEqiilist" @confirm="handleInspectionSelect"
-    :mapper="eqiiMapper" :dataKey="'eqii_code'" :title="`점검지시서 선택 (${eq_name || '설비 미선택'})`" />
-</template>
-
 <script setup>
-import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
-import EqTable from '@/views/equipment/components/EqTable.vue'
-import SinglePopup from '@/views/equipment/components/EqiiSinglePopup.vue';
-import eqMapper from '@/service/EquipmentMapping';
-import eqiiMapper from '@/service/EquipSpecInstMapping'
-import EqEditableTable from '@/views/equipment/components/EqEditableTable.vue';
-import eqchkMapper from '@/service/EqChkListMapping.js'
+import { onMounted, ref, watch } from 'vue';
+import EqiiManageSearch from './components/EqiiManageSearch.vue';
+import EqiiManageTable from './components/EqiiManageTable.vue';
 import axios from 'axios';
-import { ref, computed, onMounted } from 'vue'
-import { Button } from 'primevue';
-import LabeledDatePicker from '../../components/registration-bar/LabeledDatePicker.vue';
-import LabeledSelect from '../../components/registration-bar/LabeledSelect.vue';
 
-const columns = ['eqii_code', 'inst_date', 'inst_emp_code', 'eq_chk_type', 'chk_exp_date', 'stat', 'note']
+const eqiiCode = ref(null);
 
-const eqpops = ref([]);
-
-// 팝업
-const dialogVisible = ref(false);
-// 팝업 2
-const dialogVisible2 = ref(false);
-const selectedOrder = ref({
-  eqii_code: '',
-  inst_date: null,
-  chk_exp_date: null,
-  stat: '',
-  note: '',
-  inst_emp_code: ''
+onMounted(() => {
+    // popupMats.value = MRPService.popupMats;
+    // mats.value = MRPService.mats;
 });
-
-const statOptions = [
-  { label: '점검중', value: 'u1' },
-  { label: '점검완료', value: 'u2' },
-  { label: '지시전달', value: 'u3' }
-];
-
-const openPopup = async () => {
-  try {
-    const response = await axios.get('/api/eq/eqiiall');
-    eqpops.value = response.data;
-    dialogVisible.value = true;
-  } catch (err) {
-    console.log('설비 정보 불러오기 실패', err);
-  }
-}
-
-const handleInspectionTableUpdate = (updatedData) => {
-  console.log('점검지시서 테이블 업데이트:', updatedData);
-  selectedOrder.value = updatedData;
-}
-
-const handleEquipmentSelect = (selectedEquipment) => {
-  console.log('선택된 설비:', selectedEquipment);
-  eq_code.value = selectedEquipment.eq_code;
-  eq_name.value = selectedEquipment.eq_name;
-  chk_cycle.value = selectedEquipment.chk_cycle;
-
-  dialogVisible.value = false;
-}
-
-
-//팝업 끝
-
-const filteredEqiilist = computed(() => {
-  if (!selectedOrder.eq_code) {
-    return []; // 설비가 선택되지 않았으면 빈 배열
-  }
-
-  return eqiis.value.filter(item => item.eq_code === eq_code.value);
-});
-
-// 데이터 업데이트 처리
-const handleUpdate = (updatedData) => {
-  equipmentData.value = updatedData
-  console.log('데이터 업데이트됨!', updatedData)
-}
-
-// 지시정보 불러오기 처리
-const handleLoadEquipment = () => {
-  console.log('지시정보 불러오기 클릭!')
-  // 여기서 API 호출하거나 새 데이터 로드
-}
-
-const formatDate = (date) => date?.split('T')[0] || '';
-
-const handleInspectionSelect = (selectedInspection) => {
-  console.log('선택된 점검지시서:', selectedInspection);
-
-  // 선택된 점검지시서를 테이블에 추가
-  const newRow = {
-    eqii_code: selectedInspection.eqii_code,
-    inst_date: selectedInspection.inst_date || '',
-    inst_emp_code: 'EMP001', // 기본값
-    eq_chk_type: selectedInspection.eq_chk_type || '',
-    chk_exp_date: selectedInspection.chk_exp_date || '',
-    stat: selectedInspection.stat || '대기',
-    note: ''
-  };
-
-  selectedOrder.value = newRow;
-
-  // 팝업 닫기
-  dialogVisible.value = false;
-}
-
-const resetForm = () => {
-  selectedOrder.value = [];
-  console.log('🔄 폼 초기화 완료!');
-}
 
 const saveData = async () => {
-  const formData = {
-    // 설비 기본 정보
-    equipment: {
-      eq_code: eq_code.value,
-      eq_name: eq_name.value,
-      chk_cycle: chk_cycle.value,
-      latest_date: latest_date.value
-    },
-    // 점검지시서 정보
-    inspection: {
-      eqii_code: eqii_code.value,
-      inspections: inspectionList.value
-    },
-    // 선택된 설비의 점검항목들
-    checkItems: filteredEqoplist.value
-  };
+    if (!confirm('설비점검지시 정보를 저장하시겠습니까?')) {
+        alert('저장을 취소했습니다.');
+        return;
+    }
 
-  console.log('💾 저장할 데이터:', formData);
+    const data = {};
+    data.eqiiData = eqiiInfo.value;
+    data.detailData = eqirList.value;
+    // console.log(data);
+
+    if (data.eqiiData.eqii_code === '') {
+        // console.log(data);
+        const response = await axios.post(`/api/mrp/create`, data);
+        const result = response.data;
+        console.log(result);
+        if (result.result_code === "SUCCESS") {
+            alert('저장에 성공했습니다.');
+        }
+        else {
+            alert('저장에 실패했습니다. 다시 시도해주세요.');
+        }
+    }
+    else {
+        // console.log(data.eqiiData.eqii_code);
+        const response = await axios.put(`/api/mrp/${data.eqiiData.eqii_code}`, data);
+        const result = response.data;
+        console.log(result);
+        if (result.result_code === "SUCCESS") {
+            alert('저장에 성공했습니다.');
+        }
+        else {
+            alert('저장에 실패했습니다. 다시 시도해주세요.');
+        }
+    }
 }
+
+const updateeqiiCode = (value) => {
+    eqiiCode.value = value;
+}
+
+const formatDateForDB = (date) => {
+    if (!date) return null;
+    if (date instanceof Date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    return null;
+};
+
+const resetData = () => {
+    eqirList.value = [];
+    eqiiInfo.value = {
+        eqii_code: '',
+        inst_date: '',
+        chk_exp_date: '',
+        stat: '',
+        note: '',
+        inst_emp_code: 'EMP-10001'
+    };
+    eqiiCode.value = '';
+}
+
+const loadeqirInfo = async (eqiiCode) => {
+    // eqii_code가 없다는 것은.. 등록된 mrp가 아님..
+    if (eqiiCode != undefined && eqiiCode != null && eqiiCode != '') {
+        // console.log(mrpCode);
+        const result = await axios.get(`/api/eq/eqirall/${eqiiCode}`);
+        eqirList.value = await result.data.data;
+    }
+    else {
+        eqirList.value = [];
+    }
+}
+
+
+// 현재 MRP 정보
+const eqiiInfo = defineModel('data');
+eqiiInfo.value = {
+    eqii_code: '',
+    inst_date: null,
+    chk_exp_date: null,
+    stat: '',
+    note: '',
+    inst_emp_code: 'EMP-10001'
+};
+
+// mrp 정보가 바뀌면 하위 자재 갱신하기..
+watch(() => eqiiInfo.value, (newVal) => {
+    // loadeqiiInfo();
+    eqiiCode.value = eqiiInfo.value.eqii_code;
+    // console.log(eqiiInfo.value);
+    loadeqirInfo(eqiiInfo.value.eqii_code);
+})
+
+// 현재 MRP 상세(하위 자재) 정보
+const eqirList = defineModel('subData');
+
+watch(() => eqirList.value, (newVal) => {
+    let idx = 1;
+    eqirList.value.forEach(element => {
+        element.eqir_code = idx++;
+    });
+})
+
 </script>
+
+<template>
+    <div>
+        <EqiiManageSearch v-model:data="eqiiInfo" @reset-list="resetData" @save-data="saveData"></EqiiManageSearch>
+        <EqiiManageTable v-model:subData="eqirList" v-model:eqii="eqiiCode" :dataKey="'eqir_code'" :columns="['eqir_code','eq_name', 'chk_start_date','chk_end_date','chk_detail','note','chk_result','eqi_stat']" title="설비점검항목"></EqiiManageTable>
+    </div>
+
+    <!-- 팝업 -->
+    
+    <!-- 팝업 끝 -->
+</template>

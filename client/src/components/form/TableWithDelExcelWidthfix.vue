@@ -3,11 +3,12 @@ import { ref, watch, defineEmits } from 'vue';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import { h } from 'vue';
 
 
 const emit = defineEmits(['row-click']);
 
-const selectedWDE = ref(null); // single일 경우
+const selectedWDE = ref([]); // single일 경우
 
 watch(selectedWDE, (newVal) => {
   if (newVal) {
@@ -34,26 +35,65 @@ const props = defineProps({
         default: ''
     },
     columns: {
-        type: Array,
-    }
+      type: Array,
+      default: () => []  // ✅ 기본값 빈 배열
+    },
+    scrollHeight: {             // 부모에서 설정할수있게 추가했습니다
+    type: String,
+    default: '400px'
+    },
+    tableStyle: {
+    type: String, 
+    default: 'width: 100%; table-layout: fixed;' 
+    }  
 });
+
+
 // 테이블에 보여줄 제품 데이터 (예시 데이터)
 const itemsWDE = ref([]);
 
-// 데이터가 바뀔 때마다 열 추출
+// 타입 검증과 값 존재 검증을 해서 값이 있을 때 데이터 추가..
+// 문제 있으면 바로 빈배열..
 watch(
-    () => props.data,
-    (newVal) => {
-        if (newVal?.length > 0) {
-            itemsWDE.value = Object.keys(newVal[0]);
-        } else {
-            itemsWDE.value = [];
-        }
-    },
-    { immediate: true }
+  () => props.data,
+  (newVal) => {
+    if(props.columns.length > 0) return; // columns가 있을 경우 watch 종료하고 존재하는 컬럼 사용..
+    
+    if (Array.isArray(newVal) && newVal.length > 0) {
+      itemsWDE.value = Object.keys(newVal[0]);
+    } else  {
+      itemsWDE.value = [];
+    }
+  },
+  { immediate: true }
 );
 
+// 컬럼이 바뀌면 해당 컬럼 목록으로 바꾸기..?
+watch(
+  () => props.columns,
+  (newVal) => {
+    if (newVal.length > 0 ) {
+      itemsWDE.value = newVal;
+    } else if(Array.isArray(props.data) && props.data.length > 0){
+      itemsWDE.value = Object.keys(props.data[0]);
+    }else {
+      itemsWDE.value = [];
+    }
+  },
+  { immediate: true }
+);
 
+// 특정 컬럼 클릭 이벤트 
+const prdrCodeTemplate = (rowData) => {
+  return h(
+    'a',
+    {
+      class: 'text-blue-600 hover:underline cursor-pointer',
+      onClick: () => emit('row-click', rowData)
+    },
+    rowData.prdr_code
+  );
+};
 </script>
 
 <template>
@@ -78,18 +118,11 @@ watch(
             :value="data"
             :dataKey="dataKey"
             showGridlines
-            scrollable
-            scrollHeight="400px"
+            :scrollHeight="scrollHeight"
+            :tableStyle="tableStyle"
             tableStyle="min-width: 50rem"
         >
             <Column selectionMode="single" headerStyle="width: 3rem" />
-
-            <Column
-                v-for="col in columns"
-                :key="col"
-                :field="col"
-                :header="mapper[col] ?? col"
-            />
 
             <!-- 동적 컬럼 생성 -->
             <Column
@@ -97,6 +130,7 @@ watch(
                 :key="item"
                 :field="item"
                 :header="mapper[item] ?? item"
+                :body="item === 'prdr_code' ? prdrCodeTemplate : undefined"
             />
         </DataTable>
     </div>

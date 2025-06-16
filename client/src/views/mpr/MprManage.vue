@@ -13,19 +13,22 @@ import MprMapper from '@/service/MprMapping.js';
 
 
 // 데이터 및 옵션
-const mprdata = ref([]); // 구매요청 데이터 불러올 때, 등록할 때 사용?
-const originalData = ref([]);   // 전체 원본 데이터
-
+const mprCode = ref({}); // 자재구매요청코드
+const reqDate = ref({});   // 요청일자
+const deadLine = ref({});   // 납기일자
+const mrpCode = ref({ });   // MRP 계획번호
+const mCode = ref({ value: "EMP-10001" });   // 요청자 (로그인 정보로 받아와야함, 현재 임시 사용)
 
 </script>
 
 <template>
-  <MprManageMain @search="handleSearch" @reset="resetSearch"/>
+  <MprManageMain 
+    :mprcode="mprCode"
+    :reqdate="reqDate"
+    :deadline="deadLine"
+    :mrpcode="mrpCode"
+    :mcode="mCode"
+  />
   <MprManageDetail/>
- 
-  <!-- 조건 미일치 메시지 -->
-  <div v-if="mprdata.length === 0" class="text-center text-gray-500 mt-4">
-    조건에 맞는 데이터가 없습니다.
-  </div>
 </template>
 

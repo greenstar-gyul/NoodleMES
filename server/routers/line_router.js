@@ -85,4 +85,15 @@ router.get('/detail', async (req, res) => {
   }
 });
 
+// 제품 목록 조회
+router.get('/product', async (req, res) => {
+  try {
+    const prodList = await lineService.selectProdList();
+    res.send(prodList);
+  } catch (err) {
+    console.error('❌ 제품 목록 조회 에러:', err);
+    res.status(500).send({ message: '제품 목록 조회 중 오류 발생' });
+  }
+});
+
 module.exports = router;

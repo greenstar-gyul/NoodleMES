@@ -41,10 +41,30 @@ router.get('/plan-list', async (req, res) => {
     }
 });
 
-// 제품 목록 불러오기
+// 제품 목록 불러오기(생산계획에 따른 제품 목록)
 router.get('/prodlist', async (req, res) => {
     try {
-        const result = await wkoService.getProdList();
+        const prdpCode = req.query.prdp_code || '';
+        const result = await wkoService.getProdList(prdpCode);
+        res.status(200).json({
+            "result_code": "SUCCESS",
+            "message": "성공",
+            "data": result
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            "result_code": "FAIL",
+            "message": "실패",
+            "data": err.message || "서버 오류가 발생했습니다."
+        });
+    }
+});
+
+// 제품 목록 전체 불러오기
+router.get('/prodall', async (req, res) => {
+    try {
+        const result = await wkoService.getProdAll();
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
@@ -83,6 +103,28 @@ router.get('/searchMonth', async (req, res) => {
 router.get('/search', async (req, res) => {
     try {
         const data = await wkoService.searchWKOByOptions(req.query);
+        res.status(200).json({
+            "result_code": "SUCCESS",
+            "message": "성공",
+            "data": data
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            "result_code": "FAIL",
+            "message": "실패",
+            "data": err.message || "서버 오류가 발생했습니다."
+        });
+    }
+});
+
+// 작업자 리스트 조회
+router.get('/emp-list', async (req, res) => {
+    try {
+        let empName = req.query.emp_name || '';
+        req.query.empName = empName.trim(); // 공백 제거
+
+        const data = await wkoService.findEmpList(empName);
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",

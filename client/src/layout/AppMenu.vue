@@ -33,6 +33,10 @@ const model = ref([
                         to: '/standard/line'
                     },
                     {
+                        label: '공정 흐름도 등록',
+                        to: '/standard/proc'
+                    },
+                    {
                         label: '설비 점검 항목 정보',
                         to: '/standard/eqspectype'
                     }
@@ -57,10 +61,10 @@ const model = ref([
                         label: '출고관리',
                         to: '/releaseForm/management'
                     },
-                    {
-                        label: '주문통계 및 보고서',
-                        to: '/releaseForm/management'
-                    }
+                    // {
+                    //     label: '주문통계 및 보고서',
+                    //     to: '/statistics/statis'
+                    // }
                 ]
             },
             {
@@ -137,17 +141,45 @@ const model = ref([
                 label: '자재',
                 items: [
                     {
-                        label: '자재구매요청목록',
-                        to: '/mpr/list'
-                    },
-                    {
-                        label: '자재구매요청관리',
+                        label: '자재구매 요청관리',
                         to: '/mpr/manage'
                     },
                     {
-                        label: 'Access Denied',
-                        to: '/auth/access'
-                    }
+                        label: '자재구매 요청목록',
+                        to: '/mpr/list'
+                    },
+                    {
+                        label: '자재구매 상세정보',
+                        to: '/mpr/detail'
+                    },
+                    {
+                        label: '발주서 관리',
+                        to: '/mpo/manage'
+                    },
+                    {
+                        label: '발주서 목록',
+                        to: '/mpo/list'
+                    },
+                    {
+                        label: '자재입고 관리',
+                        to: '/mat/iomanage'
+                    },
+                    {
+                        label: '자재입출고 내역조회',
+                        to: '/mat/iolist'
+                    },
+                    {
+                        label: '자재재고 목록조회',
+                        to: '/mat/inven'
+                    },
+                    {
+                        label: '완제품입출고 내역조회',
+                        to: '/product/iobnd'
+                    },
+                                        {
+                        label: '완제품재고 목록조회',
+                        to: '/product/list'
+                    },
                 ]
             },
             {

@@ -9,6 +9,8 @@ const mpr = require('./sqls/mpr.js');
 const qlt = require('./sqls/qlt.js');
 const line = require('./sqls/line.js');
 const wko = require('./sqls/wko.js');
+const prdr = require('./sqls/prdr.js');
+const proc = require('./sqls/proc.js');
 
 module.exports = {
   // 펼침연산자(spread operator, ...)을 활용해 객체의 필드를 다른 객체로 쉽게 복사
@@ -22,6 +24,8 @@ module.exports = {
   ...qlt,
   ...line,
   ...wko,
+  ...prdr,
+  ...proc,
 }
 
 /*

@@ -18,7 +18,7 @@ FROM prdp_tbl
 ORDER BY prdp_code`;
 
 // 오늘날짜를 기준으로 해당하는 달에 내용만 조회
-const getCurrentMonthPlans = `
+const getCurrentMonthPlan = `
 SELECT prdp_code
      , prdp_name 
      , prdp_date
@@ -28,9 +28,10 @@ SELECT prdp_code
      , reg
      , note
 FROM prdp_tbl
-WHERE YEAR(prdp_date) = YEAR(CURDATE())
-  AND MONTH(prdp_date) = MONTH(CURDATE())
-ORDER BY prdp_code`;
+WHERE YEAR(DATE_ADD(prdp_date, INTERVAL 9 HOUR)) = YEAR(CURDATE())
+  AND MONTH(DATE_ADD(prdp_date, INTERVAL 9 HOUR)) = MONTH(CURDATE())
+ORDER BY prdp_code;
+`;
 
 
 // 생산계획 상세 조회
@@ -67,12 +68,15 @@ JOIN    prod_tbl p ON ordd.prod_code = p.prod_code
 ORDER BY ord.ord_date
 `;
 
-// 설비 목록 조회
-const selectLineList = `
-SELECT line_code, 
-       line_name, 
-       is_used 
-FROM  line_tbl 
+// 라인 목록 조회
+const selectLineType = `
+SELECT line_code,
+       line_name,
+       comm_name(line_type) AS "line_type",
+       regdate_t,
+       note,
+       comm_name(is_used) AS "is_used"
+FROM line_tbl
 WHERE line_type = ?
 ORDER BY line_code
 `;
@@ -137,6 +141,7 @@ const updatePrdpDetail = `
   WHERE prdp_d_code = ?;
 `;
 
+// 제품 검색 
 const searchPrdp =  `
     SELECT  prdp_code
           , prdp_name 
@@ -181,18 +186,18 @@ FOR UPDATE;
 const selectPrdpDCodeForUpdate = `
 SELECT CONCAT('PRDP-D-', 
               LPAD(IFNULL(MAX(CAST(SUBSTRING(prdp_d_code, 9) AS UNSIGNED)), 0) + 1, 4, '0')
-             )
+             ) AS new_d_code
 FROM prdp_d_tbl
-FOR UPDATE;
+FOR UPDATE
 `;
 
 
 module.exports = {
     selectPrdpList,
-    getCurrentMonthPlans,
+    getCurrentMonthPlan,
     selectPrdpDOne,
     selectOrdList,
-    selectLineList,
+    selectLineType,
     selectProdList,
     searchPrdp,
     insertPrdp,

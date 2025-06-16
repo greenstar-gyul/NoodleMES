@@ -31,7 +31,6 @@ const insertProductAndBomTx = async (data) => {
       prod_code,
       productData.prod_name,
       productData.prod_type,
-      productData.prod_weight,
       productData.unit,
       productData.spec,
       productData.is_used,

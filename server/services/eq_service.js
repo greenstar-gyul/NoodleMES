@@ -14,6 +14,27 @@ const showEqii = async () => {
   let list = await mariadb.query("selectEqiiList")
                           .catch(err => console.log(err));
   return list;
+};
+
+// 설비 점검 기준 항목 전체 조회
+const showEqiType = async () => {
+  let list = await mariadb.query("selectEqiType")
+                          .catch(err => console.log(err));
+  return list;
+};
+
+
+// 설비 점검 지시서 조회 팝업 (eqir_code로 조회)
+const searchEqiType = async (eqType) => {
+  let list = await mariadb.query("selectEqitList", [eqType])
+                          .catch(err => console.log(err));
+  return list;
+}
+
+const showEqir = async (eqirCode) => {
+  let list = await mariadb.query("selectEqirList", [eqirCode])
+                          .catch(err => console.log(err));
+  return list;
 }
 
 const searchEquipment = async (searchParams) => {
@@ -101,6 +122,12 @@ const deleteEq = async (eqCode) => {
   return result;
 };
 
+const selectEqiiStatus = async (eqiiCode) => {
+  const result = await mariadb.query("selectEqiistatus", [eqiiCode])
+                              .catch(err => console.log(err));
+  return result && result.length > 0 ? result[0].stat : null;
+};
+
 const deleteMultiple = async (eqCodes) => {
   const conn = await mariadb.connectionPool.getConnection();
 
@@ -134,5 +161,9 @@ module.exports = {
     updateEq,
     deleteEq,
     deleteMultiple,
-    showEqii
+    showEqii,
+    showEqir,
+    showEqiType,
+    searchEqiType,
+    selectEqiiStatus
 };

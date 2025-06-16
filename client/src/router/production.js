@@ -10,14 +10,13 @@ export default [
         component: () => import('@/views/production/ProductionList.vue')
     },
     {
-        path: '/performance/detail',
-        name: 'performanceDetail',
-        component: () => import('../views/performance/performanceDetail.vue')
-    },
-    {
         path: '/performance/list',
         name: 'performanceList',
         component: () => import('../views/performance/performanceList.vue')
     },
-    
+    // {
+    //     path: '/performance/detail/:prdr_code',
+    //     name: 'PerformanceDetail',
+    //     component: () => import('@/views/performance/PerformanceDetail.vue')
+    // }
 ];

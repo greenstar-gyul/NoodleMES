@@ -5,6 +5,7 @@ import TableWDE from '@/components/form/TableWithDelExcel.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import bomMapper from '@/service/BOMMapping.js';
 import matMapping from '@/service/MatMapping.js';
+import TableWithDelExcelFix from '../../../components/form/TableWithDelExcelFix.vue';
 
 const emit = defineEmits(['update:productRows','rowSelected' ,'rowSelecteds']);
 
@@ -105,40 +106,27 @@ defineProps({
   }
 });
 
-const unitCodeMap = {
-  'KG': 'h1',
-  'T': 'h2',
-  'L': 'h3',
-  'EA': 'h4',
-  'BOX': 'h5',
-  'G': 'h6',
-  'MM': 'h7',
-  '%': 'h8',
-  'CM': 'h9'
-};
+const unitOptions = [
+  { label: 'KG', value: 'h1' },
+  { label: 'T', value: 'h2' },
+  { label: 'L', value: 'h3' },
+  { label: 'EA', value: 'h4' },
+  { label: 'BOX', value: 'h5' },
+  { label: 'G', value: 'h6' },
+  { label: 'MM', value: 'h7' },
+  { label: '%', value: 'h8' },
+  { label: 'CM', value: 'h9' }
+];
 
-const convertUnitToCode = (row) => {
-  const input = row.unit?.trim().toUpperCase(); // 대소문자 무시하고 trim
-  const code = unitCodeMap[input];
-  if (code) {
-    row.unit = code;  // ✅ 자동으로 코드값 대입
-  }
-};
 
 </script>
 
 <template>
   <div class="space-y-4" style="width: 60%">
     <!-- 제품 검색 결과 (고정 영역) -->
-    <TableWDE
-      :data="data"
-      :dataKey="'bom_code'"
-      :mapper="bomMapper"
-      :columns="['bom_code', 'prod_code', 'prod_name', 'edate', 'regdate', 'is_used']"
-      title="검색결과"
-      :scrollHeight="'200px'"
-      @row-click="handleProductRowClick"
-    />
+  <TableWithDelExcelFix :data="data" :dataKey="'bom_code'" :mapper="bomMapper"
+      :columns="['bom_code', 'prod_code', 'prod_name', 'regdate']" title="검색결과" scrollHeight="200px"
+       @row-click="handleProductRowClick" />
 
     <!-- 자재 입력 테이블 -->
     <div class="card flex flex-col gap-4">
@@ -155,7 +143,7 @@ const convertUnitToCode = (row) => {
         :value="productRows"
         @rowSelect="onRowSelect"
         scrollable
-        scrollHeight="250px"
+        scrollHeight="200px"
         showGridlines
         dataKey="id"
         class="w-full"
@@ -191,9 +179,10 @@ const convertUnitToCode = (row) => {
         </Column>
 
         <Column field="unit" header="단위" style="width: 100px">
-          <template #body="slotProps">
-            <InputText v-model="slotProps.data.unit" style="width: 100%" @blur="() => convertUnitToCode(slotProps.data)" />
-          </template>
+            <template #body="slotProps">
+                <Dropdown v-model="slotProps.data.unit" :options="unitOptions" optionLabel="label" optionValue="value"
+                    placeholder="단위 선택" class="w-full" />
+            </template>
         </Column>
 
         <Column field="loss_rate" header="손실율(%)" style="width: 120px">

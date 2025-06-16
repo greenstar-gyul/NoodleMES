@@ -35,27 +35,39 @@ WHERE  mpr_code LIKE CONCAT('%', ?, '%')
 ORDER BY mpr_code
 `;
 
+
+
+`
+SELECT CONCAT('MPR-D-', 
+LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_d_code, 9) AS UNSIGNED)), 0) + 1, 3, '0')
+) AS mpr_d_code
+FROM mpr_d_tbl
+FOR UPDATE
+`
+
 // 자재구매요청 (MPR) 등록
 const insertMpr =
 `
-INSERT INTO mpr_tbl (mpr_code
-                   , redate
-                   , deadline
-                   , mrp_code
-                   , mcode )
+INSERT INTO mpr_tbl (
+mpr_code
+, redate
+, deadline
+, mrp_code
+, mcode )
 VALUES (?, ?, ?, ?, ?)
 `;
 
 // 자재구매요청상세(MPR Detail) 등록
 const insertMprD =
 `
-INSERT INTO mpr_d_tbl (mpr_d_code
-                     , mat_code
-                     , req_qtt
-                     , unit
-                     , mpr_code
-                     , mat_sup
-                     , note )
+INSERT INTO mpr_d_tbl (
+mpr_d_code
+, mat_code
+, req_qtt
+, unit
+, mpr_code
+, mat_sup
+, note )
 VALUES (?, ?, ?, ?, ?, ? , ?)
 `;
 
@@ -68,15 +80,50 @@ SELECT mprd.mat_code
     ,  mprd.unit
     ,  mprd.mat_sup
 FROM   mpr_d_tbl mprd
-       LEFT OUTER JOIN mat_tbl mat
-       ON mprd.mat_code = mat.mat_code
-WHERE  mpr_code = ?;
+LEFT OUTER JOIN mat_tbl mat
+ON mprd.mat_code = mat.mat_code
+WHERE  mprd.mpr_code = ?;
 `;
 
+// 자재구매요청 코드 생성
+const selectMprCodeForUpdate =
+`
+SELECT CONCAT('MPR-', 
+              LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_code, 7) AS UNSIGNED)), 0) + 1, 3, '0')
+             ) AS mpr_code
+FROM mpr_tbl
+FOR UPDATE
+`;
+
+// 자재구매요청 상세 코드 생성
+const selectMprDCodeForUpdate =
+`
+SELECT CONCAT('MPR-D-', 
+              LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_d_code, 9) AS UNSIGNED)), 0) + 1, 3, '0')
+             ) AS mpr_d_code
+FROM mpr_d_tbl
+FOR UPDATE
+`;
+
+// 주문 삭제
+const deleteMpr = `
+DELETE FROM mpr_tbl WHERE mpr_code = ?
+`;
+
+// 주문 상세 삭제
+const deleteMprDetail = `
+DELETE FROM mpr_d_tbl WHERE mpr_code = ?
+`;
+
+
 module.exports = {
-    selectAllMprList,
-    selectSearchMprList,
-    insertMpr,
-    insertMprD,
-    selectMprDList,
+  selectAllMprList,
+  selectSearchMprList,
+  insertMpr,
+  insertMprD,
+  selectMprDList,
+  selectMprCodeForUpdate,
+  selectMprDCodeForUpdate,
+  deleteMpr,
+  deleteMprDetail,
 }

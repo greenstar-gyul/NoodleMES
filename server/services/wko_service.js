@@ -15,18 +15,12 @@ const codeMapper = {
     'cm': 'h9',
     'N': 'ha',
   },
-  '제품타입': '0T',
-  '0T': {
-    '일반': 'normal',
-    '긴급': 'urgent',
-    '특별': 'special',
-  },
-  '작업상태': '0S',
-  '0S': {
-    '대기': 'waiting',
-    '진행중': 'working',
-    '완료': 'completed',
-    '중단': 'stopped',
+  '작업상태': '0V',
+  '0V': {
+    '대기': 'v4',
+    '진행중': 'v1',
+    '완료': 'v2',
+    '중단': 'v3',
   }
 }
 
@@ -76,6 +70,15 @@ const findProdProcesses = async (prodCode) => {
 };
 
 /**
+ * 작업자 목록 조회
+ */
+const findEmpList = async (empName) => {
+  const list = await mariadb.query('selectEMPList', [empName])
+    .catch(err => console.log(err));
+  return list;
+};
+
+/**
  * 작업지시서 등록 with 트랜잭션
  */
 const insertWKOTx = async (data) => {
@@ -89,18 +92,16 @@ const insertWKOTx = async (data) => {
     const wkoCode = wkoCodeRes[0].wko_code;
     
     // 코드 변환
-    const prodType = convertLabelToCode(data.prod_type, '제품타입');
-    const stat = convertLabelToCode(data.stat, '작업상태');
+    // const stat = convertLabelToCode(data.stat, '작업상태');
     
     const wkoData = [
       wkoCode,
-      data.start_date,
-      prodType,
-      stat,
-      data.note,
-      data.prdp_code,
+      data.note || null,
+      data.prdp_code || null,
       data.prod_code,
-      data.emp_code
+      data.emp_code || null,
+      data.wko_qtt,
+      data.reg_code,
     ];
     
     const result = await mariadb.queryConn(conn, "insertWKO", wkoData);
@@ -123,14 +124,12 @@ const insertWKOTx = async (data) => {
  */
 const modifyWKO = async (wkoCode, data) => {
   // 코드 변환
-  const prodType = convertLabelToCode(data.prod_type, '제품타입');
-  const stat = convertLabelToCode(data.stat, '작업상태');
+  // const prodType = convertLabelToCode(data.prod_type, '제품타입');
+  // const stat = convertLabelToCode(data.stat, '작업상태');
   
   const updateData = [
-    data.start_date,
-    prodType,
-    stat,
     data.note,
+    data.wko_qtt,
     wkoCode
   ];
   
@@ -149,9 +148,18 @@ const deleteWKO = async (wkoCode) => {
 };
 
 /**
- * 제품 목록 조회
+ * 생산 계획에 따른 제품 목록 조회
  */
-const getProdList = async () => {
+const getProdList = async (prdpCode) => {
+  const list = await mariadb.query('selectProdList', [prdpCode, prdpCode, prdpCode])
+    .catch(err => console.log(err));
+  return list;
+};
+
+/**
+ * 전체 제품 목록 조회
+ */
+const getProdAll = async () => {
   const list = await mariadb.query('selectProdAll')
     .catch(err => console.log(err));
   return list;
@@ -203,7 +211,7 @@ const searchWKOMonth = async () => {
 }
 
 /**
- * 데이터 코드로 변환 : 코드명 -> 코드값
+ * 데이터 코드로 변환 : 코드명 -> 코드값(미사용)
  */
 const convertLabelToCode = (label, group = null) => {
     if (group == null) {
@@ -226,4 +234,6 @@ module.exports = {
   getProdList,
   searchWKOByOptions,
   searchWKOMonth,
+  findEmpList,
+  getProdAll,
 };

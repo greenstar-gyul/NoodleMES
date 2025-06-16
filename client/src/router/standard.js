@@ -14,4 +14,9 @@ export default [
         name: 'stdLine',
         component: () => import('@/views/standard/Line.vue')
     },
+    {
+        path: '/standard/proc',
+        name: 'stdProc',
+        component: () => import('@/views/standard/process.vue')
+    },
 ];

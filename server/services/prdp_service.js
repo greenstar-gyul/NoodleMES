@@ -14,28 +14,34 @@ const findAll = async () => {
                           .catch(err => console.log(err));
   return list;
 };
+
 // 오늘기준 해당하는달에 대한 조회
 const selectMonth = async () => {
-  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
-  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
-  let list = await mariadb.query("getCurrentMonthPlans")
-                          .catch(err => console.log(err));
+  let list = await mariadb.query("getCurrentMonthPlan")
+                          .catch(err => {
+                            console.error('❌ 쿼리 실패:', err);
+                            return []; // ✅ 빈 배열 반환
+                          });
   return list;
 };
+
 // ✅ 서비스 함수
 const findOrder = async () => {
   const list = await mariadb.query("selectOrdList") // ← 이 이름 정확히 확인!
     .catch(err => console.log(err));
   return list;
 };
+
 // 생산라인 목록 조회 by 제품유형
 const findLineByType = async (lineType) => {
-  return await mariadb.query("selectLineList", [lineType])
-    .catch(err => {
+  console.log("🔍 전달된 lineType:", lineType); // 예: 's1'
+  return await mariadb.query("selectLineType", [lineType])
+    .catch((err) => {
       console.error("🔴 라인 조회 실패:", err);
       throw err;
     });
 };
+
 // 제품 조건 없이 전체조회
 const findProd = async () => {
   // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
@@ -56,6 +62,7 @@ const findDetail = async (prdpCode) => {
   }
 };
 
+// 검색 조건 
 const searchPrdp = async (params) => {
   // null이나 undefined도 체크해서 null로 맞춰주기
   const bindParams = [

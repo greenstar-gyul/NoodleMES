@@ -112,6 +112,85 @@ const findProductByName = async (name) => {
   return result;
 };
 
+// 출고 요청 전체 조회
+const selectReleaseList = async () => {
+  const result = await mariadb.query("selectReleaseList").catch(err => console.log(err));
+  return result;
+};
+
+//출고 요청 등록
+const insertReleaseTx = async (data) => {
+  const conn = await mariadb.connectionPool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // 출고요청 코드 생성
+    const codeRes = await mariadb.queryConn(conn, "selectOutReqCodeForUpdate");
+    const outReqCode = codeRes[0].out_req_code;
+
+    data.releaseData.out_req_code = outReqCode;
+
+    const headerCols = ['out_req_code', 'out_req_date', 'ord_predict_date', 'note', 'ord_code', 'mcode', 'client_code'];
+    const detailCols = ['out_req_d_code', 'out_req_d_amount', 'prod_type', 'ord_amount', 'out_req_code', 'prod_code'];
+
+    // 출고요청 헤더 insert
+    await mariadb.queryConn(conn, "insertOutReq", convertObjToAry(data.releaseData, headerCols));
+
+    // 출고요청 상세 insert
+    for (const row of data.detailData) {
+      const detailCodeRes = await mariadb.queryConn(conn, "selectOutReqDCodeForUpdate");
+      const outReqDCode = detailCodeRes[0].out_req_d_code;
+
+      row.out_req_code = outReqCode;
+      row.out_req_d_code = outReqDCode;
+
+      await mariadb.queryConn(conn, "insertOutReqDetail", convertObjToAry(row, detailCols));
+    }
+
+    await conn.commit();
+    return { success: true };
+  } catch (err) {
+    await conn.rollback();
+    console.error("출고요청 등록 실패:", err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+// 출고 등록
+const insertFinalRelease = async (release) => {
+  // 출고 상태 계산
+  let stat = "";
+  const { req_qtt, outbnd_qtt } = release;
+
+  if (outbnd_qtt === 0) {
+    stat = "출고대기";
+  } else if (outbnd_qtt < req_qtt) {
+    stat = "부분출고";
+  } else if (outbnd_qtt === req_qtt) {
+    stat = "출고완료";
+  }
+
+  const values = [
+    release.poutbnd_code,
+    req_qtt,
+    outbnd_qtt,
+    release.deadline,
+    stat,
+    release.outbound_request_code,
+    release.lot_num,
+    release.prod_code,
+    release.client_code,
+    release.mcode
+  ];
+
+  const result = await mariadb.query("insertRelease", values).catch(err => console.log(err));
+  return result;
+};
+
+
 // 주문 등록
 const insertOrder = async (orderData) => {
   // orderData는 ord_code부터 client_code까지 배열 형태로 전달됨
@@ -182,11 +261,12 @@ const insertOrderTx = async (data) => {
   }
 };
 
-// 주문 삭제 (트랜잭션으로 처리 권장)
+// 주문 삭제 (트랜잭션)
 const deleteOrderTx = async (ordCode) => {
   const conn = await mariadb.connectionPool.getConnection();
   try {
     await conn.beginTransaction();
+    // 상세 먼저 삭제 → 마스터 삭제
     await mariadb.queryConn(conn, "deleteOrderDetail", [ordCode]);
     await mariadb.queryConn(conn, "deleteOrder", [ordCode]);
     await conn.commit();
@@ -199,6 +279,48 @@ const deleteOrderTx = async (ordCode) => {
     conn.release();
   }
 };
+
+// 출고 삭제 (트랜잭션)
+const deleteReleaseTx = async (outReqCode) => {
+  const conn = await mariadb.connectionPool.getConnection();
+
+  try {
+    await conn.beginTransaction();    
+    await mariadb.queryConn(conn, "deleteReleaseDetail", [outReqCode]);
+    await mariadb.queryConn(conn, "deleteRelease", [outReqCode]);
+    await conn.commit();
+    return { success: true };
+  } catch (err) {
+    await conn.rollback();
+    console.error("삭제 실패:", err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+// 출고 상태 목록 조회
+const findReleaseStatuses = async () => {
+  const result = await mariadb.query("selectReleaseStatuses")
+    .catch(err => console.log(err));
+  return result;
+};
+
+// 출고 데이터 목록 조회
+const findReleaseList = async () => {
+  const result = await mariadb.query("selectReleaseList")
+    .catch(err => console.log(err));
+  return result;
+};
+
+// 출고 상태 업데이트
+const updateReleaseStat = async (stat, poutbnd_code) => {
+  const result = await mariadb.query("updateReleaseStatus", [stat, poutbnd_code])
+    .catch(err => console.log(err));
+  return result;
+};
+
+
 
 module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
@@ -213,5 +335,13 @@ module.exports ={
     insertOrder,
     insertOrderDetail,
     insertOrderTx,
-    deleteOrderTx
+    deleteOrderTx,
+    selectReleaseList,
+    selectReleaseDetailList,
+    insertReleaseTx,
+    deleteReleaseTx,
+    findReleaseStatuses,
+    findReleaseList,
+    updateReleaseStat,
+    insertFinalRelease
 };

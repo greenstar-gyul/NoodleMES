@@ -25,6 +25,33 @@ SELECT eqii_code
 FROM   eqii_tbl
 `;
 
+const BASE_QUERY_FOR_EQIR = `
+SELECT r.eqir_code
+       ,e.eq_name
+       ,r.chk_start_date
+       ,r.chk_end_date
+       ,r.chk_detail
+       ,r.chk_result
+       ,r.eqi_stat
+       ,COALESCE(r.note, '내용없음')
+FROM   eqir_tbl as r
+LEFT JOIN eq_tbl as e
+ON r.eq_code = e.eq_code
+`;
+
+const BASE_QUERY_FOR_EQIR_BY_EQIT = `
+SELECT c.eq_type
+       ,c.chk_text
+       ,c.chk_mth
+       ,c.range_top
+       ,c.range_bot
+       ,c.unit
+       ,c.jdg_mth
+FROM eqi_type_tbl AS c
+LEFT JOIN eq_tbl AS e
+ON e.eq_type = c.eq_type
+`
+
 // 파라미터별 검색
 function buildSearch(searchParams) {
   const hasCondition = searchParams &&
@@ -90,30 +117,120 @@ WHERE eq_type = ?
 FOR UPDATE
 `;
 
+const insertEq = `
+INSERT INTO eq_tbl
+(eq_code
+,eq_name
+,eq_model
+,eq_maker
+,capacity
+,stat
+,eq_make_date
+,bring_date
+,take_date
+,eq_pos
+,eq_type
+,is_used)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
+
+const updateEq = `
+UPDATE eq_tbl 
+SET eq_name = ?
+    ,eq_model = ?
+    ,eq_maker = ?
+    ,capacity = ?
+    ,stat = ?
+    ,eq_make_date = ?
+    ,bring_date = ?
+    ,take_date = ?
+    ,eq_pos = ?
+    ,eq_type = ?
+    ,is_used = ?
+WHERE eq_code = ?
+`;
+
+const selectEqiistatus = `
+SELECT stat
+FROM eqii_tbl
+WHERE eqii_code = ?
+`;
+
+const insertEqii = `
+INSERT INTO eqii_tbl
+(eqii_code
+ ,inst_date
+ ,stat
+ ,note
+ ,inst_emp_code)
+ VALUES (?
+         ,?
+         ,?
+         ,?
+         ,?)
+`;
+
+const updateEqir = `
+UPDATE eqir_tbl
+SET inst_date = ?
+    ,stat = ?
+    ,note = ?
+    ,inst_emp_code = ?
+WHERE eqii_code = ?
+`;
+
+const insertEqir = `
+INSERT INTO eqir_tbl
+(eqir_code
+ ,chk_start_date
+ ,chk_end_date
+ ,chk_detail
+ ,chk_result
+ ,eqi_stat
+ ,note)
+ VALUES (?
+         ,?
+         ,?
+         ,?
+         ,?)
+`;
+
+const updateEqii = `
+UPDATE eqir_tbl
+SET chk_start_date = ?
+    ,chk_end_date = ?
+    ,chk_detail = ?
+    ,chk_result = ?
+    ,eqi_stat = ?
+    ,note = ?
+WHERE eqir_code = ?
+`;
+
 module.exports = {
   // 전체 조회 (첫 화면용)
   selectEqList: BASE_QUERY + ' ORDER BY eq_code',
 
   selectEqiiList: BASE_QUERY_FOR_EQII + ' ORDER BY eqii_code',
 
+  selectEqirList: BASE_QUERY_FOR_EQIR + ' WHERE eqii_code = ?',
+
+  selectEqiType : BASE_QUERY_FOR_EQIR_BY_EQIT,
+
+  selectEqitList: BASE_QUERY_FOR_EQIR_BY_EQIT + ' WHERE e.eq_type = ?',
+
   // 동적 검색 (검색 조건 유무에 따라 전체, 조건부 검색)
   buildSearch: buildSearch,
+
+  selectEqiistatus: selectEqiistatus,
 
   // 기본 조회
   selectEqByCode: BASE_QUERY + ' WHERE eq_code = ?',
 
   // 설비 등록 쿼리
-  insertEq: `
-    INSERT INTO eq_tbl (eq_code, eq_name, eq_model, eq_maker, capacity, stat, eq_make_date, bring_date, take_date, eq_pos, eq_type, is_used)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `,
+  insertEq: insertEq,
 
   // 설비 수정 쿼리
-  updateEq: `
-    UPDATE eq_tbl 
-    SET eq_name = ?, eq_model = ?, eq_maker = ?, capacity = ?, stat = ?, eq_make_date = ?, bring_date = ?, take_date = ?, eq_pos = ?, eq_type = ?, is_used = ?
-    WHERE eq_code = ?
-  `,
+  updateEq: updateEq,
 
   // 설비 삭제 쿼리
   deleteEq: `
@@ -121,5 +238,9 @@ module.exports = {
     WHERE eq_code = ?
   `,
 
-  selectEqCodeForUpdate: selectEqCodeForUpdate
+  selectEqCodeForUpdate: selectEqCodeForUpdate,
+  insertEqii: insertEqii,
+  updateEqii: updateEqii,
+  insertEqir: insertEqir,
+  updateEqir: updateEqir
 };

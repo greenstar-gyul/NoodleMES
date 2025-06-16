@@ -1,6 +1,6 @@
 <script setup>
 import { ref,defineProps } from 'vue';
-import TableWithExcel from '@/components/form/TableWithExcel.vue';
+import TableWithDelExcelWidthfix from '@/components/form/TableWithDelExcelWidthfix.vue';
 
 defineProps({
   data: Array
@@ -8,5 +8,5 @@ defineProps({
 </script>
 
 <template>
-  <TableWithExcel :data="data" :dataKey="'prdr_code'" title="검색결과" />
+  <TableWithDelExcelWidthfix :data="data" :dataKey="'prdr_code'" title="검색결과" class="mt-5"/>
 </template>
