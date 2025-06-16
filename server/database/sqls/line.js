@@ -113,6 +113,17 @@ LEFT JOIN po_tbl po ON pp.po_code = po.po_code
 LEFT JOIN eq_tbl eq ON ld.eq_code = eq.eq_code
 WHERE ld.line_code = ?
 `;
+
+// 제품 목록 조회
+const selectProdList = 
+`SELECT prod_code,
+        prod_name,
+        comm_name(spec) AS "spec",
+        comm_name(unit) AS "unit",
+        comm_name(com_value) AS "com_value"
+FROM prod_tbl
+ORDER BY prod_code`;
+
 module.exports = {
     selectLineList,
     searchLineList,
@@ -123,6 +134,6 @@ module.exports = {
     selectLineCodeForUpdate,
     selectLECodeForUpdate,
     selectLineOne,
-    selectLineDetail
-
+    selectLineDetail,
+    selectProdList
 };

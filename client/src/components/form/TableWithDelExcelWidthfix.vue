@@ -3,6 +3,7 @@ import { ref, watch, defineEmits } from 'vue';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import { h } from 'vue';
 
 
 const emit = defineEmits(['row-click']);
@@ -81,6 +82,18 @@ watch(
   },
   { immediate: true }
 );
+
+// 특정 컬럼 클릭 이벤트 
+const prdrCodeTemplate = (rowData) => {
+  return h(
+    'a',
+    {
+      class: 'text-blue-600 hover:underline cursor-pointer',
+      onClick: () => emit('row-click', rowData)
+    },
+    rowData.prdr_code
+  );
+};
 </script>
 
 <template>
@@ -117,6 +130,7 @@ watch(
                 :key="item"
                 :field="item"
                 :header="mapper[item] ?? item"
+                :body="item === 'prdr_code' ? prdrCodeTemplate : undefined"
             />
         </DataTable>
     </div>
