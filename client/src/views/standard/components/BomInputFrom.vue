@@ -33,7 +33,6 @@ const prod_type = ref('')
 const com_value = ref('')
 const unit = ref('')
 const spec = ref('')
-const prod_weight = ref('')
 const is_used = ref('f2') // 기본값: 사용함
 const edate = ref('')
 const regdate = ref(today)
@@ -50,10 +49,23 @@ const isUsedChecked = computed({
 // ✅ 자동 옵션 조정
 watch([prod_type, com_value], ([type, value]) => {
   if (type === 'i2') {
-    specOptions.value = [{ label: '-', value: '-' }]
     unitOptions.value = [{ label: 'EA', value: 'h4' }]
-    spec.value = '-'
     unit.value = 'h4'
+
+    if (value === 'J1') {
+      specOptions.value = [{ label: '120g', value: 'z1' }]
+      spec.value = 'z1'
+    } else if (value === 'J2') {
+      specOptions.value = [{ label: '110g', value: 'z2' }]
+      spec.value = 'z2'
+    } else if (value === 'J3') {
+      specOptions.value = [{ label: '65g', value: 'z3' }]
+      spec.value = 'z3'
+    } else {
+      specOptions.value = []
+      spec.value = ''
+    }
+
   } else if (type === 'i1') {
     unit.value = 'h5'
     unitOptions.value = [{ label: 'BOX', value: 'h5' }]
@@ -78,6 +90,7 @@ watch([prod_type, com_value], ([type, value]) => {
       spec.value = 'y1'
     } else {
       specOptions.value = []
+      spec.value = ''
     }
   }
 })
@@ -92,7 +105,6 @@ const setFormData = (data) => {
   com_value.value = data.com_value ?? ''
   unit.value = data.unit ?? ''
   spec.value = data.spec ?? ''
-  prod_weight.value = data.prod_weight ?? ''
   is_used.value = data.is_used ?? 'f2'
   edate.value = data.edate ?? ''
   regdate.value = data.regdate ?? ''
@@ -107,7 +119,6 @@ const getFormData = () => ({
   com_value: com_value.value,
   unit: unit.value,
   spec: spec.value,
-  prod_weight: prod_weight.value,
   is_used: is_used.value,
   edate: edate.value,
   regdate: regdate.value,
@@ -122,7 +133,6 @@ const resetForm = () => {
   com_value.value = ''
   unit.value = ''
   spec.value = ''
-  prod_weight.value = ''
   is_used.value = 'f2'
   edate.value = ''
   regdate.value = today
@@ -165,14 +175,13 @@ defineExpose({ setFormData, getFormData, resetForm  })
 
     <!-- 총중량 / 유통기한 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <LabeledInput v-model="prod_weight" label="총중량" />
       <LabeledInput v-model="edate" label="유통기한(일)" />
+      <LabeledDatePicker v-model="regdate" label="등록일자" placeholder="자동으로 입력" :disabled="true" />
     </div>
 
     <!-- 등록일자 / 사용여부 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <LabeledDatePicker v-model="regdate" label="등록일자" placeholder="자동으로 입력" :disabled="true" />
-      <LabeledCheckbox label="사용안함" v-model="is_used" />
+      <LabeledCheckbox label="사용안함" v-model="isUsedChecked" />
     </div>
 
     <!-- 비고 -->

@@ -7,7 +7,6 @@ const insertProduct = `
  INSERT INTO prod_tbl (prod_code,
                        prod_name, 
                        prod_type,
-                       prod_weight,
                        unit, 
                        spec, 
                        is_used,
@@ -16,7 +15,7 @@ const insertProduct = `
                        note,
                        com_value,
                        reg)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
 // BOM등록
@@ -51,7 +50,7 @@ const selectBomList = `
            p.prod_name,
            p.edate,
            DATE_FORMAT(b.regdate, '%Y-%m-%d') AS regdate,
-           b.is_used
+           comm_name(b.is_used) AS "is_used"
     FROM   bom_tbl b
     JOIN prod_tbl p ON b.prod_code = p.prod_code
     ORDER BY b.bom_code DESC
@@ -62,7 +61,6 @@ const prodSelectOne = `
     SELECT p.prod_code,
            p.prod_name,
            p.prod_type,
-           p.prod_weight,
            p.unit,
            p.spec,
            p.is_used,
