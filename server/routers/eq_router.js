@@ -87,6 +87,17 @@ router.get('/eqiiall', async (req, res) => {
     }
 })
 
+router.get('/eqii/statuses/:code', async (req, res) => {
+    try {
+        let eqiiCode = req.params.code;
+        let eqiiStatus = await eqService.selectEqiiStatus(eqiiCode);
+        res.send(eqiiStatus);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: '조회 실패' });
+    }
+})
+
 // 점검결과 조회
 router.get('/eqirall/:code', async (req, res) => {
     try {
@@ -99,11 +110,22 @@ router.get('/eqirall/:code', async (req, res) => {
     }
 })
 
+// 점검 기준 조회
+router.get('/eqitype', async (req, res) => {
+    try {
+        let eqiTypeList = await eqService.showEqiType();
+        res.send(eqiTypeList);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: '조회 실패' });
+    }
+})
+
 // 점검결과 조회
 router.get('/eqitype/:type', async (req, res) => {
     try {
         let Type = req.params.type;
-        let TypeList = await eqService.showEqiType(Type);
+        let TypeList = await eqService.searchEqiType(Type);
         res.send(TypeList);
     } catch (error) {
         console.log(error);
