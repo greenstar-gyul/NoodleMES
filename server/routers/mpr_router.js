@@ -60,6 +60,25 @@ router.get('/:mprCode/details', async (req, res) => {
     }
 });
 
+// MRP 목록 조회
+router.get('/mrp', async (req, res) => {
+    try {
+        const result = await mprService.findAllMRP();
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        console.error("mrp 목록 조회 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
+
 // 등록
 router.post('/', async (req, res) => {
   const { mpr, details } = req.body;

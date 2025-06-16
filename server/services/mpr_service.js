@@ -38,6 +38,13 @@ const findMprDetails = async (mprCode) => {
 };
 // end of findMprDetail
 
+// MRP 전체 조회
+const findAllMRP = async () => {
+  const result = await mariadb.query("selectMRPList")
+    .catch(err => console.log(err));
+  return result;
+};
+// end of findAllMRP
 
 // MPR 등록
 const insertMpr = async (mprData) => {
@@ -117,11 +124,17 @@ const deleteMpr = async (mprCode) => {
 // end of deleteMpr
 
 module.exports ={
+    /* 조회 */ 
     findAllMpr,
     findSearchMpr,
     findMprDetails,
+    findAllMRP, 
+
+    /* 등록 */
     insertMpr,
     insertMprDetail,
     insertMprAll,
+    
+    /* 삭제 */
     deleteMpr,
 };
