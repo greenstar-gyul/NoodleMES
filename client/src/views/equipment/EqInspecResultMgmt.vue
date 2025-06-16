@@ -41,7 +41,7 @@
     :dataKey="'eqii_code'"></SinglePopup>
   <SinglePopup v-model:visible="dialogVisible2" :items="filteredEqiilist" @confirm="handleInspectionSelect"
     :mapper="eqiiMapper" :dataKey="'eqii_code'" :title="`점검지시서 선택 (${eq_name || '설비 미선택'})`" />
-</template>
+</template> 
 
 <script setup>
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
