@@ -12,6 +12,8 @@ import LabeledTextarea from '@/components/common/LabeledTextarea.vue'
 import SinglePopup from '@/components/popup/SinglePopup.vue'
 import productMapping from '../../../service/ProductMapping'
 
+const emit = defineEmits(['register', 'product-selected'])
+
 // 옵션 정의
 const lineTypeOptions = [
   { label: '봉지라면', value: 's1' },
@@ -109,9 +111,14 @@ const handleProductClick = () => {
 
 // 👉 팝업에서 제품 선택 시
 const handleOrderConfirm = (selected) => {
-  prod_code.value = selected.prod_code
-  prodVisible.value = false
-}
+  console.log('✅ 선택된 제품:', selected); // ✅ 확인용 로그
+  prod_code.value = selected.prod_code;
+  prodVisible.value = false;
+
+  emit('product-selected', selected); // 부모로 emit
+};
+
+
 </script>
 
 <template>

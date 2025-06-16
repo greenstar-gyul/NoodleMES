@@ -12,34 +12,34 @@ const tableRef = ref()
 const formRef = ref()
 
 // 목록 데이터
-const bomList = ref([])
+const procList = ref([])
 
 // 🔄 페이지 최초 진입 시 전체 목록 조회
 onMounted(() => {
-  fetchBomList()
+  fetchprocList()
 })
 
 // ✅ 기본 목록 조회 (/list)
-const fetchBomList = async () => {
+const fetchprocList = async () => {
   try {
-    const res = await axios.get('/api/bom/list')
-    bomList.value = res.data
+    const res = await axios.get('/api/Proc/list')
+    procList.value = res.data
   } catch (err) {
     console.error('기본 목록 조회 실패:', err)
   }
 }
 
 // 🔍 검색 기능 (/search)
-const searchBomList = async (searchParams) => {
+const searchprocList = async (searchParams) => {
   console.log('🔍 검색 조건:', searchParams)
   try {
-    const res = await axios.get('/api/bom/search', {
+    const res = await axios.get('/api/proc/search', {
       params: searchParams
     })
     console.log('✅ 검색 결과:', res.data)
-    bomList.value = res.data
+    procList.value = res.data
   } catch (err) {
-    console.error('❌ BOM 검색 실패:', err)
+    console.error('❌ 제품 공정흐름도 검색 실패:', err)
   }
 }
 
@@ -63,7 +63,7 @@ const handleSearch = async () => {
     const searchParams = cleanParams(rawParams);
     console.log('🔍 검색 파라미터 (cleaned):', searchParams);
 
-    await searchBomList(searchParams);
+    await searchprocList(searchParams);
   } catch (err) {
     console.error('❌ 검색 실패:', err);
   }
@@ -73,24 +73,16 @@ const handleSearch = async () => {
 const handleRegister = async () => {
   console.log('📦 [handleRegister] 실행됨')
   try {
-    const productData = formRef.value.getFormData()
+    const procData = formRef.value.getFormData()
     const detailData = tableRef.value.getDetailRows()
 
-    const bomData = {
-      unit: productData.unit,
-      spec: productData.spec,
-      regdate: productData.regdate,
-      udate: productData.regdate,
-      is_used: productData.is_used
-    }
+    const payload = { procData, detailData }
 
-    const payload = { productData, bomData, detailData }
-
-    const response = await axios.post('/api/bom/register', payload)
+    const response = await axios.post('/api/proc/register', payload)
     console.log('✅ 등록 성공:', response.data)
     alert('등록 완료되었습니다!')
 
-    await fetchBomList() // 등록 후 목록 새로고침
+    await fetchprocList() // 등록 후 목록 새로고침
     formRef.value.resetForm()     // ✅ 입력폼 초기화
     tableRef.value.resetRows()    // ✅ 자재 테이블 초기화
     
@@ -100,25 +92,26 @@ const handleRegister = async () => {
   }
 }
 
-// 📌 테이블 행 클릭 시 상세 조회
+// 📌 테이블 행 클릭 시 공정 흐름도 상세 조회
 const handleRowSelected = async (row) => {
-  console.log('🔍 row selected in parent:', row)
+  console.log('🔍 row selected in parent:', row);
+
   try {
-    const res = await axios.get('/api/bom/detail', {
-      params: { bom_code: row.bom_code }
-    })
+    const res = await axios.get('/api/proc/detail', {
+      params: { prod_proc_code: row.prod_proc_code }
+    });
 
-    const productData = res.data.product
-    const detailRows = res.data.materials
+    const productData = res.data.header;      // 상단 폼용 데이터
+    const detailRows = res.data.details;      // 하단 테이블용 데이터
 
-    console.log('📦 상세 응답 데이터:', res.data)
+    console.log('📦 공정 흐름도 상세 응답:', res.data);
 
-    formRef.value.setFormData(productData)
-    tableRef.value.setFormData(detailRows)
+    formRef.value.setFormData(productData);   // 상단 입력 영역
+    tableRef.value.setFormData(detailRows);   // 하단 흐름도 테이블
   } catch (err) {
-    console.error('❌ 상세 조회 실패:', err)
+    console.error('❌ 공정 흐름도 상세 조회 실패:', err);
   }
-}
+};
 
 // 🔧 자재 팝업에서 선택 시
 const handleMaterialSelected = (matRow) => {
@@ -141,7 +134,7 @@ const handleReset = async () => {
     <!-- 좌측: BOM 목록 테이블 -->
     <ProcTable
       ref="tableRef"
-      :data="bomList"
+      :data="procList"
       @rowSelected="handleRowSelected"
       @materialRowSelected="handleMaterialSelected"
       class="flex-1"
