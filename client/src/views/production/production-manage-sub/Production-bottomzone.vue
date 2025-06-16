@@ -136,32 +136,31 @@
     currentProductRow.value = row; // 수정 대상 행 지정
     productPopupVisible.value = true;
   };
+
+  // 라인 팝업 열기
   const openlinePopup = async (row) => {
-  currentLineRow.value = row;
+    currentLineRow.value = row;
 
-  // 1. 제품 유형(com_value) → 라인 유형 코드로 매핑
-  const prodType = row.com_value;
-    let lineTypeCode = '';
-
-    if (prodType === '봉지라면') lineTypeCode = 'j1';
-    else if (prodType === '컵라면(대)') lineTypeCode = 'j2';
-    else if (prodType === '컵라면(소)') lineTypeCode = 'j3';
-    else {
-      alert('지원하지 않는 제품 유형입니다.');
+    const prodTypeKey = row.com_value;                    // 제품 유형: j1, j2, j3
+    const lineTypeCode = productTypeMap[prodTypeKey];     // → s1, s2로 매핑
+    
+    if (!lineTypeCode) {
+      alert(`지원하지 않는 제품 유형입니다: ${prodTypeKey}`);
       return;
     }
-
     try {
-      // 2. 라인 유형 코드 기준으로 라인 조회 요청
       const response = await axios.get('/api/prdp/line', {
-        params: { type: lineTypeCode }
+        params: { type: lineTypeCode }                    // 서버로 s1, s2 전달
       });
-      lines.value = response.data;
-      linePopupVisible.value = true;
+
+      lines.value = response.data;                        // 팝업 목록 세팅
+      linePopupVisible.value = true;                      // 팝업 오픈
     } catch (error) {
-      console.error('라인 조회 실패:', error);
+      console.error('❌ 라인 조회 실패:', error);
+      alert('라인 정보를 불러오는 데 실패했습니다.');
     }
   };
+
 
   // 🔍 제품명 팝업 열릴 때 데이터 조회
  watch(productPopupVisible, async (visible) => {
@@ -199,9 +198,6 @@
 
       const detailData = response.data;
 
-      // 🔍 받아온 데이터 확인용 로그
-      console.log('✅ 불러온 상세 데이터:', JSON.stringify(detailData, null, 2));
-
       // 실제 화면에 뿌릴 데이터 적용
       detailData.forEach(detail => {
         productRows.value.push(detail);
@@ -213,9 +209,12 @@
   };
 
   const productTypeMap = {
-  J1: '봉지라면',
-  J2: '컵라면(대)',
-  J3: '컵라면(소)'
+  'j1': 's1',
+  'j2': 's2',
+  'j3': 's2',
+  '봉지라면': 's1',
+  '컵라면(대)': 's2',
+  '컵라면(소)': 's2'
 };
 </script>
 

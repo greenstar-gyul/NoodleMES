@@ -30,28 +30,21 @@ router.get('/order-list', async (req, res) => {
     res.status(500).send('서버 오류');
   }
 });
-// 라인전체조회
+
+// 라인 타입 조회
 router.get("/line", async (req, res) => {
-  const prodType = req.query.type;  // ex: j1, j2, j3
-
-  // com_value → line_type 변환
-  const typeMap = {
-    j1: 's1',  // 봉지라면 → 봉지라인
-    j2: 's2',  // 컵라면(대) → 컵라면 라인
-    j3: 's2',  // 컵라면(소) → 컵라면 라인
-  };
-
-  const lineType = typeMap[prodType];
+  const lineType = req.query.type;  // 이제 바로 s1, s2가 넘어옴
 
   if (!lineType) {
-    return res.status(400).send("Invalid product type");
+    return res.status(400).send("❌ 제품 유형 누락됨");
   }
 
   try {
-    const lines = await prdpService.findLineByType(lineType);
+    const lines = await prdpService.findLineByType(lineType); // s1 그대로 사용
     res.send(lines);
   } catch (err) {
-    res.status(500).send("DB 조회 실패");
+    console.error('❌ DB 조회 실패:', err);
+    res.status(500).send("❌ 라인 목록 조회 실패");
   }
 });
 

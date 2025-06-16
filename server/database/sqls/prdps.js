@@ -67,12 +67,15 @@ JOIN    prod_tbl p ON ordd.prod_code = p.prod_code
 ORDER BY ord.ord_date
 `;
 
-// 설비 목록 조회
-const selectLineList = `
-SELECT line_code, 
-       line_name, 
-       is_used 
-FROM  line_tbl 
+// 라인 목록 조회
+const selectLineType = `
+SELECT line_code,
+       line_name,
+       comm_name(line_type) AS "line_type",
+       regdate_t,
+       note,
+       comm_name(is_used) AS "is_used"
+FROM line_tbl
 WHERE line_type = ?
 ORDER BY line_code
 `;
@@ -181,9 +184,9 @@ FOR UPDATE;
 const selectPrdpDCodeForUpdate = `
 SELECT CONCAT('PRDP-D-', 
               LPAD(IFNULL(MAX(CAST(SUBSTRING(prdp_d_code, 9) AS UNSIGNED)), 0) + 1, 4, '0')
-             )
+             ) AS new_d_code
 FROM prdp_d_tbl
-FOR UPDATE;
+FOR UPDATE
 `;
 
 
@@ -192,7 +195,7 @@ module.exports = {
     getCurrentMonthPlans,
     selectPrdpDOne,
     selectOrdList,
-    selectLineList,
+    selectLineType,
     selectProdList,
     searchPrdp,
     insertPrdp,
