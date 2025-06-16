@@ -337,7 +337,6 @@ module.exports ={
     insertOrderTx,
     deleteOrderTx,
     selectReleaseList,
-    selectReleaseDetailList,
     insertReleaseTx,
     deleteReleaseTx,
     findReleaseStatuses,
