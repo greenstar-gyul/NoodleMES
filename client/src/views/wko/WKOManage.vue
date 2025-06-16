@@ -14,6 +14,8 @@ const saveData = async () => {
         return;
     }
 
+    console.log('저장할 작업지시서 정보:', wkoInfo.value);
+
     try {
         if (wkoInfo.value.wko_code === '' || wkoInfo.value.wko_code === undefined) {
             // 신규 등록
@@ -23,6 +25,7 @@ const saveData = async () => {
                 wkoInfo.value.wko_code = result.data.wko_code;
                 alert('작업지시서 등록에 성공했습니다.');
                 // 공정 목록 새로고침
+                await loadWKO(wkoInfo.value.wko_code);
                 await loadProcessList();
             } else {
                 alert('등록에 실패했습니다.');
@@ -48,14 +51,17 @@ const resetData = () => {
     wkoInfo.value = {
         wko_code: '',
         start_date: '',
-        prod_type: '일반',
-        stat: '대기',
+        stat: 'v4',
         note: '',
         prdp_code: '',
         prod_code: '',
         prod_name: '',
         emp_code: 'EMP-10002',
         emp_name: '',
+        reg_code: 'EMP-10001',
+        reg_name: '김영업',
+        wko_qtt: 0,
+        reg_date: '',
     };
 }
 
@@ -105,14 +111,17 @@ const wkoInfo = defineModel('data');
 wkoInfo.value = {
     wko_code: '',
     start_date: '',
-    prod_type: '일반',
-    stat: '대기',
+    stat: 'v4',
     note: '',
     prdp_code: '',
     prod_code: '',
     prod_name: '',
     emp_code: 'EMP-10002',
     emp_name: '',
+    reg_code: 'EMP-10001',
+    reg_name: '김영업',
+    wko_qtt: 0,
+    reg_date: '',
 };
 
 // 작업지시서 정보가 바뀔 때 공정 목록 갱신
