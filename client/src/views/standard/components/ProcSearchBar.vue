@@ -12,12 +12,12 @@ const comValueOptions = ref([]);
 
 // 🔍 검색조건 상태 (v-model)
 const search = ref({
-  bom_code: '',
+  prod_proc_code: '',
+  po_name: '',
   prod_code: '',
   prod_name: '',
-  regdate_from: null,
-  regdate_to: null,
-  com_value: ''
+  reg_date_from: null,
+  reg_date_to: null
 })
 
 // ✅ 검색 조건 getter
@@ -26,12 +26,12 @@ const getSearchParams = () => search.value
 // ✅ 검색 조건 초기화
 const resetSearch = () => {
   search.value = {
-    bom_code: '',
+    prod_proc_code: '',
+    po_name: '',
     prod_code: '',
     prod_name: '',
-    regdate_from: null,
-    regdate_to: null,
-    com_value: ''
+    reg_date_from: null,
+    reg_date_to: null
   }
 }
 
@@ -44,38 +44,22 @@ const handleResetClick = () => {
 // ✅ 외부에서 접근할 수 있도록 메서드 공개
 defineExpose({ getSearchParams, resetSearch })
 
-onMounted(async () => {
-  try {
-    const res = await axios.get('/api/bom/com-values');
-    comValueOptions.value = res.data.map(row => ({
-      label: row.com_name,     // 사용자에게 보여줄 이름
-      value: row.com_value     // 실제 검색에 사용될 코드
-    }));
-  } catch (err) {
-    console.error('❌ 제품유형 옵션 불러오기 실패:', err);
-  }
-});
-
 </script>
 
 <template>
   <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
     <!-- 검색 조건 영역 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-      <SearchText v-model="search.bom_code" label="BOM코드" />
+      <SearchText v-model="search.prod_proc_code" label="흐름도 코드" />
+      <SearchText v-model="search.po_name" label="흐름도명" />
       <SearchText v-model="search.prod_code" label="제품코드" />
       <SearchText v-model="search.prod_name" label="제품명" />
-      <SearchDropdown
-        label="제품유형"
-        v-model="search.com_value"
-        :options="comValueOptions"
-      />
       <SearchDateBetween
         label="등록일자"
-        :from="search.regdate_from"
-        :to="search.regdate_to"
-        @update:from="search.regdate_from = $event"
-        @update:to="search.regdate_to = $event"
+        :from="search.reg_date_from"
+        :to="search.reg_date_to"
+        @update:from="search.reg_date_from = $event"
+        @update:to="search.reg_date_to = $event"
       />
     </div>
 

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, defineExpose, computed } from 'vue'
 import axios from 'axios';
+import moment from 'moment'
 import Button from 'primevue/button'
 import LabeledInput from '@/components/common/LabeledInput.vue'
 import LabeledInputIcon from '@/components/common/LabeledInputIcon.vue'
@@ -21,7 +22,7 @@ const prodVisible = ref(false)
 const products = ref([])
 
 
-const today = new Date().toISOString().slice(0, 10); // yyyy-mm-dd
+const today = moment().format('YYYY-MM-DD')
 
 // 폼 상태값
 const prod_proc_code = ref('')
@@ -30,7 +31,7 @@ const prod_code = ref('')
 const prod_name = ref('')
 const po_type = ref('')
 const reg = ref('EMP-10001')
-const regdate = ref(today)
+const reg_date = ref(today)
 const note = ref('')
 
 // ✅ 외부에서 set할 수 있게
@@ -41,7 +42,7 @@ const setFormData = (data) => {
   prod_name.value = data.prod_name ?? ''
   po_type.value = data.po_type ?? 'p2'
   reg.value = data.reg ?? ''
-  regdate.value = data.regdate ?? ''
+  reg_date.value = data.reg_date ?? ''
   note.value = data.note ?? ''
 }
 
@@ -53,7 +54,7 @@ const getFormData = () => ({
   prod_name: prod_name.value,
   po_type: po_type.value,
   reg: reg.value,
-  regdate: regdate.value,
+  reg_date: reg_date.value,
   note: note.value
 })
 
@@ -65,7 +66,7 @@ const resetForm = () => {
   prod_name.value = ''
   po_type.value = 'p2'
   reg.value = 'EMP-1001'
-  regdate.value = today
+  reg_date.value = today
   note.value = ''
 }
 
@@ -129,7 +130,7 @@ defineExpose({ setFormData, getFormData, resetForm  })
 
     <!-- 총중량 / 유통기한 -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <LabeledDatePicker v-model="regdate" label="등록일자" placeholder="자동으로 입력" :disabled="true" />
+      <LabeledDatePicker v-model="reg_date" label="등록일자" placeholder="자동으로 입력" :disabled="true" />
     </div>
 
     <!-- 비고 -->
