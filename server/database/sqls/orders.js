@@ -125,21 +125,82 @@ const selectProductByName = `
    ORDER BY prod_name
 `;
 
-// 공통코드: 규격 (0O, 0X, 0Y)
-// const selectSpecCodes = `
-//   SELECT comm_name(com_value) AS value,
-//          comm_name(com_value) AS label
-//   FROM common_code
-//   WHERE group_value in('0O', '0X', '0Y') 
-// `;
+// 출고 요청 전체 조회
+const selectOutReqList = `
+  SELECT r.out_req_code,
+         r.ord_code,
+         r.out_req_date,
+         r.mcode,
+         r.note,
+         d.out_req_d_code,
+         d.prod_code,
+         d.out_req_d_amount,
+         d.delivery_date,
+         p.prod_name,
+         comm_name(p.com_value) AS com_value
+    FROM out_req_tbl r
+    JOIN out_req_d_tbl d ON r.out_req_code = d.out_req_code
+    JOIN prod_tbl p ON d.prod_code = p.prod_code
+   ORDER BY r.out_req_code, d.out_req_d_code
+`;
 
-// 공통코드: 단위 (0H)
-// const selectUnitCodes = `
-//   SELECT comm_name(com_value) AS value,
-//          comm_name(com_value) AS label
-//   FROM common_code
-//   WHERE group_value = '0H'
-// `;
+// 출고 상태 조회
+const selectReleaseStatuses = `
+  SELECT com_value AS status_code,
+         comm_name(com_value) AS status_name
+    FROM common_code
+   WHERE group_value = '0Q' -- 출고 상태 코드 그룹
+`;
+
+// 출고 데이터 목록 조회
+const selectReleaseList = `
+  SELECT p.poutbnd_code,
+         p.req_qtt,
+         p.outbnd_qtt,
+         p.deadline,
+         comm_name(p.stat) AS stat_name,
+         p.outbound_request_code,
+         p.lot_num,
+         prod.prod_name,
+         comm_name(prod.com_value) AS prod_type,
+         c.client_name,
+         e.emp_name AS manager_name
+    FROM poutbnd_tbl p
+    JOIN prod_tbl prod ON p.prod_code = prod.prod_code
+    JOIN client_tbl c ON p.client_code = c.client_code
+    JOIN emp_tbl e ON p.mcode = e.mcode
+   ORDER BY p.poutbnd_code
+`;
+
+// 출고 상태 변경
+const updateReleaseStatus = `
+  UPDATE poutbnd_tbl
+  SET stat = ?
+  WHERE poutbnd_code = ?
+`;
+
+// 출고요청 코드 생성 (형식: OUT-YYYYMMDD-0001)
+const selectOutReqCodeForUpdate = `
+  SELECT CONCAT(
+           'OUT-', 
+           DATE_FORMAT(CURDATE(), '%Y%m%d'), 
+           '-', 
+           LPAD(IFNULL(MAX(CAST(SUBSTRING(out_req_code, 13) AS UNSIGNED)), 0) + 1, 4, '0')
+         ) AS out_req_code
+    FROM out_req_tbl
+   WHERE SUBSTRING(out_req_code, 5, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+   FOR UPDATE
+`;
+
+// 출고요청 상세 코드 생성
+const selectOutReqDCodeForUpdate = `
+  SELECT CONCAT(
+            'OUT-D-', 
+            LPAD(IFNULL(MAX(CAST(SUBSTRING(out_req_d_code, 8) AS UNSIGNED)), 0) + 1, 4, '0')
+         ) AS out_req_d_code
+    FROM out_req_d_tbl
+    FOR UPDATE
+`;
 
 // 주문 코드 생성용 (FOR UPDATE 잠금)
 const selectOrdCodeForUpdate = `
@@ -194,6 +255,47 @@ const insertOrderDetail = `
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
+// 출고요청 등록
+const insertOutReq = `
+  INSERT INTO out_req_tbl (
+    out_req_code,
+    ord_code,
+    out_req_date,
+    mcode,
+    note,
+    ord_predict_date
+  ) VALUES (?, ?, ?, ?, ?, ?)
+`;
+
+// 출고요청 상세 등록
+const insertOutReqDetail = `
+  INSERT INTO out_req_d_tbl (
+    out_req_d_code,
+    out_req_code,
+    prod_code,
+    out_req_d_amount,
+    delivery_date,
+    prod_type,
+    ord_amount
+  ) VALUES (?, ?, ?, ?, ?, ?, ?)
+`;
+
+// 출고 본테이블 등록
+const insertRelease = `
+  INSERT INTO poutbnd_tbl (
+  poutbnd_code,
+  req_qtt,
+  outbnd_qtt,
+  deadline,
+  stat,
+  outbound_request_code,
+  lot_num,
+  prod_code,
+  client_code,
+  mcode
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
+
 // 주문 삭제
 const deleteOrder = `
   DELETE FROM ord_tbl WHERE ord_code = ?
@@ -202,6 +304,16 @@ const deleteOrder = `
 // 주문 상세 삭제
 const deleteOrderDetail = `
   DELETE FROM ord_d_tbl WHERE ord_code = ?
+`;
+
+// 출고요청 상세 삭제
+const deleteOutReqDetail = `
+  DELETE FROM out_req_d_tbl WHERE out_req_code = ?
+`;
+
+// 출고요청 삭제
+const deleteOutReq = `
+  DELETE FROM out_req_tbl WHERE out_req_code = ?
 `;
 
 
@@ -215,14 +327,25 @@ module.exports = {
   selectOrderStatuses,
   selectOrderListWithDate,
   selectOrderListByCondition,
+  selectOutReqList,
+  selectReleaseStatuses,
+  selectReleaseList,
 
   // 등록
   selectOrdCodeForUpdate,
   selectOrdDCodeForUpdate,
   insertOrder,
   insertOrderDetail,
+  updateReleaseStatus,
+  selectOutReqCodeForUpdate,
+  selectOutReqDCodeForUpdate,
+  insertOutReq,
+  insertOutReqDetail,
+  insertRelease,
 
   // 삭제
   deleteOrder,
-  deleteOrderDetail
+  deleteOrderDetail,
+  deleteOutReqDetail,
+  deleteOutReq
 };
