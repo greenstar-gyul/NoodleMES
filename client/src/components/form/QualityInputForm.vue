@@ -1,179 +1,222 @@
-<template>
-    <!-- 우측: 제품 등록 영역 (45%) -->
-    <div class="card space-y-6 p-6" style="width: 45%">
-        <!-- 버튼 영역역 -->
-        <div class="grid grid-cols-1 gap-4 mb-4">
-            <div class="flex justify-between">
-                <div>
-                    <div class="font-semibold text-2xl">품질기준정보</div>
-                </div>
-                <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="수정" severity="info" class="min-w-fit whitespace-nowrap" outlined />
-                    <Button label="등록" severity="success" class="min-w-fit whitespace-nowrap" outlined />
-                </div>
-            </div>
-        </div>
-        <!-- 품질기준코드 / 검사대상 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="font-semibold text-xl block mb-2">품질기준코드</label>
-                <InputText type="text" placeholder="제품코드" :disabled="true" class="w-full" />
-            </div>
-            <div>
-                <label class="font-semibold text-xl block mb-2">검사대상</label>
-                <InputText type="text" class="w-full" />
-            </div>
-            </div>
-            
-        <!-- 기준 / 검사항목 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="font-semibold text-xl block mb-2">기준(상한)</label>
-                <InputText type="text" class="w-full" />
-            </div>
-            <div>
-                <label class="font-semibold text-xl block mb-2">검사항목</label>
-                <Dropdown v-model="search.is_used" :options="orderStatusOptions" optionLabel="label" optionValue="value" placeholder="" class="w-full" />
-            </div>
-        </div>
-
-        <!-- 유통기한 / 등록일자 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="font-semibold text-xl block mb-2">기준(하한)</label>
-                <InputText type="text" class="w-full" />
-            </div>
-            <div>
-                <label class="font-semibold text-xl block mb-2">단위</label>
-                <InputText type="text" class="w-full" />
-            </div>
-        </div>
-        <!-- 유통기한 / 등록일자 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="font-semibold text-xl block mb-2">등록일자</label>
-                <InputText type="text" placeholder="자동으로 입력" :disabled="true" class="w-full" />
-            </div>
-            <div>
-                <label class="font-semibold text-xl block mb-2">판정방식</label>
-               <div class="flex items-center">
-                    <RadioButton id="option1" name="option" value="자동" v-model="radioValue" />
-                    <label for="option1" class="leading-none ml-2 mr-7">자동</label>
-                    <RadioButton id="option2" name="option" value="수동" v-model="radioValue" />
-                    <label for="option2" class="leading-none ml-2">수동</label>
-                </div>
-            </div>
-        </div>
-        </div>
-</template>
-
-
-        <!-- 비고
-        <div>
-            <label class="font-semibold text-xl block mb-2">비고</label>
-            <Textarea placeholder="특이사항 입력" :autoResize="true" rows="5" class="w-full" />
-        </div> -->
-
 <script setup>
-import { ref } from 'vue';
-import InputText from 'primevue/inputtext';
-import Dropdown from 'primevue/dropdown';
-import Calendar from 'primevue/calendar';
+import { ref, watch } from 'vue';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import SearchText from '@/components/search-bar/SearchText.vue';
+import InputText from 'primevue/inputtext';
+import Calendar from 'primevue/calendar';
 
-const radioValue = ref(null);
+// Props
+const props = defineProps({
+  data: {
+    type: Array,
+    required: true
+  },
+  mapper: {
+    type: Object,
+    default: () => ({})
+  },
+  dataKey: {
+    type: String,
+    default: 'id'
+  },
+  title: {
+    type: String,
+    default: ''
+  },
+  scrollHeight: {
+    type: String,
+    default: '400px'
+  },
+  columns: {
+    type: Array,
+    default: () => []
+  }
+})
 
-// 검색조건 데이터 (v-model로 바인딩됨)
-const search = ref({
-    prod_code: '',
-    prod_name: '',
-    regdate_from: null,
-    regdate_to: null,
-    is_used: ''
-});
+// Emits
+const emit = defineEmits(['update', 'loadEquipment'])
+const selectedE = ref([]);
+const dynamicColumns = ref([]);
 
-// 주문상태 옵션 (예시 데이터)
-const orderStatusOptions = [
-    { label: '활성', value: 'a1' },
-    { label: '비활성', value: 'a2' }
-];
+// 상태 관리
+const rows = ref([]) // 전체 데이터
+const selectedRows = ref([]) // 선택된 행
 
-// 조회 버튼 기능 (API 호출 자리)
-const fetchOrders = () => {
-    console.log('조회 실행:', search.value);
-    // TODO: 실제 API 호출로 데이터 갱신
+// 간단한 날짜 컬럼 확인 함수
+const isDateColumn = (fieldName) => {
+  return fieldName && fieldName.toLowerCase().includes('date');
 };
 
-// 초기화 버튼 기능
-const resetSearch = () => {
-    search.value = {
-        prod_code: '',
-        prod_name: '',
-        regdate_from: null,
-        regdate_to: null,
-        is_used: ''
-    };
+// 날짜 변환 함수들 (더 안전하게)
+const formatDateForDB = (date) => {
+  if (!date) return null;
+  
+  try {
+    if (date instanceof Date && !isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+    
+    // 문자열인 경우 그대로 반환
+    if (typeof date === 'string') {
+      return date;
+    }
+    
+    return null;
+  } catch (error) {
+    console.warn('날짜 변환 실패:', date, error);
+    return null;
+  }
 };
 
-// 테이블에 보여줄 제품 데이터 (예시 데이터)
-const products = ref([
-    {
-        prod_code: 'WH001',
-        prod_name: '신라면',
-        edate: '150일',
-        regdate: '2025.06.06',
-        is_used: '활성'
-    },
-    {
-        prod_code: 'WH002',
-        prod_name: '짜파게티',
-        edate: '150일',
-        regdate: '2025.06.07',
-        is_used: '활성'
-    },
-    {
-        prod_code: 'WH001',
-        prod_name: '진진라면',
-        edate: '150일',
-        regdate: '2025.06.01',
-        is_used: '비활성'
+const parseDateFromDB = (dateString) => {
+  if (!dateString) return null;
+  
+  try {
+    // 이미 Date 객체인 경우
+    if (dateString instanceof Date) {
+      return isNaN(dateString.getTime()) ? null : dateString;
     }
-]);
-
-const mats = ref([
-    {
-        mat_code: 'RM001',
-        mat_name: '밀가루',
-        mat_type: '원자재',
-        req_qtt: 'EA',
-        unit: '100g',
-        loss_rate: '0.5%'
-    },
-    {
-        mat_code: 'RM002',
-        mat_name: '스프',
-        mat_type: '원자재',
-        req_qtt: 'EA',
-        unit: '20g',
-        loss_rate: '0.5%'
-    },
-    {
-        mat_code: 'RM003',
-        mat_name: '비닐포장지',
-        mat_type: '부자재',
-        req_qtt: 'EA',
-        unit: '100mm',
-        loss_rate: '-'
+    
+    // 문자열인 경우 Date 객체로 변환
+    if (typeof dateString === 'string') {
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? null : date;
     }
-]);
+    
+    return null;
+  } catch (error) {
+    console.warn('날짜 파싱 실패:', dateString, error);
+    return null;
+  }
+};
 
-// DataTable 선택된 행 (선택 모드)
-const selectedProducts = ref();
+// 초기 데이터 로딩 및 변경사항 감지
+watch(
+  () => props.data,
+  (newData) => {
+    if (!Array.isArray(newData)) {
+      rows.value = [];
+      return;
+    }
+    
+    rows.value = newData.map(row => {
+      const processedRow = { ...row };
+      
+      // 날짜 컬럼만 Date 객체로 변환
+      Object.keys(processedRow).forEach(fieldName => {
+        if (isDateColumn(fieldName) && processedRow[fieldName]) {
+          const dateValue = parseDateFromDB(processedRow[fieldName]);
+          if (dateValue) {
+            processedRow[fieldName] = dateValue;
+          }
+        }
+      });
+      
+      return processedRow;
+    });
+  },
+  { immediate: true, deep: true }
+);
+
+// 새 행 추가
+const addRow = () => {
+  const newRow = {};
+  Object.keys(props.mapper).forEach(key => {
+    newRow[key] = '';
+  });
+  newRow[props.dataKey] = 'NEW_' + Date.now();
+  rows.value.push(newRow);
+  console.log('새 행 추가됨! (저장은 수동으로)');
+}
+
+// 선택된 행 삭제
+const deleteSelected = () => {
+  if (selectedRows.value.length === 0) {
+    console.log('삭제할 행을 선택해주세요!');
+    return;
+  }
+
+  rows.value = rows.value.filter(row => !selectedRows.value.includes(row));
+  selectedRows.value = [];
+  console.log('선택된 행이 삭제되었습니다! (저장은 수동으로)');
+}
+
+const loadEquipment = () => {
+  emit('loadEquipment');
+}
+
+const update = () => {
+  emit('update');
+}
+
+const handleDataChange = () => {
+  console.log('데이터 변경 감지 - 로컬에서만 처리');
+}
+
+const handleInputChange = () => {
+  console.log('텍스트 입력 변경 - 로컬에서만 저장');
+}
+
+const handleDateChange = () => {
+  console.log('날짜 변경 - 로컬에서만 저장');
+}
 </script>
 
-<style scoped>
-/* 필요시 커스텀 스타일 여기에 추가 */
-</style>
+<template>
+  <div class="card">
+    <div class="flex flex-col gap-4">
+      <!-- 타이틀 및 버튼 영역 -->
+      <div class="grid grid-cols-1 gap-4">
+        <div class="flex justify-between">
+          <div>
+            <div class="font-semibold text-2xl">{{ title }}</div>
+          </div>
+          <div class="flex justify-end gap-2">
+            <Button label="선택 삭제" icon="pi pi-trash" severity="danger" @click="deleteSelected"
+              :disabled="selectedRows.length === 0" />
+            <Button label="행 추가" icon="pi pi-plus" @click="addRow" />
+            <Button label="지시정보 불러오기" severity="success" class="min-w-fit whitespace-nowrap" @click="loadEquipment" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 데이터 테이블 -->
+      <DataTable v-model:selection="selectedRows" :value="rows" :dataKey="dataKey" selectionMode="multiple"
+        showGridlines scrollable :scrollHeight="scrollHeight" tableStyle="min-width: 50rem">
+        <Column selectionMode="multiple" headerStyle="width: 3rem" />
+
+        <Column v-for="fieldName in Object.keys(mapper)" :key="fieldName" :field="fieldName"
+          :header="mapper[fieldName]">
+          <template #body="slotProps">
+            <!-- 날짜 컬럼인 경우 Calendar 컴포넌트 사용 -->
+            <Calendar 
+              v-if="isDateColumn(fieldName)"
+              v-model="slotProps.data[fieldName]" 
+              class="w-full" 
+              placeholder="날짜를 선택해주세요"
+              dateFormat="yy-mm-dd"
+              @update:modelValue="handleDateChange"
+              :showIcon="true"
+            />
+            <!-- 일반 텍스트 컬럼 -->
+            <InputText 
+              v-else
+              v-model="slotProps.data[fieldName]" 
+              class="w-full" 
+              placeholder="입력해주세요"
+              @input="handleInputChange" 
+            />
+          </template>
+        </Column>
+      </DataTable>
+
+      <!-- 현재 데이터 개수 표시 -->
+      <div class="text-sm text-gray-600">
+        총 {{ rows.length }}건의 데이터
+        <span v-if="Object.keys(mapper).some(field => isDateColumn(field))" class="ml-2 text-blue-600">
+        </span>
+      </div>
+    </div>
+  </div>
+</template>
