@@ -16,13 +16,16 @@ FROM     eq_tbl
 `;
 
 const BASE_QUERY_FOR_EQII = `
-SELECT eqii_code
-       ,inst_date
-       ,chk_exp_date
-       ,stat
-       ,note
-       ,inst_emp_code
-FROM   eqii_tbl
+SELECT e.eqii_code
+       ,e.inst_date
+       ,e.chk_exp_date
+       ,e.stat
+       ,e.note
+       ,e.inst_emp_code 
+       ,m.emp_name AS inst_emp_name
+FROM   eqii_tbl e
+JOIN emp_tbl AS m
+ON e.inst_emp_code = m.emp_code
 `;
 
 const BASE_QUERY_FOR_EQIR = `
@@ -33,24 +36,40 @@ SELECT r.eqir_code
        ,r.chk_detail
        ,r.chk_result
        ,r.eqi_stat
-       ,COALESCE(r.note, '내용없음')
+       ,COALESCE(r.note, '내용없음') AS note
 FROM   eqir_tbl as r
 LEFT JOIN eq_tbl as e
 ON r.eq_code = e.eq_code
 `;
 
 const BASE_QUERY_FOR_EQIR_BY_EQIT = `
-SELECT c.eq_type
-       ,c.chk_text
-       ,c.chk_mth
-       ,c.range_top
-       ,c.range_bot
-       ,c.unit
-       ,c.jdg_mth
-FROM eqi_type_tbl AS c
-LEFT JOIN eq_tbl AS e
-ON e.eq_type = c.eq_type
+SELECT eq_type
+       ,chk_text
+       ,chk_mth
+       ,range_top
+       ,range_bot
+       ,unit
+       ,jdg_mth
+FROM eqi_type_tbl
 `
+
+const selectEqitList = `
+SELECT r.eqir_code 
+       ,t.chk_type_code
+       ,t.chk_text       
+       ,e.eq_name
+       ,t.eq_type
+       ,r.chk_start_date
+       ,r.chk_end_date
+       ,r.chk_detail
+       ,COALESCE(r.chk_result, '내용없음') AS chk_result       
+       ,r.eqi_stat
+       ,COALESCE(r.note, '내용없음') AS note
+FROM eqir_tbl AS r
+JOIN eq_tbl AS e ON r.eq_code = e.eq_code
+JOIN eqi_type_tbl AS t ON r.chk_type_code = t.chk_type_code
+WHERE r.eqii_code = ?
+`;
 
 // 파라미터별 검색
 function buildSearch(searchParams) {
@@ -117,6 +136,33 @@ WHERE eq_type = ?
 FOR UPDATE
 `;
 
+// eqir_code 자동생성
+// eqir code = EQIR-001
+
+const selectEqirCodeForUpdate = `
+SELECT CONCAT(
+    'EQIR-', 
+    LPAD(COALESCE(MAX(SUBSTR(eqir_code, -3)), 0) + 1, 3, '0')
+) AS next_eqir_code
+FROM eqir_tbl
+WHERE eqir_code LIKE 'EQIR-%'
+FOR UPDATE
+`;
+
+// eqii_code 자동생성
+// eqii code = EQI-20250601-001
+
+const selectEqiiCodeForUpdate = `
+SELECT CONCAT(
+    'EQI-', 
+    DATE_FORMAT(NOW(), '%Y%m%d'), '-', 
+    LPAD(COALESCE(MAX(SUBSTR(eqii_code, -3)), 0) + 1, 3, '0')
+) AS next_eqii_code
+FROM eqii_tbl
+WHERE eqii_code LIKE CONCAT('EQI-', DATE_FORMAT(NOW(), '%Y%m%d'), '-%')
+FOR UPDATE
+`;
+
 const insertEq = `
 INSERT INTO eq_tbl
 (eq_code
@@ -160,19 +206,17 @@ const insertEqii = `
 INSERT INTO eqii_tbl
 (eqii_code
  ,inst_date
+ ,chk_exp_date
  ,stat
  ,note
  ,inst_emp_code)
- VALUES (?
-         ,?
-         ,?
-         ,?
-         ,?)
+ VALUES (?, ?, ?, ?, ?, ?)
 `;
 
-const updateEqir = `
-UPDATE eqir_tbl
+const updateEqii = `
+UPDATE eqii_tbl
 SET inst_date = ?
+    ,chk_exp_date = ?
     ,stat = ?
     ,note = ?
     ,inst_emp_code = ?
@@ -180,22 +224,26 @@ WHERE eqii_code = ?
 `;
 
 const insertEqir = `
-INSERT INTO eqir_tbl
-(eqir_code
- ,chk_start_date
- ,chk_end_date
- ,chk_detail
- ,chk_result
- ,eqi_stat
- ,note)
- VALUES (?
-         ,?
-         ,?
-         ,?
-         ,?)
+INSERT INTO eqir_tbl (
+   eqir_code
+   ,eqii_code
+   ,eq_code
+   ,chk_type_code
+   ,chk_start_date
+   ,chk_end_date
+   ,chk_detail
+   ,chk_result
+   ,eqi_stat
+   ,note
+) 
+SELECT 
+   ?, ?, e.eq_code, t.chk_type_code, ?, ?, ?, ?, ?, ?
+FROM eq_tbl AS e, eqi_type_tbl AS t
+WHERE e.eq_name = ? 
+AND t.chk_text = ?;
 `;
 
-const updateEqii = `
+const updateEqir = `
 UPDATE eqir_tbl
 SET chk_start_date = ?
     ,chk_end_date = ?
@@ -212,11 +260,15 @@ module.exports = {
 
   selectEqiiList: BASE_QUERY_FOR_EQII + ' ORDER BY eqii_code',
 
-  selectEqirList: BASE_QUERY_FOR_EQIR + ' WHERE eqii_code = ?',
+  selectEqiiByCode: BASE_QUERY_FOR_EQII + ' WHERE e.eqii_code = ?',
 
-  selectEqiType : BASE_QUERY_FOR_EQIR_BY_EQIT,
+  // selectEqirList: BASE_QUERY_FOR_EQIR + ' WHERE eqii_code = ?',
 
-  selectEqitList: BASE_QUERY_FOR_EQIR_BY_EQIT + ' WHERE e.eq_type = ?',
+  selectEqiType: BASE_QUERY_FOR_EQIR_BY_EQIT,
+
+  // selectEqitList: BASE_QUERY_FOR_EQIR_BY_EQIT + ' WHERE e.eq_type = ?',
+
+  selectEqirList: selectEqitList,
 
   // 동적 검색 (검색 조건 유무에 따라 전체, 조건부 검색)
   buildSearch: buildSearch,
@@ -238,9 +290,45 @@ module.exports = {
     WHERE eq_code = ?
   `,
 
+  deleteEqirByEqiiCode: `
+    DELETE FROM eqir_tbl 
+    WHERE eqii_code = ?
+  `,
+
+  deleteEqiiByCode: `
+    DELETE FROM eqii_tbl 
+    WHERE eqii_code = ?
+  `,
+  
+  deleteEqMaByEqiiCode: `
+    DELETE FROM eq_ma_tbl 
+    WHERE eqir_code IN (
+      SELECT eqir_code FROM eqir_tbl WHERE eqii_code = ?
+    )
+  `,
+  selectEqirCodesByEqiiCode: `
+    SELECT eqir_code 
+    FROM eqir_tbl 
+    WHERE eqii_code = ?
+  `,
+  
+  deleteEqirByCode: `
+    DELETE FROM eqir_tbl 
+    WHERE eqir_code = ?
+  `,
+  
+  deleteEqMaByEqirCode: `
+    DELETE FROM eq_ma_tbl 
+    WHERE eqir_code = ?
+  `,
   selectEqCodeForUpdate: selectEqCodeForUpdate,
+  selectEqirCodeForUpdate: selectEqirCodeForUpdate,
+  selectEqiiCodeForUpdate: selectEqiiCodeForUpdate,
   insertEqii: insertEqii,
   updateEqii: updateEqii,
   insertEqir: insertEqir,
-  updateEqir: updateEqir
+  updateEqir: updateEqir,
+  selectEqitList: selectEqitList,
+  selectEqirByCode: BASE_QUERY_FOR_EQIR + ' WHERE r.eqir_code = ?',
+  // 추가적인 쿼리문은 필요에 따라 여기에 추가
 };

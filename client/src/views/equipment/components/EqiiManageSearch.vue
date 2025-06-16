@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import Button from 'primevue/button';
 import LabeledTextarea from '../../../components/registration-bar/LabeledTextarea.vue';
 import LabeledInput from '../../../components/registration-bar/LabeledInput.vue';
@@ -22,10 +22,6 @@ const props = defineProps({
     }
 });
 
-onMounted(() => {
-    
-})
-
 const formatDateForDB = (date) => {
     if (!date) return null;
     if (date instanceof Date) {
@@ -45,58 +41,83 @@ const parseDate = (dateString) => {
     return dateString;
 };
 
-const getDataForServer = () => {
-    return {
-        ...currentData.value,
-        inst_date: formatDateForDB(currentData.value.inst_date),
-        chk_exp_date: formatDateForDB(currentData.value.chk_exp_date)
-    };
-};
-
-// 현재 표시할 데이터를 관리하는 ref
+// 🔥 computed 제거하고 일반 ref로 변경!
 const currentData = ref({
     eqii_code: '',
-    inst_date: '',
-    chk_exp_date: '',
+    inst_date: null,
+    chk_exp_date: null,
     stat: '',
     note: '',
-    inst_emp_code: ''
+    inst_emp_name: 'EMP-10001'
 });
 
-// props.data 변화 감지해서 currentData 업데이트
-watch(() => props.data, (newVal) => {
-    if (newVal) {
+// 🔥 props 변화 감지해서 currentData 업데이트 (한 번만!)
+watch(() => props.data, (newData) => {
+    if (newData) {
         currentData.value = {
-            ...newVal,
-            inst_date: parseDate(newVal.inst_date),
-            chk_exp_date: parseDate(newVal.chk_exp_date)
-        };
-        console.log('currentData updated:', currentData.value);
-    } else {
-        currentData.value = {
-            eqii_code: '',
-            inst_date: null,
-            chk_exp_date: null,
-            stat: '',
-            note: '',
-            inst_emp_code: ''
+            eqii_code: newData.eqii_code || '',
+            inst_date: parseDate(newData.inst_date),
+            chk_exp_date: parseDate(newData.chk_exp_date),
+            stat: newData.stat || '',
+            note: newData.note || '',
+            inst_emp_name: newData.inst_emp_name || 'EMP-10001'
         };
     }
 }, { immediate: true, deep: true });
 
-/**
- * 생산 계획 불러오기 팝업 데이터 불러오기
- */
-const loadPlansData = async () => {
+// 🎯 개별 업데이트 함수들
+const updateInstDate = (newDate) => {
+    emit('update:data', {
+        ...props.data,
+        inst_date: formatDateForDB(newDate)
+    });
+};
+
+const updateChkExpDate = (newDate) => {
+    emit('update:data', {
+        ...props.data,
+        chk_exp_date: formatDateForDB(newDate)
+    });
+};
+
+const updateStat = (newStat) => {
+    emit('update:data', {
+        ...props.data,
+        stat: newStat
+    });
+};
+
+const updateNote = (newNote) => {
+    emit('update:data', {
+        ...props.data,
+        note: newNote
+    });
+};
+
+const deletePlan = async () => {
+    if (!currentData.value.eqii_code) {
+        alert('삭제할 지시서가 없습니다.');
+        return;
+    }
+    
+    if (!confirm('정말로 이 지시서를 삭제하시겠습니까?')) {
+        return;
+    }
+    
     try {
-        const response = await axios.get(`/api/eq/eqiiall`);
-        console.log('Plans data loaded:', response.data);
-        eqiis.value = response.data;
+        const response = await axios.delete(`/api/eq/eqii/${currentData.value.eqii_code}`);
+        
+        if (response.data.success) {
+            alert('삭제에 성공했습니다.');
+            emit('resetList'); // 데이터 초기화
+        } else {
+            alert('삭제에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('삭제 중 오류:', error);
+        alert('삭제 중 오류가 발생했습니다.');
     }
-    catch(err) {
-        console.error('데이터 로딩 에러:', err);
-    }
-}
+};
 
 const statusOptions = [
     { label: '점검중', value: 'u1' },
@@ -104,34 +125,36 @@ const statusOptions = [
     { label: '지시전달', value: 'u3' }
 ];
 
-/**
- * 생산 계획 불러오기
- * @param value 선택한 생산 계획
- */
+const loadPlansData = async () => {
+    try {
+        const response = await axios.get(`/api/eq/eqiiall`);
+        console.log('Plans data loaded:', response.data);
+        eqiis.value = response.data;
+    }
+    catch (err) {
+        console.error('데이터 로딩 에러:', err);
+    }
+}
+
+// 팝업에서 선택 - 한 번만 emit!
 const loadSelectedPlan = async (value) => {
-    console.log('선택된 계획:', value);
+    console.log('선택된 지시서:', value);
     if (!value || !value.eqii_code) {
-        alert('생산계획을 선택해주세요.');
+        alert('지시서를 선택해주세요.');
         return;
     }
 
-    // 선택된 데이터로 업데이트
-    const updatedData = {
-        eqii_code: value.eqii_code || '',
-        inst_date: parseDate(value.inst_date) || new Date(),
-        chk_exp_date: parseDate(value.chk_exp_date) || new Date(),
+    // 한 번에 모든 데이터 업데이트
+    emit('update:data', {
+        eqii_code: value.eqii_code,
+        inst_date: formatDateForDB(parseDate(value.inst_date)),
+        chk_exp_date: formatDateForDB(parseDate(value.chk_exp_date)),
         stat: value.stat || '',
         note: value.note || '',
-        inst_emp_code: value.inst_emp_code || 'EMP-10001'
-    };
+        inst_emp_name: value.inst_emp_name || 'EMP-10001',
+        inst_emp_code: value.inst_emp_code
+    });
 
-    // 로컬 데이터 업데이트
-    currentData.value = updatedData;
-    
-    // 부모 컴포넌트에 데이터 전달
-    emit('update:data', getDataForServer());
-    
-    // 팝업 닫기
     eqiiPopupVisibil.value = false;
 }
 
@@ -141,25 +164,14 @@ const openPopup = async () => {
 }
 
 const saveMRP = async () => {
-    if (!currentData.value.eqii_code) {
-        alert('생산계획을 먼저 불러오세요.');
-        return;
-    }
-    // 서버 형식으로 변환해서 emit
-    emit('saveData', getDataForServer());
+    emit('saveData');
 }
 
 const eqiiPopupVisibil = ref(false);
 const eqiis = ref([]);
-
 </script>
 
-<style scoped>
-/* 필요시 커스텀 스타일 여기에 추가 */
-</style>
-
 <template>
-    <!-- 🔍 검색바 영역 -->
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <div class="grid grid-cols-1 gap-4">
             <div class="flex justify-between">
@@ -167,35 +179,33 @@ const eqiis = ref([]);
                     <div class="font-semibold text-2xl"><b>설비 점검 지시서 정보</b></div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="삭제" severity="danger" class="min-w-fit" />
+                    <Button label="삭제" severity="danger" class="min-w-fit" @click="deletePlan" />
                     <Button label="초기화" severity="contrast" class="min-w-fit" v-on:click="emit('resetList')" />
-                    <Button label="저장" severity="info" class="min-w-fit" v-on:click="saveMRP"/>
+                    <Button label="저장" severity="info" class="min-w-fit" v-on:click="saveMRP" />
                     <Button label="지시서 불러오기" severity="success" class="min-w-fit whitespace-nowrap"
                         @click="openPopup" />
                 </div>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="점검지시서 코드" :model-value="currentData.eqii_code" :disabled="true" placeholder="저장 시 자동으로 생성됩니다." />
-            <LabeledDatePicker label="지시일자" :model-value="currentData.inst_date" />
+            <LabeledInput label="점검지시서 코드" :model-value="currentData.eqii_code" :disabled="true"
+                placeholder="저장 시 자동으로 생성됩니다." />
+            <LabeledDatePicker label="지시일자" :model-value="currentData.inst_date" @update:model-value="updateInstDate" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledDatePicker label="점검예정일" :model-value="currentData.chk_exp_date" />
-            <LabeledSelect label="상태" v-model="currentData.stat" :options="statusOptions" placeholder="상태를 선택하세요" />
+            <LabeledDatePicker label="점검예정일" :model-value="currentData.chk_exp_date"
+                @update:model-value="updateChkExpDate" />
+            <LabeledSelect label="상태" :model-value="currentData.stat" @update:model-value="updateStat"
+                :options="statusOptions" placeholder="상태를 선택하세요" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="지시자" v-model="currentData.inst_emp_code" :disabled="true" />
-            <LabeledTextarea label="비고" :model-value="currentData.note" />
+            <LabeledInput label="지시자" :model-value="currentData.inst_emp_name" :disabled="true" />
+            <LabeledTextarea label="비고" :model-value="currentData.note" @update:model-value="updateNote" />
         </div>
     </div>
 
     <!-- 팝업 컴포넌트 -->
-    <EqiiSinglePopup 
-        v-model:visible="eqiiPopupVisibil" 
-        :items="eqiis" 
-        @confirm="loadSelectedPlan" 
-        :mapper="EquipIIMapping"
-        :dataKey="'eqii_code'" 
-        :placeholder="'생산계획 불러오기'">
+    <EqiiSinglePopup v-model:visible="eqiiPopupVisibil" :items="eqiis" @confirm="loadSelectedPlan"
+        :mapper="EquipIIMapping" :dataKey="'eqii_code'" :placeholder="'지시서 불러오기'">
     </EqiiSinglePopup>
 </template>
