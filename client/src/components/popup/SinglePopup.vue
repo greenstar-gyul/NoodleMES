@@ -34,7 +34,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:visible', 'confirm']);
+const emit = defineEmits(['update:visible', 'confirm', 'search']);
 
 // 내부 상태
 const selectedItem = ref(null);

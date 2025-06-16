@@ -45,7 +45,9 @@ router.get('/plan-list', async (req, res) => {
 router.get('/prodlist', async (req, res) => {
     try {
         const prdpCode = req.query.prdp_code || '';
+        // console.log('전달 받은 prdp_code:', prdpCode);
         const result = await wkoService.getProdList(prdpCode);
+        // console.log('조회결과\n', result);
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
@@ -79,6 +81,52 @@ router.get('/prodall', async (req, res) => {
         });
     }
 });
+
+// 제품 목록 검색 (생산 계획 연동 O)
+router.get('/prodSearchByPrdp', async (req, res) => {
+    try {
+        const prdpCode = req.query.prdp_code || '';
+        const prodName = req.query.prod_name || '';
+        // console.log('전달 받은 prdp_code:', prdpCode);
+        const result = await wkoService.getProdSearchByPrdp([prdpCode, prdpCode, prdpCode, prodName, prodName, prodName]);
+        // console.log('조회결과\n', result);
+        res.status(200).json({
+            "result_code": "SUCCESS",
+            "message": "성공",
+            "data": result
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            "result_code": "FAIL",
+            "message": "실패",
+            "data": err.message || "서버 오류가 발생했습니다."
+        });
+    }
+});
+
+// 제품 목록 검색 (생산 계획 연동 X)
+router.get('/prodSearch', async (req, res) => {
+    try {
+        const prodName = req.query.prod_name || '';
+        // console.log('전달 받은 prdp_code:', prdpCode);
+        const result = await wkoService.getProdSearch([prodName, prodName, prodName]);
+        // console.log('조회결과\n', result);
+        res.status(200).json({
+            "result_code": "SUCCESS",
+            "message": "성공",
+            "data": result
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            "result_code": "FAIL",
+            "message": "실패",
+            "data": err.message || "서버 오류가 발생했습니다."
+        });
+    }
+});
+
 
 // 작업지시서 초기 조회 (최근 1달)
 router.get('/searchMonth', async (req, res) => {
@@ -122,7 +170,7 @@ router.get('/search', async (req, res) => {
 router.get('/emp-list', async (req, res) => {
     try {
         let empName = req.query.emp_name || '';
-        req.query.empName = empName.trim(); // 공백 제거
+        empName = empName.trim(); // 공백 제거
 
         const data = await wkoService.findEmpList(empName);
         res.status(200).json({
@@ -140,12 +188,34 @@ router.get('/emp-list', async (req, res) => {
     }
 });
 
-// 작업지시서의 공정 목록 조회
-router.get('/processes/:prodCode/:prdpCode', async (req, res) => {
+// 라인 리스트 조회
+router.get('/line-list', async (req, res) => {
     try {
-        const prodCode = req.params.prodCode;
-        const prdpCode = req.params.prdpCode;
-        const processes = await wkoService.findWKOProcesses(prodCode, prdpCode);
+        const prodCode = req.query.prod_code || '';
+        let lineName = req.query.line_name || '';
+        lineName = lineName.trim()
+
+        const data = await wkoService.findLineList([prodCode, lineName]);
+        res.status(200).json({
+            "result_code": "SUCCESS",
+            "message": "성공",
+            "data": data
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            "result_code": "FAIL",
+            "message": "실패",
+            "data": err.message || "서버 오류가 발생했습니다."
+        });
+    }
+});
+
+// 라인 코드로 공정 목록 조회
+router.get('/processes/:lineCode', async (req, res) => {
+    try {
+        const lineCode = req.params.lineCode;
+        const processes = await wkoService.findWKOProcesses(lineCode);
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",

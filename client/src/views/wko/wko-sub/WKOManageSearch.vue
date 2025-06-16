@@ -19,7 +19,7 @@ const props = defineProps({
 });
 
 onMounted(() => {
-    
+
 })
 
 /**
@@ -30,7 +30,7 @@ const loadPlansData = async () => {
         const response = await axios.get(`/api/wko/plan-list`);
         prodPlans.value = await response.data.data;
     }
-    catch(err) {
+    catch (err) {
         console.error(err);
     }
 }
@@ -40,21 +40,21 @@ const loadPlansData = async () => {
  */
 const loadProdData = async () => {
     try {
-        console.log('props.data.prdp_code', props.data.prdp_code);
-        if (!props.data.prdp_code || props.data.prdp_code !== '') {
+        if (props.data.prdp_code != null && props.data.prdp_code !== '') {
             const response = await axios.get(`/api/wko/prodlist`, {
                 params: {
                     prdp_code: props.data.prdp_code // 선택된 생산계획 코드로 필터링
                 }
             });
             products.value = await response.data.data;
+            // console.log('조회된 제품 목록\n', products.value);
         }
         else {
             const response = await axios.get(`/api/wko/prodall`);
             products.value = await response.data.data;
         }
     }
-    catch(err) {
+    catch (err) {
         console.error(err);
     }
 }
@@ -67,7 +67,7 @@ const loadWKOListData = async () => {
         const response = await axios.get(`/api/wko/searchMonth`);
         wkoList.value = await response.data.data;
     }
-    catch(err) {
+    catch (err) {
         console.error(err);
     }
 }
@@ -80,7 +80,25 @@ const loadEmpListData = async () => {
         const response = await axios.get(`/api/wko/emp-list`);
         empList.value = await response.data.data;
     }
-    catch(err) {
+    catch (err) {
+        console.error(err);
+    }
+}
+
+/**
+ * 해당 제품이 선택 가능한 라인 목록 불러오기
+ */
+const loadLinesData = async () => {
+    try {
+        const response = await axios.get(`/api/wko/line-list`, {
+            params: {
+                prod_code: props.data.prod_code,
+            }
+        })
+        lines.value = await response.data.data;
+        // console.log(lines.value);
+    }
+    catch (err) {
         console.error(err);
     }
 }
@@ -119,7 +137,7 @@ const prodLoad = async (value) => {
         };
 
         emit('update:data', updatedData);
-        
+
         // 생산계획과 제품이 모두 선택되면 공정 목록 로드 요청
         if (updatedData.prdp_code && updatedData.prod_code) {
             emit('prodPlanSelected', updatedData.prdp_code, updatedData.prod_code);
@@ -136,6 +154,20 @@ const empLoad = async (value) => {
             ...props.data,
             emp_code: value.emp_code,
             emp_name: value.emp_name,
+        };
+        emit('update:data', updatedData);
+    }
+}
+
+/**
+ * 라인 선택
+ */
+const lineLoad = async (value) => {
+    if (value && value.line_code) {
+        const updatedData = {
+            ...props.data,
+            line_code: value.line_code,
+            line_name: value.line_name,
         };
         emit('update:data', updatedData);
     }
@@ -174,20 +206,94 @@ const openProdPopup = async () => {
 }
 
 const saveWKO = async () => {
+    if (!props.data.emp_code) {
+        alert('작업자를 선택하세요.');
+        return;
+    }
     if (!props.data.prod_code) {
         alert('제품을 선택하세요.');
         return;
     }
     emit('saveData')
 }
+
+const openLinePopup = async () => {
+    if (!props.data.prod_code) {
+        alert('제품을 선택하세요.');
+        return;
+    }
+    await loadLinesData();
+    linePopupVisible.value = true;
+}
+
+const searchProd = async (value) => {
+    try {
+        if (props.data.prdp_code != null && props.data.prdp_code !== '') {
+            const response = await axios.get(`/api/wko/prodSearchByPrdp`, {
+                params: {
+                    prdp_code: props.data.prdp_code,
+                    prod_name: value,
+                }
+            });
+            products.value = await response.data.data;
+            // console.log('검색 결과', products.value);
+        }
+        else {
+            const response = await axios.get(`/api/wko/prodSearch`, {
+                params: {
+                    prod_name: value,
+                }
+            });
+            products.value = await response.data.data;
+            // console.log('검색 결과', products.value);
+        }
+    }
+    catch (err) {
+        console.error(err);
+    }
+}
+
+const searchEmp = async (value) => {
+    try {
+        const empName = value ?? '';
+        const response = await axios.get(`/api/wko/emp-list`, {
+            params: {
+                emp_name: empName,
+            }
+        })
+        empList.value = await response.data.data;
+    }
+    catch (err) {
+        console.error(err);
+    }
+}
+
+const searchLine = async (value) => {
+    try {
+        const lineName = value ?? '';
+        const response = await axios.get(`/api/wko/line-list`, {
+            params: {
+                prod_code: props.data.prod_code,
+                line_name: lineName,
+            }
+        })
+        lines.value = await response.data.data;
+    }
+    catch (err) {
+        console.error(err);
+    }
+}
+
 const prodPopupVisible = ref(false);
 const prdpPopupVisible = ref(false);
 const wkoPopupVisible = ref(false);
 const empPopupVisible = ref(false);
+const linePopupVisible = ref(false);
 const prodPlans = ref([]);
 const empList = ref([]);
 const products = ref([]);
 const wkoList = ref([]);
+const lines = ref([]);
 
 // 작업 상태 옵션
 const statOptions = ref([
@@ -237,18 +343,18 @@ const statOptions = ref([
                     <Button icon="pi pi-user" @click="openEmpPopup" />
                 </div>
             </div>
-            
+
             <!-- 두 번째 행: 작업 정보 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <div class="flex gap-2">
                     <LabeledInput label="제품" :model-value="data.prod_name" :disabled="true" class="flex-1" />
                     <Button icon="pi pi-search" @click="openProdPopup" />
                 </div>
-                <div class="flex gap-2">
-                    <LabeledInput label="생산라인" :model-value="data.prod_name" :disabled="true" class="flex-1" />
-                    <Button icon="pi pi-search" @click="openProdPopup" />
-                </div>
                 <LabeledInput label="생산수량" v-model="data.wko_qtt" type="number" />
+                <div class="flex gap-2">
+                    <LabeledInput label="생산라인" :model-value="data.line_code" :disabled="true" class="flex-1" />
+                    <Button icon="pi pi-search" @click="openLinePopup" />
+                </div>
             </div>
 
             <!-- 세 번째 행: 담당자, 비고 -->
@@ -261,14 +367,13 @@ const statOptions = ref([
     </div>
 
     <!-- 작업지시서 검색 팝업 -->
-    <WKOSearchPopup 
-        v-model:visible="wkoPopupVisible" 
-        @confirm="loadExistingWKO">
+    <WKOSearchPopup v-model:visible="wkoPopupVisible" @confirm="loadExistingWKO">
     </WKOSearchPopup>
 
     <!-- 작업자 선택 팝업 -->
-    <SinglePopup v-model:visible="empPopupVisible" :items="empList" @confirm="empLoad" :mapper="{ 'emp_code': '사원코드', 'emp_name': '사원명', 'emp_job': '직책', 'dept_name': '부서명' }"
-        :dataKey="'emp_code'" :placeholder="'작업자 선택'">
+    <SinglePopup v-model:visible="empPopupVisible" :items="empList" @confirm="empLoad" @search="searchEmp"
+        :mapper="{ 'emp_code': '사원코드', 'emp_name': '사원명', 'emp_job': '직책', 'dept_name': '부서명' }" :dataKey="'emp_code'"
+        :placeholder="'작업자 선택'">
     </SinglePopup>
 
     <!-- 생산계획 선택 팝업 -->
@@ -278,8 +383,15 @@ const statOptions = ref([
 
     <!-- 제품 선택 팝업 -->
     <SinglePopup v-model:visible="prodPopupVisible" :items="products"
-        :selectedHeader="['prod_code', 'prod_name', 'planned_qtt', 'note']" 
+        :selectedHeader="['prod_code', 'prod_name', 'planned_qtt', 'note']"
         :mapper="{ 'prod_code': '제품코드', 'prod_name': '제품명', 'planned_qtt': '계획수량', 'note': '비고' }" @confirm="prodLoad"
-        :dataKey="'prod_code'">
+        :dataKey="'prod_id'" @search="searchProd">
+    </SinglePopup>
+
+    <!-- 라인 선택 팝업 -->
+    <SinglePopup v-model:visible="linePopupVisible" :items="lines"
+        :selectedHeader="['line_code', 'line_name', 'note']"
+        :mapper="{ 'line_code': '라인코드', 'line_name': '라인명', 'note': '비고' }" @confirm="lineLoad"
+        :dataKey="'line_code'" @search="searchLine">
     </SinglePopup>
 </template>
