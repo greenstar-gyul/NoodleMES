@@ -9,10 +9,11 @@ import MprData from '@/service/MprData.js';
 import axios from 'axios';
 import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
-import orderMapping from '@/service/OrderMapping';
+import mprMapping from '@/service/MprMapping';
 
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
+import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import Button from 'primevue/button';
 
 // 상위에서 전달받은 props
@@ -33,20 +34,17 @@ const { mprRows } = storeToRefs(mprStore);
 const { setMprRows, resetMprRows, setSelectedMpr } = mprStore;
 
 /* ===== DATA ===== 여기 잘 모르겠음 ㅇㅅㅇ*/ 
-// 주문 팝업
-const orderPopupVisible = ref(false);
+// mpr 팝업
+const mprPopupVisible = ref(false);
 
-// 주문 데이터
+// MPR 데이터
 const mprRef = ref([]);
 
-// 전체 거래처 목록
-const allClients = ref([]);
+// 전체 MRP 목록
+const allMRP = ref([]);
 
-//거래처 셀렉트박스
-const clientOptions = ref([]);
-
-//거래처담당자 셀렉트박스
-const managerOptions = ref([]);
+//MRP 셀렉트박스
+const mrpCodeOptions = ref([]);
 
 
 
@@ -159,35 +157,30 @@ const handleConfirm = async (selectedMpr) => {
 // 최초 로딩 시 MPR 목록 조회
 onMounted(async () => {
   try {
-    // 주문 목록 조회
+    // mpr 목록 조회
     const res = await axios.get('/api/mpr/all');
-    //ordersRef.value = res.data;
 
     //moment 패키지 사용
     //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들어주는 함수
-    mprRef.value = res.data.data.map(mpr => ({
-      //기존 order 객체를 그대로 복사하면서 ord_date 값만 YYYY-MM-DD 포맷으로 변환해서 덮어쓰기
+    console.log(res)
+    mprRef.value = res.data.map(mpr => ({
+      //기존  객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...mpr,
-      _date: moment(mpr.ord_date).format('YYYY-MM-DD')
+      reqdate: moment(mpr.reqdate).format('YYYY-MM-DD'),
+      deadline: moment(mpr.deadline).format('YYYY-MM-DD')
     }));
 
-    // // 전체 거래처 목록 조회
-    // const clientRes = await axios.get('/api/order/clients');
-    // const clientList = clientRes.data.data;
-
+    // MRP 코드 목록 조회
+    const mrpRes = await axios.get('/api/mpr/mrp'); // 예: 실제 API 경로에 따라 수정 필요
+    const mrpList = mrpRes.data.data;
     // 전체 목록 저장
-    allClients.value = clientList;
+    allMRP.value = mrpList;
 
-    // 거래처 셀렉트 박스에 사용될 label + value 구성
-    clientOptions.value = clientList.map(client => ({
-      label: client.client_name,
-      value: client.client_code
-    }));
-
-    // 거래처 담당자 셀렉트 박스도 따로 구성 (담당자 이름만 쓰는 구조면 이렇게)
-    managerOptions.value = clientList.map(client => ({
-      label: client.client_mname,
-      value: client.client_mname
+    // MRP 셀렉트 박스에 사용될 label + value 구성
+    mrpCodeOptions.value = mrpList.map(mrp => ({
+      // label: `${mrp.mrp_code} - ${mrp.product_name || '제품명 없음'}`,
+      label: mrp.mrp_code,
+      value: mrp.mrp_code
     }));
 
   } catch (err) {
@@ -198,15 +191,7 @@ onMounted(async () => {
 
 </script>
 
-<template>
-  <!-- 헤더 영역 -->
-  <!-- 조회/초기화 버튼
-  <div class="flex justify-center gap-3 mt-4">
-    <Button label="초기화" severity="contrast" @click="resetSearch" />
-    <Button label="조회" severity="info" @click="fetchOrders" />
-  </div>
-  -->
-  
+<template>  
   <!-- 검색바 영역 -->
   <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
     <div class="flex justify-between">
@@ -218,10 +203,10 @@ onMounted(async () => {
             <Button label="초기화" severity="contrast" class="min-w-fit" @click="handleReset" />
             <Button label="저장" severity="info" class="min-w-fit" @click="handleSave" />
             <Button
-                label="주문정보 불러오기"
+                label="MPR 정보 불러오기"
                 severity="success"
                 class="min-w-fit whitespace-nowrap"
-                @click="orderPopupVisible = true"
+                @click="mprPopupVisible = true"
             />
         </div>
     </div>
@@ -242,4 +227,14 @@ onMounted(async () => {
       <LabeledInput label="요청자" placeholder="readonly로 변경 예정"/>
     </div>
   </div>
+
+  <!-- ===== MRP 정보 팝업 ===== -->
+  <SinglePopup
+      v-model:visible="mprPopupVisible"
+      :items="mprRef"
+      @confirm="handleConfirm"
+      :mapper="mprMapping"
+      :dataKey="'mpr_code'"
+  />
+
 </template>
