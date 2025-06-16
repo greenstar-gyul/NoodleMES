@@ -17,10 +17,11 @@ const findAll = async () => {
 
 // 오늘기준 해당하는달에 대한 조회
 const selectMonth = async () => {
-  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
-  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
-  let list = await mariadb.query("getCurrentMonthPlans")
-                          .catch(err => console.log(err));
+  let list = await mariadb.query("getCurrentMonthPlan")
+                          .catch(err => {
+                            console.error('❌ 쿼리 실패:', err);
+                            return []; // ✅ 빈 배열 반환
+                          });
   return list;
 };
 
