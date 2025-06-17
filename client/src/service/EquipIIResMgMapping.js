@@ -1,10 +1,9 @@
 export const eqiiresmgMapping = {
-    chk_type: '항목명',
-    chk_std: '점검기준',
-    chk_method: '점검방법',
-    chk_detail: '점검내용',
-    chk_result: '점검결과',
-    note: '비고'
+    eq_ma_code: '조치 코드',
+    eq_name: '설비명',
+    fail_date: '고장일',
+    act_detail: '조치 내용',
+    act_result: '조치 결과'
 };
 
 export default eqiiresmgMapping;

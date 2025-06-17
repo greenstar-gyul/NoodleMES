@@ -1,113 +1,241 @@
 <script setup>
-import axios from 'axios';
 import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import eqiiMapping from '@/service/EquipIIMapping';
-import EqirMaListTable from './components/EqirMaListTable.vue';
+import { useRoute } from 'vue-router';
 import EqirMaListSearch from './components/EqirMaListSearch.vue';
+import axios from 'axios';
+import moment from 'moment';
 
-// 데이터 및 옵션
-const eqiiData = ref([]); // 화면에 표시할 데이터
-const originalData = ref([]); // 초기 원본 데이터
-const searchRef = ref(null); // 초기화 기능에 사용
+// 현재 설비 유지보수 코드
+const currentEqMaCode = ref('');
+const route = useRoute();
 
-const router = useRouter(); // 라우트 정보 가져오기
+// 설비 유지보수 정보
+const eqMaInfo = ref({
+  eq_ma_code: '',
+  eq_name: '',
+  fail_date: null,
+  fail_cause: '',
+  act_detail: '',
+  act_result: '',
+  start_date: null,
+  end_date: null,
+  re_chk_exp_date: null,
+  eqir_code: '',
+  regdate: null,
+  note: '',
+  m_emp_name: '',
+  fix_emp_name: ''
+});
 
-// 초기 데이터 로드
-const initData = async () => {
-  try {
-    const result = await axios.get('/api/eq/eqiiall');
-    originalData.value = result.data;
-    eqiiData.value = result.data;
-    console.log('초기 데이터 로드 완료:', result.data.length, '건');
-  } catch (err) {
-    console.error('초기 데이터 로드 실패:', err);
-  }
+// 라우트 파라미터에서 eq_ma_code 가져오기
+const getEqMaCodeFromRoute = () => {
+  const eqMaCodeParam = route.params.eq_ma_code || route.query.eq_ma_code;
+  console.log('라우트에서 가져온 eq_ma_code:', eqMaCodeParam);
+  console.log('🔍 params:', route.params);
+  console.log('🔍 query:', route.query);
+  return eqMaCodeParam || '';
 }
 
-// update:data 이벤트 핸들러
-const updateData = (selectedEqii) => {
-  console.log('선택된 Eqii:', selectedEqii);
+// 설비 유지보수 데이터 로딩
+const loadEqMaDataByCode = async (eqMaCodeParam) => {
+  if (!eqMaCodeParam) return;
 
-  if (selectedEqii && selectedEqii[0].eqii_code) {
-    // EqInspecList 페이지로 이동하면서 eqii_code 전달
-    router.push({
-      name: 'eqiilist',  // 실제 라우터 이름으로 변경
-      params: { eqiiCode: selectedEqii[0].eqii_code }
-    });
-
-    console.log('EqInspecList로 이동:', selectedEqii[0].eqii_code);
-  } else {
-    console.warn('선택된 Eqii 데이터가 잘못되었습니다.');
-  }
-};
-
-// moveToEqiilist 함수
-// 해당 페이지 내에서 내부 컴포넌트를 통해 조회하므로 주소에 {eqCode} 형식이 아니라, 직접 인수를 전달해야할듯?
-// 따라서 거기로 보낼 emit 작성
-const moveToEqiilist = (eqCode) => {
-  console.log('이동할 eqCode:', eqCode);
-  // 검색 조건 초기화
-  searchRef.value.resetSearch();
-
-  // eqiiData를 초기 데이터로 설정
-  eqiiData.value = originalData.value.filter(item => item.eq_code === eqCode);
-
-  // 검색 컴포넌트에 eqCode 전달
-  searchRef.value.setEqCode(eqCode);
-};
-
-// 검색 처리 함수 수정
-const handleSearch = async (searchParams) => {
   try {
-    console.log('검색 조건:', searchParams);
-
-    // 검색 API 호출
-    const params = new URLSearchParams();
-
-    // null이나 빈 값이 아닌 경우만 파라미터에 추가
-    if (searchParams.eqii_code) params.append('eqii_code', searchParams.eqii_code);
-    if (searchParams.stat) params.append('stat', searchParams.stat);
-    if (searchParams.inst_emp_name) params.append('inst_emp_name', searchParams.inst_emp_name);
-    if (searchParams.start_date) params.append('start_date', searchParams.start_date);
-    if (searchParams.end_date) params.append('end_date', searchParams.end_date);
-
-    const response = await axios.get(`/api/eq/eqii/search?${params}`);
-
-    if (response.data.success) {
-      eqiiData.value = response.data.data;
-      console.log('검색 성공:', response.data.count, '건');
-    } else {
-      console.error('검색 실패:', response.data.error);
-      eqiiData.value = [];
+    const response = await axios.get(`/api/eq/eqirmg/${eqMaCodeParam}`);
+    
+    console.log('서버 응답 전체:', response.data); // 디버깅용
+    
+    let actualData = null;
+    
+    // 여러 응답 형태 처리
+    if (response.data && response.data.success && response.data.data) {
+      // {success: true, data: {...}} 형태
+      actualData = response.data.data;
+    } else if (response.data && !response.data.success && typeof response.data === 'object') {
+      // 직접 데이터 객체인 경우
+      actualData = response.data;
+    } else if (Array.isArray(response.data) && response.data.length > 0) {
+      // 배열 형태인 경우 첫 번째 요소
+      actualData = response.data[0];
     }
+    
+    if (actualData && actualData.eq_ma_code) {
+      console.log('실제 데이터:', actualData);
+      eqMaInfo.value = { ...actualData };
+      currentEqMaCode.value = actualData.eq_ma_code;
+    } else {
+      console.warn('유효한 데이터를 찾을 수 없음:', response.data);
+    }
+    
   } catch (error) {
-    console.error('검색 오류:', error);
-    eqiiData.value = [];
+    console.error('데이터 로딩 실패:', error);
   }
 };
 
-// 검색 조건 초기화
-const resetSearch = () => {
-  console.log('🔄 데이터 초기화');
-  eqiiData.value = [...originalData.value];
+onMounted(async () => {
+  // 라우트 파라미터에서 eq_ma_code 확인
+  const eqMaCodeFromRoute = getEqMaCodeFromRoute();
+
+  if (eqMaCodeFromRoute) {
+    console.log('라우트 파라미터로 eq_ma_code 받음:', eqMaCodeFromRoute);
+    // 해당 eq_ma_code로 데이터 로딩
+    await loadEqMaDataByCode(eqMaCodeFromRoute);
+  }
+});
+
+const formatDateForDB = (date) => {
+  if (!date) return null;
+  return moment(date).format('YYYY-MM-DD HH:mm:ss');
 };
 
-onMounted(() => {
-  initData();
-})
+const formatDateTimeForDB = (date) => {
+  if (!date) return null;
+  return moment(date).format('YYYY-MM-DD HH:mm:ss');
+};
+
+const validateData = () => {
+  // 설비 유지보수 정보 검증
+  if (!eqMaInfo.value.fail_date) {
+    alert('고장일을 입력해주세요.');
+    return false;
+  }
+  if (!eqMaInfo.value.act_detail) {
+    alert('조치내용을 입력해주세요.');
+    return false;
+  }
+  if (!eqMaInfo.value.start_date) {
+    alert('조치시작일시를 입력해주세요.');
+    return false;
+  }
+  if (!eqMaInfo.value.end_date) {
+    alert('조치종료일시를 입력해주세요.');
+    return false;
+  }
+  if (!eqMaInfo.value.act_result) {
+    alert('조치결과를 선택해주세요.');
+    return false;
+  }
+
+  return true;
+};
+
+const saveData = async () => {
+    if (!confirm('설비 유지보수 정보를 저장하시겠습니까?')) {
+        alert('저장을 취소했습니다.');
+        return;
+    }
+
+    // 데이터 검증
+    if (!validateData()) {
+        return;
+    }
+
+    try {
+        // 서버 전송용 데이터 변환
+        const eqMaDataForServer = {
+            eq_ma_code: eqMaInfo.value.eq_ma_code,
+            fail_date: formatDateForDB(eqMaInfo.value.fail_date),
+            fail_cause: eqMaInfo.value.fail_cause,
+            act_detail: eqMaInfo.value.act_detail,
+            act_result: eqMaInfo.value.act_result,
+            start_date: formatDateTimeForDB(eqMaInfo.value.start_date),
+            end_date: formatDateTimeForDB(eqMaInfo.value.end_date),
+            re_chk_exp_date: formatDateForDB(eqMaInfo.value.re_chk_exp_date),
+            eqir_code: eqMaInfo.value.eqir_code,
+            regdate: formatDateTimeForDB(eqMaInfo.value.regdate),
+            note: eqMaInfo.value.note,
+            m_emp_name: eqMaInfo.value.m_emp_name || '최설비',
+            fix_emp_name: eqMaInfo.value.fix_emp_name || '최설비'
+        };
+
+        let response;
+        if (!eqMaInfo.value.eq_ma_code) {
+            // 신규 등록
+            response = await axios.post(`/api/eq/eqirmg`, eqMaDataForServer);
+        } else {
+            // 기존 수정
+            response = await axios.put(`/api/eq/eqirmg/${eqMaInfo.value.eq_ma_code}`, eqMaDataForServer);
+        }
+
+        const result = response.data;
+
+        // 간단한 성공 체크
+        if (result && result.success) {
+            alert('저장에 성공했습니다.');
+            
+            // 신규 등록의 경우 생성된 코드로 업데이트 (여러 케이스 체크)
+            const newEqMaCode = result.eq_ma_code || (result.data && result.data.eq_ma_code);
+            if (newEqMaCode && !eqMaInfo.value.eq_ma_code) {
+                eqMaInfo.value.eq_ma_code = newEqMaCode;
+                currentEqMaCode.value = newEqMaCode;
+            }
+            return;
+        }
+        
+        // 실패 케이스
+        console.error('저장 실패 응답:', result);
+        alert('저장에 실패했습니다. 다시 시도해주세요.');
+        
+    } catch (error) {
+        console.error('저장 중 오류:', error);
+        
+        // 에러 응답도 체크
+        if (error.response) {
+            console.error('서버 에러 응답:', error.response.data);
+            alert(`저장 중 서버 오류가 발생했습니다: ${error.response.data.message || '알 수 없는 오류'}`);
+        } else {
+            alert('저장 중 네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+        }
+    }
+};
+
+const resetData = () => {
+  eqMaInfo.value = {
+    eq_ma_code: '',
+    eq_name: '',
+    fail_date: null,
+    fail_cause: '',
+    act_detail: '',
+    act_result: '',
+    start_date: null,
+    end_date: null,
+    re_chk_exp_date: null,
+    eqir_code: '',
+    regdate: null,
+    note: '',
+    m_emp_name: '최설비',
+    fix_emp_name: '최설비'
+  };
+  currentEqMaCode.value = '';
+};
+
+// eqMaInfo 업데이트 함수 (자식 컴포넌트에서 호출)
+const updateEqMaInfo = (newData) => {
+  console.log('eqMaInfo 업데이트:', newData);
+
+  // 실제로 변경된 경우에만 업데이트
+  const hasChanges = Object.keys(newData).some(key =>
+    eqMaInfo.value[key] !== newData[key]
+  );
+
+  if (!hasChanges) {
+    console.log('변경사항 없음, 업데이트 건너뜀');
+    return;
+  }
+
+  eqMaInfo.value = { ...eqMaInfo.value, ...newData };
+
+  // eq_ma_code가 변경된 경우 currentEqMaCode도 업데이트
+  if (newData.eq_ma_code && newData.eq_ma_code !== currentEqMaCode.value) {
+    currentEqMaCode.value = newData.eq_ma_code;
+  }
+};
 
 </script>
 
 <template>
-  <!-- 이벤트 이름 수정: searchOption → search -->
-  <EqirMaListSearch @search="handleSearch" @resetSearch="resetSearch" ref="searchRef" />
-
-  <!-- props 이름 수정: eqiiData → mprdata -->
-  <EqirMaListTable :eqiidata="eqiiData" :mapper="eqiiMapping" @initData="initData" @update:data="updateData" />
-
-  <!-- 조건 미일치 메시지 -->
-  <div v-if="eqiiData.length === 0" class="text-center text-gray-500 mt-4">
-    조건에 맞는 데이터가 없습니다.
+  <div>
+    <EqirMaListSearch :data="eqMaInfo" @update:data="updateEqMaInfo" @reset-list="resetData" @save-data="saveData">
+    </EqirMaListSearch>
   </div>
 </template>

@@ -25,13 +25,11 @@ const getStatLabel = (statValue) => {
   return option ? option.label : statValue; // 못 찾으면 원본 값 반환
 };
 
-// 🔥 날짜 포맷팅 함수
 const formatDate = (dateString) => {
   if (!dateString) return '';
   return moment(dateString).format('YYYY-MM-DD HH:mm');
 };
 
-// 🔥 포맷팅된 데이터
 const formattedEqiiData = computed(() => {
   if (!props.eqiidata || !Array.isArray(props.eqiidata)) return [];
   

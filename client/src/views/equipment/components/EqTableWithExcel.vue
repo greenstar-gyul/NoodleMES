@@ -1,5 +1,5 @@
 <template>
-  <!-- 📋 검색 조회 테이블 영역 -->
+  <!-- 검색 조회 테이블 영역 -->
   <div class="card mt-6">
     <!-- 테이블 상단 (타이틀 + 엑셀 다운로드 버튼) -->
     <div class="grid grid-cols-1 gap-4 mb-4">
@@ -40,7 +40,7 @@ import { ref, watch } from 'vue';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import moment from 'moment'; // 날짜포맷변경을 위해 import
+import moment from 'moment';
 
 // 날짜포맷변경을 위해 추가한 코드
 const formatDate = (val) => {
@@ -49,7 +49,7 @@ const formatDate = (val) => {
 
 const props = defineProps({
   data: {
-    type: Array,  // ✅ Object가 아니라 Array로 해야 함 (Array of objects)
+    type: Array,
     required: true
   },
   dataKey: {

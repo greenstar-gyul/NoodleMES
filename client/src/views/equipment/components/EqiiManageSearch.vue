@@ -7,7 +7,6 @@ import axios from 'axios';
 import EquipIIMapping from '../../../service/EquipIIMapping';
 import EqiiSinglePopup from '@/views/equipment/components/EqiiSinglePopup.vue';
 import LabeledDatePicker from '../../../components/registration-bar/LabeledDatePicker.vue';
-import LabeledDropdown from '../../../components/common/LabeledDropdown.vue';
 import LabeledSelect from '../../../components/registration-bar/LabeledSelect.vue';
 import moment from 'moment';
 
@@ -37,7 +36,6 @@ const parseDate = (dateString) => {
     return dateString;
 };
 
-// 🔥 computed 제거하고 일반 ref로 변경!
 const currentData = ref({
     eqii_code: '',
     inst_date: null,
@@ -47,7 +45,6 @@ const currentData = ref({
     inst_emp_name: 'EMP-10001'
 });
 
-// 🔥 props 변화 감지해서 currentData 업데이트 (한 번만!)
 watch(() => props.data, (newData) => {
     if (newData) {
         currentData.value = {
@@ -62,7 +59,6 @@ watch(() => props.data, (newData) => {
     console.log('props.data 변경 감지:', currentData.value);
 }, { immediate: true, deep: true });
 
-// 🎯 개별 업데이트 함수들
 const updateInstDate = (newDate) => {
     emit('update:data', {
         ...props.data,
@@ -106,7 +102,7 @@ const deletePlan = async () => {
         
         if (response.data.success) {
             alert('삭제에 성공했습니다.');
-            emit('resetList'); // 데이터 초기화
+            emit('resetList');
         } else {
             alert('삭제에 실패했습니다.');
         }
@@ -139,7 +135,6 @@ const loadPlansData = async () => {
     }
 };
 
-// 팝업에서 선택 - 한 번만 emit!
 const loadSelectedPlan = async (value) => {
     console.log('선택된 지시서:', value);
     if (!value || !value.eqii_code) {
@@ -149,7 +144,7 @@ const loadSelectedPlan = async (value) => {
 
     emit('update:data', {
         eqii_code: value.eqii_code,
-        inst_date: formatDateForDB(value.inst_date),    // parseDate 필요 없음!
+        inst_date: formatDateForDB(value.inst_date),
         chk_exp_date: formatDateForDB(value.chk_exp_date),
         stat: value.stat || '',
         note: value.note || '',

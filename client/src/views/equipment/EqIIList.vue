@@ -7,11 +7,11 @@ import EqiiListTable from './components/EqiiListTable.vue';
 import EqiiListSearch from './components/EqiiListSearch.vue';
 
 // 데이터 및 옵션
-const eqiiData = ref([]); // 화면에 표시할 데이터
-const originalData = ref([]); // 초기 원본 데이터
-const searchRef = ref(null); // 초기화 기능에 사용
+const eqiiData = ref([]);
+const originalData = ref([]);
+const searchRef = ref(null);
 
-const router = useRouter(); // 라우트 정보 가져오기
+const router = useRouter();
 
 // 초기 데이터 로드
 const initData = async () => {
@@ -27,16 +27,13 @@ const initData = async () => {
 
 // update:data 이벤트 핸들러
 const updateData = (selectedEqii) => {
-  console.log('📝 선택된 Eqii:', selectedEqii);
   
   if (selectedEqii && selectedEqii[0].eqii_code) {
-    // 🚀 EqInspecList 페이지로 이동하면서 eqii_code 전달
     router.push({
       name: 'eqiilist',  // 실제 라우터 이름으로 변경
       params: { eqiiCode: selectedEqii[0].eqii_code }
     });
     
-    console.log('🚀 EqInspecList로 이동:', selectedEqii[0].eqii_code);
   } else {
     console.warn('선택된 Eqii 데이터가 잘못되었습니다.');
   }
@@ -57,7 +54,6 @@ const moveToEqiilist = (eqCode) => {
   searchRef.value.setEqCode(eqCode);
 };
 
-// 🔥 검색 처리 함수 수정
 const handleSearch = async (searchParams) => {
     try {
         console.log('🔍 검색 조건:', searchParams);
@@ -76,7 +72,6 @@ const handleSearch = async (searchParams) => {
         
         if (response.data.success) {
             eqiiData.value = response.data.data;
-            console.log('✅ 검색 성공:', response.data.count, '건');
         } else {
             console.error('검색 실패:', response.data.error);
             eqiiData.value = [];
@@ -89,7 +84,6 @@ const handleSearch = async (searchParams) => {
 
 // 검색 조건 초기화
 const resetSearch = () => {
-  console.log('🔄 데이터 초기화');
   eqiiData.value = [...originalData.value];
 };
 
@@ -100,14 +94,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- 🔥 이벤트 이름 수정: searchOption → search -->
   <EqiiListSearch 
     @search="handleSearch" 
     @resetSearch="resetSearch"  
     ref="searchRef" 
   />
   
-  <!-- 🔥 props 이름 수정: eqiiData → mprdata -->
   <EqiiListTable 
     :eqiidata="eqiiData" 
     :mapper="eqiiMapping" 

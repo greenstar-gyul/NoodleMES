@@ -71,9 +71,21 @@ JOIN eqi_type_tbl AS t ON r.chk_type_code = t.chk_type_code
 WHERE r.eqii_code = ?
 `;
 
-const selectEqirMgList = `
+const simpleslectEqirList = `
+SELECT r.eqir_code
+       ,e.eq_name
+        ,r.chk_type_code
+        ,r.chk_start_date
+        ,r.chk_end_date
+        ,r.eqi_stat
+FROM eqir_tbl AS r
+JOIN eq_tbl AS e ON r.eq_code = e.eq_code
+`;
+
+
+const BASE_QUERY_FOR_EQIR_BY_EQIRMG = `
 SELECT m.eq_ma_code
-       ,m.eq_name
+       ,eq.eq_name
        ,m.fail_date
        ,m.fail_cause
        ,m.act_detail
@@ -81,14 +93,16 @@ SELECT m.eq_ma_code
        ,m.start_date
        ,m.end_date
        ,m.re_chk_exp_date
+       ,m.eqir_code
        ,m.regdate
        ,m.note
-       ,e.emp_name
-FROM   eq_ma_tbl AS m
-JOIN emp_tbl AS e ON m.emp_code = e.emp_code
-JOIN 
-WHERE m.eqir_code = ?
-ORDER BY eq_ma_code
+       ,emp1.emp_name AS m_emp_name
+       ,emp2.emp_name AS fix_emp_name
+FROM eq_ma_tbl AS m
+JOIN eqir_tbl AS eqir ON m.eqir_code = eqir.eqir_code
+JOIN eq_tbl AS eq ON eqir.eq_code = eq.eq_code
+JOIN emp_tbl AS emp1 ON m.mcode = emp1.emp_code
+JOIN emp_tbl AS emp2 ON m.fix_emp_code = emp2.emp_code
 `;
 
 // 파라미터별 검색
@@ -162,6 +176,37 @@ WHERE 1=1
 ORDER BY e.eqii_code
 `;
 
+const searchEqMa = `
+SELECT m.eq_ma_code
+       ,eq.eq_name
+       ,m.fail_date
+       ,m.fail_cause
+       ,m.act_detail
+       ,m.act_result
+       ,m.start_date
+       ,m.end_date
+       ,m.re_chk_exp_date
+       ,m.eqir_code
+       ,m.regdate
+       ,m.note
+       ,emp1.emp_name AS m_emp_name
+       ,emp2.emp_name AS fix_emp_name
+FROM eq_ma_tbl AS m
+JOIN eqir_tbl AS eqir ON m.eqir_code = eqir.eqir_code
+JOIN eq_tbl AS eq ON eqir.eq_code = eq.eq_code
+JOIN emp_tbl AS emp1 ON m.mcode = emp1.emp_code
+JOIN emp_tbl AS emp2 ON m.fix_emp_code = emp2.emp_code
+WHERE 1=1
+  AND (? IS NULL OR m.eq_ma_code LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR eq.eq_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR m.act_result LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR emp1.emp_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR emp2.emp_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR DATE(m.fail_date) >= DATE(?))
+  AND (? IS NULL OR DATE(m.fail_date) <= DATE(?))
+ORDER BY m.eq_ma_code DESC
+`;
+
 // eq_code 자동생성 
 // SELECT eq_code for new insert
 const selectEqCodeForUpdate = `
@@ -231,6 +276,49 @@ INSERT INTO eq_tbl
 ,eq_type
 ,is_used)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`;
+
+const insertEqMa = `
+INSERT INTO eq_ma_tbl
+( eq_ma_code
+,fail_date
+,fail_cause
+,act_detail
+,act_result
+,start_date
+,end_date
+,re_chk_exp_date
+,regdate
+,note
+,eqir_code
+,mcode
+,fix_emp_code)
+VALUES
+(?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, 
+(SELECT emp_code FROM emp_tbl WHERE emp_name = ?) 
+,(SELECT emp_code FROM emp_tbl WHERE emp_name = ?))
+`;
+
+const deleteEqMa = `
+DELETE FROM eq_ma_tbl
+WHERE eq_ma_code = ?
+`;
+
+const updateEqMa = `
+UPDATE eq_ma_tbl
+SET
+  fail_date = ?,
+  fail_cause = ?,
+  act_detail = ?,
+  act_result = ?,
+  start_date = ?,
+  end_date = ?,
+  re_chk_exp_date = ?,
+  note = ?,
+  mcode = (SELECT emp_code FROM emp_tbl WHERE emp_name = ?),
+  fix_emp_code = (SELECT emp_code FROM emp_tbl WHERE emp_name = ?)
+WHERE
+  eq_ma_code = ?
 `;
 
 const updateEq = `
@@ -319,9 +407,15 @@ module.exports = {
 
   selectEqiType: BASE_QUERY_FOR_EQIR_BY_EQIT,
 
+  selectEqirMgList: BASE_QUERY_FOR_EQIR_BY_EQIRMG,
+
+  selectEqirMgListByCode: BASE_QUERY_FOR_EQIR_BY_EQIRMG + ' WHERE m.eq_ma_code = ?',
+
   // selectEqitList: BASE_QUERY_FOR_EQIR_BY_EQIT + ' WHERE e.eq_type = ?',
 
   selectEqirList: selectEqitList,
+
+  simpleslectEqirList: simpleslectEqirList,
 
   // 동적 검색 (검색 조건 유무에 따라 전체, 조건부 검색)
   buildSearch: buildSearch,
@@ -333,6 +427,15 @@ module.exports = {
 
   // 설비 등록 쿼리
   insertEq: insertEq,
+
+  // 설비 관리 등록 쿼리
+  insertEqMa: insertEqMa,
+
+  // 설비 관리 삭제 쿼리
+  deleteEqMa: deleteEqMa,
+
+  // 설비 관리 수정 쿼리
+  updateEqMa: updateEqMa,
 
   // 설비 수정 쿼리
   updateEq: updateEq,
@@ -352,7 +455,7 @@ module.exports = {
     DELETE FROM eqii_tbl 
     WHERE eqii_code = ?
   `,
-  
+
   deleteEqMaByEqiiCode: `
     DELETE FROM eq_ma_tbl 
     WHERE eqir_code IN (
@@ -364,22 +467,23 @@ module.exports = {
     FROM eqir_tbl 
     WHERE eqii_code = ?
   `,
-  
+
   deleteEqirByCode: `
     DELETE FROM eqir_tbl 
     WHERE eqir_code = ?
   `,
-  
+
   deleteEqMaByEqirCode: `
     DELETE FROM eq_ma_tbl 
     WHERE eqir_code = ?
   `,
+  
   searchEqii: searchEqii,
+  searchEqMa: searchEqMa,
   selectEqCodeForUpdate: selectEqCodeForUpdate,
   selectEqirCodeForUpdate: selectEqirCodeForUpdate,
   selectEqiiCodeForUpdate: selectEqiiCodeForUpdate,
   selectEqMaCodeForUpdate: selectEqMaCodeForUpdate,
-  insertEqii: insertEqii,
   updateEqii: updateEqii,
   insertEqir: insertEqir,
   updateEqir: updateEqir,
