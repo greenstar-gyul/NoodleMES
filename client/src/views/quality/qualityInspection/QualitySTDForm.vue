@@ -171,39 +171,44 @@ watch(() => props.selectedData, (data) => {
 }, { immediate: true });
 
 const registerQCR = async () => {
-    try {
-        if (!eqForm.value.inspection_item || !eqForm.value.range_top || !eqForm.value.range_bot) {
-            alert('검사항목과 기준(상/하한)은 필수 입력입니다.');
-            return;
-        }
-
-        const submitData = {
-            inspection_item: eqForm.value.inspection_item,
-            range_top: eqForm.value.range_top,
-            range_bot: eqForm.value.range_bot,
-            com_value: eqForm.value.com_value,
-            unit: eqForm.value.unit,
-            note: eqForm.value.note?.trim() || '',
-            regdate_from: formatDateForDB(eqForm.value.regdate_from) || formatDateForDB(new Date()),
-            regdate_to: formatDateForDB(eqForm.value.regdate_to) || formatDateForDB(new Date()),
-            is_used: eqForm.value.is_used
-        };
-
-        const response = await axios.post('/api/qcr/register', submitData);
-
-        if (response.data.success) {
-            alert(`✅ 등록 성공! 생성된 코드: ${response.data.qcr_codes.join(', ')}`);
-            await resetForm();
-            emit('data-updated');
-        } else {
-            alert('❌ 등록 실패: ' + response.data.message);
-        }
-    } catch (err) {
-        console.error('❗ 등록 중 오류:', err);
-        alert('🚨 등록 중 오류가 발생했습니다.');
+try {
+    if (!eqForm.value.inspection_item || !eqForm.value.range_top || !eqForm.value.range_bot) {
+        alert('검사항목과 기준(상/하한)은 필수 입력입니다.');
+        return;
     }
-};
 
+    const today = new Date();
+
+    const submitData = {
+        inspection_item: eqForm.value.inspection_item,
+        range_top: eqForm.value.range_top,
+        range_bot: eqForm.value.range_bot,
+        com_value: eqForm.value.com_value ?? '',
+        unit: eqForm.value.unit ?? '',
+        note: eqForm.value.note?.trim() || '',
+        regdate_from: formatDateForDB(eqForm.value.regdate_from) || formatDateForDB(today),
+        regdate_to: formatDateForDB(eqForm.value.regdate_to) || formatDateForDB(today),
+        is_used: eqForm.value.is_used || 'f2'
+    };
+
+    console.log('등록 요청 데이터:', submitData); // 디버깅용 로그
+
+    const response = await axios.post('/api/qcr/register', submitData);
+
+    console.log('등록 응답:', response.data); // 응답 로그 추가
+
+    if (response.data.success) {
+        alert(`✅ 등록 성공! 생성된 코드: ${response.data.qcr_codes.join(', ')}`);
+        await resetForm();
+        emit('data-updated');
+    } else {
+        alert('❌ 등록 실패: ' + (response.data.message || '서버 응답 없음'));
+    }
+} catch (err) {
+    console.error('❗ 등록 중 오류 발생:', err);
+    alert('🚨 등록 중 오류: ' + (err.response?.data?.message || err.message || '네트워크 오류'));
+}
+};
 const updateEquipment = async () => {
     try {
         if (!eqForm.value.inspection_item) {

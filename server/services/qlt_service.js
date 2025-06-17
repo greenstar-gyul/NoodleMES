@@ -58,6 +58,7 @@ const insertQcrTx = async (qcrDataList) => {
         data.range_bot,
         data.unit,
         data.check_method,
+        new Date(),
         data.com_value,
         data.note ?? null
       ]);

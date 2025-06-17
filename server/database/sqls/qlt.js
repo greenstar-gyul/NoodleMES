@@ -12,23 +12,6 @@ JOIN
     qi_tbl qi ON qio.qi_code = qi.qi_code
 `;
 
-//
-const selectQcrList = 
-`SELECT
-    qcr_code,
-    inspection_item,
-    range_top,
-    range_bot,
-    unit,
-    check_method,
-    regdate,
-    note
-FROM
-    qcr_tbl
-WHERE    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-`;
-
-
 const selectList =
 `SELECT
     qio.qio_code,
@@ -105,7 +88,6 @@ FOR UPDATE`
 module.exports = {
     fetchOrders,
     selectList,
-    selectQcrList,
     insertQcr,
     selectQcrcodeProd,
     selectQcrCodeMat
