@@ -69,6 +69,7 @@ const handleReset = () => {
     mprs.reqDate.value = '';
     mprs.deadLine.value = '';
     mprs.mrpCode.value = '';
+    mrps.mrp_code ='';
     mprs.mCode.value = 'EMP-10001'; // 초기값을 로그인한 유저의 값으로 고정할거임
 
     // 제품 목록 초기화, store 함수 사용
@@ -78,10 +79,14 @@ const handleReset = () => {
 
 //저장
 const handleSave = async () => {
-  console.log("등록자 코드 (mCode):", mprs.mCode.value);
+  // console.log("등록자 코드 (mCode):", mprs.mCode.value);
   
   if (!mprs.reqDate.value || !mprs.deadLine.value || !mprs.mrpCode.value) {
     alert('요청일자, 납기일자, MRP 계획번호는 필수입니다.');
+    console.log('데이터 테스트');
+    console.log(mprs.reqDate.value);
+    console.log(mprs.deadLine.value);
+    console.log(mprs.mrpCode.value);
     return;
   }
   if (mprRows.value.length === 0) {
@@ -94,22 +99,25 @@ const handleSave = async () => {
     mpr_code: mprs.mprCode.value,
     reqdate: moment().format('YYYY-MM-DD'),
     deadline: moment().format('YYYY-MM-DD'),
-    mrp_code: mprs.mrpcode.value,
-    mcode: mprs.empCode.value,
+    mrp_code: mprs.mrpCode.value,
+    mcode: mprs.mCode.value,
   };
 
   const details = mprRows.value.map(item => ({
-    mpr_d_code: item.mprDCode,
-    mat_code: item.matCode,
-    req_qtt: item.reqQtt,
+    mpr_d_code: item.mpr_d_code,
+    mat_code: item.mat_code,
+    req_qtt: item.req_qtt,
     unit: item.unit,
     mpr_code: item.mpr_code,
-    mat_sup: item.mat_sup,
+    client_name: item.client_name, // 출력용
+    mat_sup: item.mat_sup, // 저장용
     note: item.note,
   }));
-
+  // console.log(mpr);
+  // console.log(details);
+  
   try {
-    await axios.post('/api/mpr', { mpr, details });
+    await axios.post('/api/mpr/insert', { mpr, details });
     alert('자재구매요청이 등록되었습니다.');
     handleReset();
   } catch (err) {
@@ -162,7 +170,6 @@ const handleMprConfirm = async (selectedMpr) => {
     mprs.deadLine.value = moment(selectedMpr.deadline).format("YYYY-MM-DD");
     mrps.mrp_code.value = selectedMpr.mrp_code; // mrp의 정보를 수정하여 사용
     mprs.mrpCode.value = selectedMpr.mrp_code; // 혹시 몰라서 mpr도 같이 수정해서 사용
-    mprs.mCode.value = selectedMpr.mcode;
   } catch (err) {
     console.error('mpr 상세 조회 실패:', err);
   }
@@ -186,12 +193,21 @@ const handleMRPConfirm = async (selectedMRP) => {
     setMrpRows(details);
 
     // mrp 기본 정보 설정
-    mrps.mrp_code.value = selectedMRP.mrp_code;
-    mrps.plan_date.value = moment(selectedMRP.plan_date).format("YYYY-MM-DD");
-    mrps.start_date.value = moment(selectedMRP.start_date).format("YYYY-MM-DD");
-    mrps.prdp_code.value = selectedMRP.prdp_code;
-    mrps.emp_code.value = selectedMRP.emp_code;
-    mrps.mrp_note.value = selectedMRP.mrp_note;
+    mrps.mrp_code = selectedMRP.mrp_code;
+    mprs.mrpCode.value = selectedMRP.mrp_code;
+    mrps.plan_date = moment(selectedMRP.plan_date).format("YYYY-MM-DD");
+    mrps.start_date = moment(selectedMRP.start_date).format("YYYY-MM-DD");
+    mrps.prdp_code = selectedMRP.prdp_code;
+    mrps.emp_code = selectedMRP.emp_code;
+    mrps.mrp_note = selectedMRP.mrp_note;
+
+    console.log('선택 데이터 테스트');
+    console.log('selectedMRP.mrp_code');
+    console.log(selectedMRP.mrp_code);
+    console.log('mrp_code');
+    console.log(mrps.mrp_code);
+    mprs.mCode.value = selectedMRP.emp_code;
+
   } catch (err) {
     console.error('mrp 상세 조회 실패:', err);
   }

@@ -69,6 +69,7 @@ const insertMprDetail = async (detailData) => {
     .catch(err => console.log(err));
   return result;
 };
+// end of findAllMat
 
 // MPR 전체 등록
 const insertMprAll = async(data) => {
@@ -86,7 +87,6 @@ const insertMprAll = async(data) => {
     data.mprData.mpr_code = mprCode;
     const result = await mariadb.queryConn(conn, "insertMpr", convertObjToAry(data.mprData, masterColumns));
 
-
     // 2. MPR 상세 등록
     for (const mprd of data.detailData) {
       const mprDCodeRes = await mariadb.queryConn(conn, "selectMprDCodeForUpdate");
@@ -95,13 +95,13 @@ const insertMprAll = async(data) => {
       mprd.mpr_code = mprCode;
       mprd.mpr_d_code = mprDCode;
 
-      await mariadb.queryConn(conn, "insertMprD", convertObjToAry(values, detailColumns));
+      await mariadb.queryConn(conn, "insertMprD", convertObjToAry(mprd, detailColumns));
     }
 
     await conn.commit();
     console.log('MPR 등록 성공');
     return result;
-  } catch {
+  } catch (err){
     await conn.rollback();
     console.log(err);
     throw err;
@@ -109,7 +109,7 @@ const insertMprAll = async(data) => {
     conn.release();
   }
 };
-// end of insertMpr
+// end of insertMprAll
 
 
 // MPR 정보 삭제

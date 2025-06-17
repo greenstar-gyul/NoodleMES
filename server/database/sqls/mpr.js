@@ -43,6 +43,8 @@ SELECT mprd.mat_code
       ,mat.mat_name
       ,mprd.req_qtt
       ,mprd.unit
+      ,mprd.mat_sup
+      ,mprd.note
       ,cl.client_name
 FROM mpr_d_tbl mprd
 LEFT OUTER JOIN mat_tbl mat
@@ -72,6 +74,7 @@ SELECT mat.mat_code
       ,mat.mat_name
       ,mat.save_inven
       ,comm_name(mat.unit) as unit
+      ,mat.sup
 	    ,cl.client_name
       ,comm_name(mat.material_type_code) as material_type_code
 FROM mat_tbl mat
@@ -89,7 +92,7 @@ const insertMpr =
 `
 INSERT INTO mpr_tbl (
 mpr_code
-, redate
+, reqdate
 , deadline
 , mrp_code
 , mcode )
@@ -107,7 +110,7 @@ mpr_d_code
 , mpr_code
 , mat_sup
 , note )
-VALUES (?, ?, ?, ?, ?, ? , ?)
+VALUES (?, ?, ?, ?, ?, ?, ?)
 `;
 
 // 자재구매요청 코드 생성
