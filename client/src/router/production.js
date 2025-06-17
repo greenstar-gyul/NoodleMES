@@ -14,14 +14,14 @@ export default [
         name: 'performanceList',
         component: () => import('../views/performance/performanceList.vue')
     },
-    // {
-    //     path: '/performance/detail/:prdr_code',
-    //     name: 'PerformanceDetail',
-    //     component: () => import('@/views/performance/PerformanceDetail.vue')
-    // }
     {
         path: '/work/working',
         name: 'working',
         component: () => import('@/views/working/WorkProcess.vue')
+    },
+    {
+        path: '/performance/detail/:prdr_code',
+        name: 'PerformanceDetail',
+        component: () => import('../views/performance/performanceDetail.vue')
     },
 ];

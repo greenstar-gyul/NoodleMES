@@ -33,13 +33,15 @@ const searchLineList = `
 `;
 
 // 공정흐름 팝업
-const processListPopup = `
+const processPopup = `
 SELECT d.no,
        d.po_code,
        p.po_name,
+       comm_name(d.eq_type) AS "eq_type",
        d.pp_code
 FROM prod_proc_d_tbl d
 LEFT JOIN po_tbl p ON d.po_code = p.po_code
+WHERE prod_proc_code = 'PROC-0000'
 `;
 
 // 설비 목록 팝업
@@ -131,7 +133,8 @@ SELECT
     ppd.po_code,
     po.po_name,
     ppd.eq_type,
-    comm_name(ppd.eq_type) AS eq_type_name
+    comm_name(ppd.eq_type) AS eq_type_name,
+    ppd.pp_code 
 FROM prod_proc_tbl pp
 JOIN prod_proc_d_tbl ppd ON pp.prod_proc_code = ppd.prod_proc_code
 JOIN po_tbl po ON ppd.po_code = po.po_code
@@ -142,7 +145,7 @@ ORDER BY ppd.no;
 module.exports = {
     selectLineList,
     searchLineList,
-    processListPopup,
+    processPopup,
     facilitieListPopup,
     insertLine,
     insertLineDetail,

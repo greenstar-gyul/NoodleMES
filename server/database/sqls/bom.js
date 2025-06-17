@@ -160,5 +160,4 @@ module.exports = {
     selectComValueOptions,
     selectAllMaterialsForPopup,
     selectProdCodeForUpdate,
-    // selectBomCodeForUpdate
 };
