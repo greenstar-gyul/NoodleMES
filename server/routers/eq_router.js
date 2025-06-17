@@ -109,6 +109,17 @@ router.post('/eqii', async (req, res) => {
     }
 });
 
+// 점검결과 간편 조회
+router.get('/eqirall', async (req, res) => {
+    try {
+        let eqirList = await eqService.simpleslectEqirList();
+        res.send(eqirList);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: '조회 실패' });
+    }
+})
+
 // 점검결과 조회
 router.get('/eqirall/:code', async (req, res) => {
     try {
@@ -157,7 +168,6 @@ router.post('/eqir', async (req, res) => {
 
 router.get('/eqii/search', async (req, res) => {
     try {
-        // 쿼리 파라미터에서 검색 조건 추출
         const searchParams = {
             eqii_code: req.query.eqii_code || null,
             stat: req.query.stat || null,
@@ -173,7 +183,7 @@ router.get('/eqii/search', async (req, res) => {
         res.json({
             success: true,
             data: eqiiList,
-            count: eqiiList.length  // 🔥 검색 결과 개수도 함께!
+            count: eqiiList.length
         });
 
     } catch (error) {
@@ -197,7 +207,6 @@ router.get('/eqii/:code', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
-
 
 // 지시서 수정
 router.put('/eqii/:code', async (req, res) => {
@@ -257,5 +266,121 @@ router.put('/eqii/save-all/:code', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+// 조치 내역 전체 조회
+router.get('/eqirmg', async (req, res) => {
+    try {
+        let eqmaList = await eqService.findEqirMgList();
+        res.send(eqmaList);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: '조회 실패' });
+    }
+});
+
+// 조치 내역 검색
+router.get('/eqirmg/search', async (req, res) => {
+    try {
+        // 쿼리 파라미터에서 검색 조건 추출
+        const searchParams = {
+            eq_ma_code: req.query.eq_ma_code || null,
+            eq_name: req.query.eq_name || null,
+            act_result: req.query.act_result || null,
+            m_emp_name: req.query.m_emp_name || null,
+            fix_emp_name: req.query.fix_emp_name || null,
+            start_date: req.query.start_date || null,
+            end_date: req.query.end_date || null
+        };
+
+        console.log('🔍 설비 유지보수 검색 조건:', searchParams);
+
+        const eqMaList = await eqService.searchEqMa(searchParams);
+
+        res.json({
+            success: true,
+            data: eqMaList,
+            count: eqMaList.length
+        });
+
+    } catch (error) {
+        console.error('🚨 설비 유지보수 검색 오류:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: '검색 중 오류가 발생했습니다.'
+        });
+    }
+});
+
+// 조치 내역 조회(code) 
+router.get('/eqirmg/:code', async (req, res) => {
+    try {
+        const eqmaCode = req.params.code;
+        console.log('🔍 요청된 코드:', eqmaCode);
+        
+        const eqmaData = await eqService.findEqirMgListByCode(eqmaCode);
+        console.log('🔍 조회된 데이터:', eqmaData);
+        
+        if (eqmaData) {
+            res.json({ success: true, data: eqmaData });
+        } else {
+            res.json({ success: false, message: '데이터를 찾을 수 없습니다.' });
+        }
+    } catch (error) {
+        console.log('🚨 조회 오류:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 조치 내역 등록
+router.post('/eqirmg', async (req, res) => {
+    try {
+        const result = await eqService.insertEqMa(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 조치 내역 수정
+router.put('/eqirmg/:code', async (req, res) => {
+    try {
+        const result = await eqService.updateEqMa(req.params.code, req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 조치 내역 삭제
+router.delete('/eqirmg/:code', async (req, res) => {
+    try {
+        const result = await eqService.deleteEqMa(req.params.code);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 조치 내역 다중 삭제
+router.delete('/eqirmg/multiple/delete', async (req, res) => {
+    try {
+        const { codes } = req.body;
+        if (!codes || !Array.isArray(codes) || codes.length === 0) {
+            return res.status(400).json({ success: false, error: '삭제할 코드가 없습니다' });
+        }
+
+        const result = await eqService.deleteMultipleEqMa(codes);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
 
 module.exports = router;

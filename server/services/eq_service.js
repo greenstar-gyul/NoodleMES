@@ -16,6 +16,12 @@ const showEqii = async () => {
   return list;
 };
 
+const simpleslectEqirList = async () => {
+  let list = await mariadb.query("simpleslectEqirList")
+    .catch(err => console.log(err));
+  return list;
+}
+
 // 설비 점검 기준 항목 전체 조회
 const showEqiType = async () => {
   let list = await mariadb.query("selectEqiType")
@@ -227,7 +233,6 @@ const saveEqiiWithDetails = async (eqiiData, eqirList) => {
     let eqiiResult;
     let generatedEqiiCode = eqiiData.eqii_code;
     
-    // 1️⃣ 지시서 처리 (기존과 동일)
     if (!eqiiData.eqii_code || eqiiData.eqii_code === '') {
       // 신규 등록
       const eqiiCodeRes = await mariadb.queryConn(conn, "selectEqiiCodeForUpdate", []);
@@ -257,13 +262,11 @@ const saveEqiiWithDetails = async (eqiiData, eqirList) => {
       eqiiResult = await mariadb.queryConn(conn, "updateEqii", eqiiValues);
     }
     
-    // 2️⃣ 🔥 기존 점검항목 조회 (삭제된 항목 찾기 위해)
     let existingEqirs = [];
     if (eqiiData.eqii_code) {
       existingEqirs = await mariadb.queryConn(conn, "selectEqirCodesByEqiiCode", [generatedEqiiCode]);
     }
     
-    // 3️⃣ 🔥 삭제된 항목 처리
     const currentEqirCodes = eqirList
       .filter(item => item.eqir_code && item.eqir_code !== '')
       .map(item => item.eqir_code);
@@ -272,23 +275,18 @@ const saveEqiiWithDetails = async (eqiiData, eqirList) => {
       .map(item => item.eqir_code)
       .filter(code => !currentEqirCodes.includes(code));
     
-    // 🔥 삭제된 항목들 처리
     for (const deletedCode of deletedEqirCodes) {
-      console.log('🗑️ 삭제될 항목:', deletedCode);
+      console.log('삭제될 항목:', deletedCode);
       
-      // eq_ma_tbl에서 먼저 삭제
       await mariadb.queryConn(conn, "deleteEqMaByEqirCode", [deletedCode]);
       
-      // eqir_tbl에서 삭제
       await mariadb.queryConn(conn, "deleteEqirByCode", [deletedCode]);
     }
     
-    // 4️⃣ 점검항목 처리 (업데이트/추가)
     const eqirResults = [];
     
     for (const eqirData of eqirList) {
       if (eqirData.eqir_code && eqirData.eqir_code !== '') {
-        // 🔄 기존 점검항목 업데이트
         const eqirValues = [
           eqirData.chk_start_date,
           eqirData.chk_end_date,
@@ -302,7 +300,6 @@ const saveEqiiWithDetails = async (eqiiData, eqirList) => {
         const eqirResult = await mariadb.queryConn(conn, "updateEqir", eqirValues);
         eqirResults.push(eqirResult);
       } else {
-        // 🆕 새 점검항목 추가
         const eqirCodeRes = await mariadb.queryConn(conn, "selectEqirCodeForUpdate", []);
         const generatedEqirCode = eqirCodeRes[0].next_eqir_code;
         
@@ -331,7 +328,7 @@ const saveEqiiWithDetails = async (eqiiData, eqirList) => {
       eqii_code: generatedEqiiCode,
       eqii_result: eqiiResult,
       eqir_results: eqirResults,
-      deleted_count: deletedEqirCodes.length  // 🔥 삭제 개수 추가
+      deleted_count: deletedEqirCodes.length
     };
     
   } catch (err) {
@@ -383,14 +380,10 @@ const deleteEqii = async (eqiiCode) => {
   try {
     await conn.beginTransaction();
     
-    // 1️⃣ 먼저 관련 점검항목들 삭제 (외래키 때문에)
-    // eq_ma_tbl에서 참조하는 데이터가 있으면 먼저 삭제
     await mariadb.queryConn(conn, "deleteEqMaByEqiiCode", [eqiiCode]);
     
-    // 2️⃣ 점검항목 삭제
     await mariadb.queryConn(conn, "deleteEqirByEqiiCode", [eqiiCode]);
     
-    // 3️⃣ 지시서 삭제
     const result = await mariadb.queryConn(conn, "deleteEqiiByCode", [eqiiCode]);
     
     await conn.commit();
@@ -435,6 +428,101 @@ const deleteMultiple = async (eqCodes) => {
   }
 }
 
+const findEqirMgList = async () => {
+  const result = await mariadb.query("selectEqirMgList")
+    .catch(err => console.log(err));
+  return result;
+}
+
+const findEqirMgListByCode = async (eqMaCode) => {
+  const result = await mariadb.query("selectEqirMgListByCode", [eqMaCode])
+    .catch(err => console.log(err));
+  return result && result.length > 0 ? result[0] : null;
+};
+
+const updateEqMa = async (eqMaCode, eqMaData) => {
+  const eqMaValues = [
+    eqMaData.fail_date,
+    eqMaData.fail_cause,
+    eqMaData.act_detail,
+    eqMaData.act_result,
+    eqMaData.start_date,
+    eqMaData.end_date,
+    eqMaData.re_chk_exp_date,
+    eqMaData.note,
+    eqMaData.m_emp_name,
+    eqMaData.fix_emp_name,
+    eqMaCode  
+  ];
+
+  const result = await mariadb.query("updateEqMa", eqMaValues)
+    .catch(err => console.log(err));
+  return result;
+};
+
+// inserEqMa 함수 eq_ma_code 를 자동 생성하는 로직을 추가
+const insertEqMa = async (eqMaData) => {
+  const conn = await mariadb.connectionPool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const eqMaCodeRes = await mariadb.queryConn(conn, "selectEqMaCodeForUpdate", []);
+    const generatedCode = eqMaCodeRes[0].next_eq_ma_code;
+
+    const eqMaValues = [
+      generatedCode,
+      eqMaData.fail_date,
+      eqMaData.fail_cause,
+      eqMaData.act_detail,
+      eqMaData.act_result,
+      eqMaData.start_date,
+      eqMaData.end_date,
+      eqMaData.re_chk_exp_date,
+      eqMaData.note,
+      eqMaData.eqir_code,
+      eqMaData.m_emp_name,
+      eqMaData.fix_emp_name
+    ];
+
+    const result = await mariadb.queryConn(conn, "insertEqMa", eqMaValues);
+    await conn.commit();
+    return result;
+  } catch (err) {
+    await conn.rollback();
+    console.log(err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+const deleteEqMa = async (eqMaCode) => {
+  const result = await mariadb.query("deleteEqMa", [eqMaCode])
+    .catch(err => console.log(err));
+  return result;
+};
+
+const searchEqMa = async (params) => {
+  // 각 조건마다 [value, value] 패턴 (searchEqii 참고)
+  const bindParams = [
+    params.eq_ma_code, params.eq_ma_code,
+    params.eq_name, params.eq_name,
+    params.act_result, params.act_result,  
+    params.m_emp_name, params.m_emp_name,
+    params.fix_emp_name, params.fix_emp_name,
+    params.start_date, params.start_date,
+    params.end_date, params.end_date
+  ].map(param => param ?? null);
+
+  try {
+    const list = await mariadb.query("searchEqMa", bindParams);
+    return list;
+  } catch (err) {
+    console.error('설비 유지보수 검색 오류:', err);
+    return [];
+  }
+};
+
 module.exports = {
   findAll,
   searchEquipment,
@@ -458,5 +546,13 @@ module.exports = {
   findEqiiByCode,
   updateEqir,
   deleteEqii,
-  searchEqii
+  searchEqii,
+  updateEqMa,
+  insertEqMa,
+  deleteEqMa,
+  findEqirMgList,
+  findEqirMgListByCode,
+  simpleslectEqirList,
+  searchEqMa,
+  deleteEqMa
 };

@@ -191,7 +191,6 @@ watch(
     () => props.selectedData,
     (newData) => {
         if (newData) {
-            console.log('📝 선택된 데이터를 폼에 설정:', newData);
             // 선택된 데이터를 폼에 채우기
             eqForm.value = {
                 eq_code: newData.eq_code || '',
