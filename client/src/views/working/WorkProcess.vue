@@ -7,7 +7,7 @@ const props = defineProps({
     default: [
       {
         po_name: '원료 배합',
-        proc_rate: '80.5',
+        proc_rate: '10.5',
         eq_code: 'EQ-AAA-0001',
         eq_name: '배합기',
         start_date: moment('2025.06.16-09:33:12', 'YYYY.MM.DD-HH:mm:ss').format('YYYY-MM-DD HH:mm:ss'),
@@ -59,23 +59,38 @@ const loadProcess = async () => {
             
             <Column field="proc_rate" header="진행률" style="width: 24%">
                 <template #body="slotProps">
-                    <!-- <ProgressBar :value="slotProps.data.proc_rate" :showValue="true"></ProgressBar> -->
-                    <!-- <span class="font-medium text-gray-800">{{ slotProps.data.proc_rate }}%</span> -->
-                     <div class="w-full bg-gray-300 rounded">
+                    <!-- <ProgressBar :value="slotProps.data.proc_rate" class="w-full"></ProgressBar> -->
+                    <!-- <div class="w-full bg-gray-300 rounded">
                         <div
-                            class="bg-green-500 text-white text-center py-1 rounded"
-                            :style="{ width: slotProps.data.proc_rate + '%' }"
+                        class="bg-green-500 text-white text-center py-1 rounded"
+                        :style="{ width: slotProps.data.proc_rate + '%' }"
                         >
+                        {{ slotProps.data.proc_rate }}%
+                        </div>
+                    </div> -->
+                    <div class="relative w-full h-6 bg-gray-300 rounded overflow-hidden">
+                        <!-- 중앙 고정 텍스트 -->
+                        <div class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-black">
                             {{ slotProps.data.proc_rate }}%
                         </div>
+
+                        <!-- 실제 진행 바 -->
+                        <div
+                            class="h-full bg-green-500"
+                            :style="{ width: slotProps.data.proc_rate + '%' }"
+                        ></div>
                     </div>
+
 
                 </template>
             </Column>
 
             <Column field="eq_code" header="설비" style="width: 20%">
                 <template #body="slotProps">
-                    <span class="font-medium text-gray-600" v-on:click="$router.push('//')">{{ slotProps.data.eq_code }} - {{ slotProps.data.eq_name }}</span>
+                    <div class="flex items-center gap-2">
+                        <!-- <span class="font-medium text-gray-600" v-on:click="$router.push('//')">{{ slotProps.data.eq_code }} - {{ slotProps.data.eq_name }}</span> -->
+                        <Button :label="slotProps.data.eq_code + ' ' + slotProps.data.eq_name" severity="secondary" @click="$router.push('//')" class="flex-1" />
+                    </div>
                 </template>
             </Column>
 

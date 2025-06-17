@@ -48,4 +48,4 @@ const getMonthlyPerformance = async (startDate, endDate) => {
 module.exports = {
   findAll,
   getMonthlyPerformance
-};
+}

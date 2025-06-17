@@ -45,6 +45,8 @@ const prdrRouter = require('./routers/prdr_router.js');
 
 const procRouter = require('./routers/proc_router.js');
 
+const workRouter = require('./routers/work_router.js');
+
 
 // 기본 라우팅
 app.get('/', (req, res) => {
@@ -64,3 +66,4 @@ app.use('/line',lineRouter);
 app.use('/wko', wkoRouter);
 app.use('/prdr', prdrRouter);
 app.use('/proc', procRouter);
+app.use('/work', workRouter);
