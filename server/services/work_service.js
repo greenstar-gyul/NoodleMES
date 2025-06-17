@@ -87,10 +87,33 @@ const findProcessByWkoCode = async (wko_code) => {
   }
 };
 
+// 작업 진행 상세 단건 조회
+const findWorkDetailOne = async (wko_code, eq_code) => {
+  try {
+    const result = await mariadb.query('selectWorkDetailOne', [wko_code, eq_code]);
+    return result[0];
+  } catch (err) {
+    console.error('작업 진행 상세 조회 실패', err);
+    throw err;
+  }
+};
+
+// 특정 line_code에 맞는 설비 목록 조회
+const findEquipmentsByLine = async (line_code) => {
+  try {
+    const result = await mariadb.query('selectEquipmentList', [line_code]);
+    return result;
+  } catch (err) {
+    console.error('❌ 설비 목록 조회 실패:', err);
+    throw err;
+  }
+};
 
 module.exports = {
   findAll,
   getMonthlyPerformance,
   searchWorkingList,
   findProcessByWkoCode,
+  findWorkDetailOne,
+  findEquipmentsByLine
 }

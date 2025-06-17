@@ -13,8 +13,8 @@ const props = defineProps({
 
 onMounted(async () => {
   try {
-    const res = await axios.get('/api/prdr/equipment', {
-      params: { prdr_d_code: props.detail.prdr_d_code }
+    const res = await axios.get('/api/work/equipments', {
+      params: { line_code: props.detail.line_code }  // ✅ 여기 핵심
     });
     equipmentList.value = res.data;
     console.log('✅ 사용 설비 목록:', equipmentList.value);
@@ -22,6 +22,7 @@ onMounted(async () => {
     console.error('❌ 설비 조회 실패:', err);
   }
 });
+
 </script>
 
 <template>
