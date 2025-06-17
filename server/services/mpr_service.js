@@ -46,7 +46,7 @@ const findAllMRP = async () => {
 };
 // end of findAllMRP
 
-// MRP 전체 조회
+// 자재 전체 조회
 const findAllMat = async () => {
   const result = await mariadb.query("selectMatList")
     .catch(err => console.log(err));
