@@ -17,6 +17,66 @@ WHERE CONVERT_TZ(w.reg_date, '+00:00', '+09:00') BETWEEN ? AND ?
 ORDER BY w.wko_code;
 `;
 
+// 작업 지시서 코드를 바탕으로 작업진행 조회
+// const selectWKOProcesses = `
+// SELECT w.wko_code,
+//        w.emp_code,
+//        w.prod_code,
+//        w.line_code,
+//        w.wko_qtt,
+//        ld.line_eq_code,
+//        ld.pp_code,
+//        eq.eq_code,
+//        eq.eq_name,
+//        ppd.eq_type,
+//        po.po_code,
+//        po.po_name,
+//        prdr.prdr_code,
+//        prdd.prdr_d_code,
+//        prdd.proc_rate,
+//        prdd.start_date,
+//        prdd.end_date,
+//        prdd.input_qtt,
+//        prdd.def_qtt,
+//        prdd.make_qtt
+// FROM   wko_tbl w LEFT JOIN line_tbl l
+//                         ON w.line_code = l.line_code
+//                  LEFT JOIN line_d_tbl ld
+//                         ON l.line_code = ld.line_code
+//                  LEFT JOIN prod_proc_d_tbl ppd
+//                         ON ld.pp_code = ppd.pp_code
+//                  LEFT JOIN prdr_tbl prdr
+//                         ON w.wko_code = prdr.work_order_code
+//                  LEFT JOIN prdr_d_tbl prdd
+//                  		ON ld.line_eq_code = prdd.line_eq_code
+//                  LEFT JOIN po_tbl po
+//                  		ON po.po_code = ppd.po_code
+//                  LEFT JOIN eq_tbl eq
+//                  		ON eq.eq_code = ld.eq_code
+const selectWKOProcesses = `
+SELECT *
+FROM   processes_v
+WHERE  wko_code = ?
+`;
+
+// PRDR 코드 생성
+const selectPRDRCodeForUpdate = `
+SELECT CONCAT('PRDR-', LPAD(IFNULL(MAX(SUBSTR(prdr_code, -3)), 0) + 1, 3, '0')) AS "prdr_code"
+FROM prdr_tbl
+FOR UPDATE
+`;
+
+// PRDR 저장
+const insertPRDR = `
+INSERT INTO prdr_tbl
+VALUES(?, NULL, NULL, NULL, ?, ?, ?, ?, ?, NULL)
+`
+
+// PRDR-D 코드 생성
+const selectPRDRDCode = `
+SELECT CONCAT('PRDR-D-', LPAD(IFNULL(MAX(SUBSTR(prdr_d_code, -3)), 0) + 1, 3, '0')) AS "prdr_d_code"
+FROM prdr_d_tbl
+`;
 
 // 작업진행 조건 검색
 const searchWorkingList = `
@@ -44,6 +104,9 @@ ORDER BY w.wko_code;
 `;
 
 module.exports = {
+  selectPRDRCodeForUpdate,
+  insertPRDR,
   getCurrentMonthPlan,
-  searchWorkingList
+  searchWorkingList,
+  selectWKOProcesses
 }

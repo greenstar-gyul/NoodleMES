@@ -90,10 +90,10 @@ const model = ref([
                         label: '작업지시서 관리',
                         to: '/wko/manage'
                     },
-                    {
-                        label: '작업진행',
-                        to: '/work/working'
-                    },
+                    // {
+                    //     label: '작업진행',
+                    //     to: '/work/working'
+                    // },
                     {
                         label: '작업진행 목록',
                         to: '/work/list'
