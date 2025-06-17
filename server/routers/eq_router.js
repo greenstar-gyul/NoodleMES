@@ -98,6 +98,17 @@ router.get('/eqii/statuses/:code', async (req, res) => {
     }
 })
 
+// 설비 점검 등록
+router.post('/eqii', async (req, res) => {
+    try {
+        const result = await eqService.insertEqii(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // 점검결과 조회
 router.get('/eqirall/:code', async (req, res) => {
     try {
@@ -132,5 +143,87 @@ router.get('/eqitype/:type', async (req, res) => {
         res.status(500).send({ error: '조회 실패' });
     }
 })
+
+// 점검결과 등록
+router.post('/eqir', async (req, res) => {
+    try {
+        const result = await eqService.insertEqir(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 지시서 단건 조회
+router.get('/eqii/:code', async (req, res) => {
+    try {
+        const eqiiCode = req.params.code;
+        const eqiiData = await eqService.findEqiiByCode(eqiiCode);
+        res.json({ success: true, data: eqiiData });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 지시서 수정
+router.put('/eqii/:code', async (req, res) => {
+    try {
+        const result = await eqService.updateEqii(req.params.code, req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 지시서 삭제
+router.delete('/eqii/:code', async (req, res) => {
+    try {
+        const result = await eqService.deleteEqii(req.params.code);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 점검결과 수정
+router.put('/eqir/:code', async (req, res) => {
+    try {
+        const result = await eqService.updateEqir(req.params.code, req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 통합 저장 (지시서 + 점검항목들)
+router.post('/eqii/save-all', async (req, res) => {
+    try {
+        const { eqiiData, detailData } = req.body;
+        const result = await eqService.saveEqiiWithDetails(eqiiData, detailData);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 통합 수정 (지시서 + 점검항목들)
+router.put('/eqii/save-all/:code', async (req, res) => {
+    try {
+        const { eqiiData, detailData } = req.body;
+        // eqii_code를 URL에서 가져와서 설정
+        eqiiData.eqii_code = req.params.code;
+        const result = await eqService.saveEqiiWithDetails(eqiiData, detailData);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 module.exports = router;
