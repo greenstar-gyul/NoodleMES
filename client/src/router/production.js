@@ -19,4 +19,9 @@ export default [
     //     name: 'PerformanceDetail',
     //     component: () => import('@/views/performance/PerformanceDetail.vue')
     // }
+    {
+        path: '/work/working',
+        name: 'working',
+        component: () => import('@/views/working/WorkProcess.vue')
+    },
 ];

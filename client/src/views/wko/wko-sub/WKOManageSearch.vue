@@ -134,6 +134,7 @@ const prodLoad = async (value) => {
             ...props.data,
             prod_code: value.prod_code,
             prod_name: value.prod_name,
+            wko_qtt: value.planned_qtt === '-' ? 0 : value.planned_qtt, // 계획 수량 설정
         };
 
         emit('update:data', updatedData);
