@@ -11,6 +11,9 @@ import LabeledReadonlyInput from '@/components/registration-bar/LabeledReadonlyI
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
 import EditableTable from '@/components/form/EditableTable.vue';
+import QualityManageTbl from './QualityManageTbl.vue';
+
+
 
 /* ===== DATA ===== */
 // 팝업
@@ -23,7 +26,12 @@ const resultsQir = ref(qir);
 const qio_code = ref('');
 const prod_code = ref('');
 const po_code = ref('');
-const selectedInsp = ref(null);
+
+
+const selectedInsp = ref(null);      // 지시자
+const selectedPoName = ref(null);    // 공정명
+const selectedProdName = ref(null);  // 제품명
+const selectedSchedule = ref(null);  // 검사예정일
 const selectedManager = ref(null);
 
 // 🚀 수정 불가 상태 변수
@@ -90,7 +98,6 @@ const handleUpdate = (updatedData) => {
 // 테이블에 보여줄 목록 데이터 (예시 데이터)
 const qualityResults = ref([
     {
-        ord_code: 'dd',
         qcr_code: '품질기준코드1',
         po_code: '공정코드',
         inspection_item: '검사항목',
@@ -205,14 +212,14 @@ const qualityResults = ref([
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <LabeledSelect
                 label="공정명"
-                v-model="selectedInsp"
+                v-model="selectedPoName"
                 :options="InspOptions"
                 placeholder="공정명 선택해주세요"
                 :disabled="isReadonly"
             />    
             <LabeledSelect
                 label="제품명"
-                v-model="selectedInsp"
+                v-model="selectedProdName"
                 :options="InspOptions"
                 placeholder="제품명을 선택해주세요"
                 :disabled="isReadonly"
@@ -224,15 +231,19 @@ const qualityResults = ref([
             <!-- 공정코드po_code -->
             <LabeledSelect
                 label="검사예정일"
-                v-model="selectedInsp"
+                v-model="selectedSchedule"
                 :options="InspOptions"
                 placeholder="날짜를 선택해주세요"
                 :disabled="isReadonly"
             />
         </div>
+
+        <QualityManageTbl v-model:subData="eqirList" v-model:eqii="eqiiCode" :dataKey="'eqir_code'"
+        :columns="['eqir_code','eq_name', 'chk_start_date','chk_end_date','chk_detail','note','chk_result','eqi_stat']"
+        title="품질점검항목"></QualityManageTbl>
     </div>
 
-  
+
 
     <!-- ===== 팝업 영역 ===== -->
     <SinglePopup

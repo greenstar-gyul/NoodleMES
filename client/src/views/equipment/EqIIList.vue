@@ -20,7 +20,7 @@
         <label class="font-semibold w-24">지시일자</label>
         <Calendar type="text" class="w-full" />
       </div>
-
+ 
       <!-- 점검유형 -->
       <div class="flex items-center gap-3 w-full">
         <label class="font-semibold w-24">점검유형</label>
