@@ -33,7 +33,19 @@ const findAll = async () => {
   return list;
 };
 
+// 📦 작업지시서 목록 조회 - 이번 달 기준
+const getMonthlyPerformance = async (startDate, endDate) => {
+  try {
+    const result = await mariadb.query('getCurrentMonthPlans', [startDate, endDate]);
+    return result;
+  } catch (err) {
+    console.error('❌ 생산실적 조회 실패:', err);
+    throw err;
+  }
+};
+
 
 module.exports = {
   findAll,
+  getMonthlyPerformance
 };
