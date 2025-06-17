@@ -40,14 +40,16 @@ ORDER BY mpr_code
 const selectMprDList =
 `
 SELECT mprd.mat_code
-    ,  mat.mat_name
-    ,  mprd.req_qtt
-    ,  mprd.unit
-    ,  mprd.mat_sup
-FROM   mpr_d_tbl mprd
+      ,mat.mat_name
+      ,mprd.req_qtt
+      ,mprd.unit
+      ,cl.client_name
+FROM mpr_d_tbl mprd
 LEFT OUTER JOIN mat_tbl mat
-ON mprd.mat_code = mat.mat_code
-WHERE  mprd.mpr_code = ?;
+    ON mprd.mat_code = mat.mat_code
+LEFT OUTER JOIN client_tbl cl
+    ON mprd.mat_sup = cl.client_code
+WHERE  mprd.mpr_code = ?
 `;
 
 // 전체 MRP 조회
@@ -66,22 +68,15 @@ ORDER BY mrp_code
 // 자재 전체 조회
 const selectMatList = 
 `
-SELECT mat_code
-      ,mat_name
-      ,save_inven
-      ,comm_name(unit) as unit
-	    ,sup
-      ,comm_name(material_type_code) as material_type_code
-    
-      ,spec
-      ,edate
-      ,comm_name(is_used)
-      ,is_used
-      ,regdate
-      ,note
-      ,emp_code
-FROM mat_tbl
-ORDER BY mat_code;
+SELECT mat.mat_code
+      ,mat.mat_name
+      ,mat.save_inven
+      ,comm_name(mat.unit) as unit
+	    ,cl.client_name
+      ,comm_name(mat.material_type_code) as material_type_code
+FROM mat_tbl mat
+	 LEFT OUTER JOIN client_tbl cl
+     ON  mat.sup = cl.client_code
 `;
 
 

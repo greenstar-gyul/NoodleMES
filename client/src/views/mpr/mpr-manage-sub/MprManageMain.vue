@@ -13,6 +13,7 @@ import mprMapping from '@/service/MprMapping';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
+import LabeledInputIcon from '@/components/registration-bar/LabeledInputIcon.vue';
 import Button from 'primevue/button';
 import LabeledDatePicker from '../../../components/registration-bar/LabeledDatePicker.vue';
 
@@ -25,23 +26,36 @@ const mprs = defineProps({
   mCode: { type: Object, required: true },
 });
 
+const mrps = {
+  mrp_code: ref(''),
+  plan_date: ref(''),
+  start_date: ref(''),
+  prdp_code: ref(''),
+  emp_code: ref(''),
+  mrp_note: ref('')
+};
+
 // pinia
 const mprStore = useMprStore();
 
 // 상태는 반응형으로 가져오기
-const { mprRows } = storeToRefs(mprStore);
+const { mprRows, mrpRows } = storeToRefs(mprStore);
 // 순서대로 목록데이터 저장, 초기화, 선택목록 저장
-const { setMprRows, resetMprRows, setSelectedMpr } = mprStore;
+const { setMprRows, resetMprRows, setMrpRows, resetMrpRows } = mprStore;
 
-/* ===== DATA ===== 여기 잘 모르겠음 ㅇㅅㅇ*/ 
-// mpr 팝업
+/* ===== DATA ===== */ 
+// MPP 팝업
 const mprPopupVisible = ref(false);
 
 // MPR 데이터
 const mprRef = ref([]);
 
-// 전체 MRP 목록
-const allMRP = ref([]);
+// MRP 팝업
+const mrpPopupVisible = ref(false);
+
+// 전체 MRP데이터
+const mrpRef = ref([]);
+
 
 //MRP 셀렉트박스
 const mrpCodeOptions = ref([]);
@@ -125,8 +139,8 @@ const handleDelete = async () => {
     }
 };
 
-// MPR 팝업 Confirm 핸들러 / 확인필요
-const handleConfirm = async (selectedMpr) => {
+// MPR 팝업 Confirm 핸들러
+const handleMprConfirm = async (selectedMpr) => {
   console.log('선택된 MPR:', selectedMpr);
 
   try {
@@ -146,10 +160,40 @@ const handleConfirm = async (selectedMpr) => {
     mprs.mprCode.value = selectedMpr.mpr_code;
     mprs.reqDate.value = moment(selectedMpr.reqdate).format("YYYY-MM-DD");
     mprs.deadLine.value = moment(selectedMpr.deadline).format("YYYY-MM-DD");
-    mprs.mrpCode.value = selectedMpr.mrp_code;
+    mrps.mrp_code.value = selectedMpr.mrp_code; // mrp의 정보를 수정하여 사용
+    mprs.mrpCode.value = selectedMpr.mrp_code; // 혹시 몰라서 mpr도 같이 수정해서 사용
     mprs.mCode.value = selectedMpr.mcode;
   } catch (err) {
     console.error('mpr 상세 조회 실패:', err);
+  }
+};
+
+// MRP 팝업 Confirm 핸들러
+const handleMRPConfirm = async (selectedMRP) => {
+  console.log('선택된 MRP:', selectedMRP);
+
+  try {
+    // mrp 상세 조회
+    const detailRes = await axios.get(`/api/mpr/mrp`);
+    const details = detailRes.data.data;//store 함수 사용
+
+    // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
+    details.forEach((item, idx) => {
+      item.mpr_d_code = item.mpr_d_code || `row-${idx}`;
+      // item.req_qtt = moment(item.delivery_date).format('YYYY-MM-DD');
+    });
+
+    setMrpRows(details);
+
+    // mrp 기본 정보 설정
+    mrps.mrp_code.value = selectedMRP.mrp_code;
+    mrps.plan_date.value = moment(selectedMRP.plan_date).format("YYYY-MM-DD");
+    mrps.start_date.value = moment(selectedMRP.start_date).format("YYYY-MM-DD");
+    mrps.prdp_code.value = selectedMRP.prdp_code;
+    mrps.emp_code.value = selectedMRP.emp_code;
+    mrps.mrp_note.value = selectedMRP.mrp_note;
+  } catch (err) {
+    console.error('mrp 상세 조회 실패:', err);
   }
 };
 
@@ -157,31 +201,37 @@ const handleConfirm = async (selectedMpr) => {
 onMounted(async () => {
   try {
     // mpr 목록 조회
-    const res = await axios.get('/api/mpr/all');
+    const MprRes = await axios.get('/api/mpr/all');
 
     //moment 패키지 사용
     //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들어주는 함수
-    console.log(res)
-    mprRef.value = res.data.map(mpr => ({
+    console.log(MprRes)
+    mprRef.value = MprRes.data.map(mpr => ({
       //기존  객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...mpr,
       reqdate: moment(mpr.reqdate).format('YYYY-MM-DD'),
       deadline: moment(mpr.deadline).format('YYYY-MM-DD')
     }));
-
+    
     // MRP 코드 목록 조회
-    const mrpRes = await axios.get('/api/mpr/mrp'); // 예: 실제 API 경로에 따라 수정 필요
+    const mrpRes = await axios.get('/api/mpr/mrp');
     const mrpList = mrpRes.data.data;
     // 전체 목록 저장
-    allMRP.value = mrpList;
-
+    mrpRef.value = mrpList;
+    
     // MRP 셀렉트 박스에 사용될 label + value 구성
     mrpCodeOptions.value = mrpList.map(mrp => ({
-      // label: `${mrp.mrp_code} - ${mrp.product_name || '제품명 없음'}`,
       label: mrp.mrp_code,
       value: mrp.mrp_code
     }));
 
+    mrpRef.value = mrpList.map(mrp => ({
+      //기존  객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
+      ...mrp,
+      plan_date: moment(mrp.reqdate).format('YYYY-MM-DD'),
+      start_date: moment(mrp.deadline).format('YYYY-MM-DD')
+    }));
+    
   } catch (err) {
     console.error('데이터 로딩 실패:', err);
   }
@@ -213,7 +263,7 @@ onMounted(async () => {
       <!-- 구매요청코드  -->
       <LabeledInput label="요청코드" v-model="mprs.mprCode.value" placeholder="구매요청코드" :disabled="true"/>
       <!-- 요청자 -->
-      <LabeledInput label="요청자" v-model="mprs.mCode.value" placeholder="readonly로 변경 예정"/>
+      <LabeledInput label="요청자" v-model="mprs.mCode.value" placeholder="로그인한사람으로 변경예정" readonly/>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- 요청일자 -->
@@ -225,17 +275,26 @@ onMounted(async () => {
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- MRP 계획번호 -->
-      <LabeledInput label="MRP 계획번호" v-model="mprs.mrpCode.value" placeholder="MRP 계획번호 선택"/>
+      <LabeledInputIcon label="MRP 계획번호" v-model="mrps.mrp_code" @click="mrpPopupVisible = true" placeholder="MRP 계획번호 선택" readonly/>
     </div>
   </div>
 
-  <!-- ===== MRP 정보 팝업 ===== -->
+    <!-- ===== MPR 정보 팝업 ===== -->
   <SinglePopup
       v-model:visible="mprPopupVisible"
       :items="mprRef"
-      @confirm="handleConfirm"
+      @confirm="handleMprConfirm"  
       :mapper="mprMapping.MprMapper"
       :dataKey="'mpr_code'"
+  />
+
+  <!-- ===== MRP 정보 팝업 ===== -->
+  <SinglePopup
+      v-model:visible="mrpPopupVisible"
+      :items="mrpRef"
+      @confirm="handleMRPConfirm"  
+      :mapper="mprMapping.MRPMapper"
+      :dataKey="'mrp_code'"
   />
 
 </template>

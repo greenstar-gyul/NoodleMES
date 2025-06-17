@@ -8,29 +8,44 @@ import { ref } from 'vue';
 
 export const useMprStore = defineStore('mprStore', () => {
   const mprRows = ref([]);
+  const mrpRows = ref([]);
   const selectedMpr = ref([]);
+  const selectedMrp = ref([]);
 
   // 목록 데이터 저장
   function setMprRows(data) {
     mprRows.value = data;
+  };
+  function setMrpRows(data) {
+    mrpRows.value = data;
   };
 
   // 목록을 초기상태로 되돌림
   function resetMprRows() {
     mprRows.value = [];
   };
+  function resetMrpRows() {
+    mrpRows.value = [];
+  };
 
-  // 선택한 목록을 저장
   function setSelectedMpr(list){
     selectedMpr.value = list;
   };
-
+  function setSelectedMrp(list){
+    selectedMrp.value = list;
+  };
+  
   return {
     mprRows,
+    mrpRows,
     selectedMpr,
+    selectedMrp,
     setMprRows,
+    setMrpRows,
     resetMprRows,
-    setSelectedMpr
+    resetMrpRows,
+    setSelectedMpr,
+    setSelectedMrp
   }
 }
 // , {

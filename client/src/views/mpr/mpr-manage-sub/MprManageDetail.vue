@@ -31,7 +31,7 @@ const matPopupVisible = ref(false);
 // 테이블 행
 const currentMatRow = ref(null);
 
-// ??? <- 제품리스트
+// 전체 자재 리스트
 const matList = ref([]);
 
 // 자재 팝업 열기
@@ -48,27 +48,24 @@ const handleMatConfirm = (selectedMat) => {
         currentMatRow.value.mat_code = selectedMat.mat_code; // 자재코드
         currentMatRow.value.mat_name = selectedMat.mat_name; // 자재명
         currentMatRow.value.unit = selectedMat.unit; // 단위
-        currentMatRow.value.mat_sup = selectedMat.mat_sup; // 공급업체
+        currentMatRow.value.client_name = selectedMat.client_name; // 공급업체
 
         // 직접 입력해야하는 값 초기화
         currentMatRow.value.req_qtt = 0; // 요청수량
-        currentMatRow.value.note = 0; // 비고
+        currentMatRow.value.note = ''; // 비고
     }
 };
 
 // 행 추가
 const addRow = () => {
     const newRow = {
-        ord_d_code: `temp-${Date.now()}`,
-        prod_name: '',
-        com_value: '',
-        spec: '',
+        chk_id: `temp-${Date.now()}`,
+        mat_code: '',
+        mat_name: '',
+        req_qtt: 0,
         unit: '',
-        prod_amount: 0,
-        prod_price: 0,
-        delivery_date: '',
-        ord_priority: 0,
-        total_price: 0
+        client_name: '',
+        note: '',
     };
 
     // 안전하게 배열인지 확인 후 할당
@@ -86,10 +83,10 @@ const deleteSelected = () => {
         return;
     }
 
-    // 선택되지 않은 행만 필터링 (key: ord_d_code)
+    // 선택되지 않은 행만 필터링 (key: chk_id)
     // mprRows 배열에서 selectedMpr.value에 포함되지 않은 항목만 남김
     const selRows = mprRows.value.filter(item => {
-        return !selectedMpr.value.some(sel => sel.ord_d_code === item.ord_d_code);
+        return !selectedMpr.value.some(sel => sel.chk_id === item.chk_id);
     });
 
     // mprRows 배열 초기화 (기존 행들 모두 제거)
@@ -104,29 +101,12 @@ const deleteSelected = () => {
     setSelectedMpr([]);
 };
 
-// //총액 자동 계산
-// watch(mprRows, (rows) => {
-//   rows.forEach(row => {
-//     row.total_price = (row.prod_amount || 0) * (row.prod_price || 0);
-//   });
-// }, { deep: true });
-
 //전체 자재 목록 불러오기
 onMounted(async () => {
   try {
     // 제품 목록
     const mprRes = await axios.get('/api/mpr/mat'); // 제품 전체 목록 불러오기
     matList.value = mprRes.data.data; // 전체 제품 목록 저장
-
-    // // 규격 옵션 (공통코드: 0O, 0X, 0Y)
-    // const specRes = await axios.get('/api/order/spec');
-    // specOptions.value = specRes.data.data;
-
-    // // 단위 옵션 (공통코드: 0H)
-    // const unitRes = await axios.get('/api/order/unit');
-    // unitOptions.value = unitRes.data.data;
-
-
     } catch (err) {
         console.error('요청자재 리스트 불러오기 실패:', err);
     }
@@ -149,10 +129,10 @@ onMounted(async () => {
         </div>
 
         <!-- 제품 테이블 -->
-        <DataTable v-model:selection="selectedMpr" :value="mprRows" showGridlines scrollable scrollHeight="450px" dataKey="ord_d_code" class="w-full fixed-table">
+        <DataTable v-model:selection="selectedMpr" :value="mprRows" showGridlines scrollable scrollHeight="450px" dataKey="chk_id" class="w-full fixed-table">
             <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-            <Column field="mat_code" header="자재코드" style="width: 220px" bodyStyle="width: 220px">
+            <Column field="mat_code" header="자재코드" style="width: 150px" bodyStyle="width: 150px">
                 <template #body="slotMats">
                     <div class="flex gap-2">
                         <InputText v-model="slotMats.data.mat_code" style="width: 100%" readonly />
@@ -169,7 +149,7 @@ onMounted(async () => {
             
             <Column field="req_qtt" header="요청수량" style="width: 130px" bodyStyle="width: 130px">
                 <template #body="slotMats">
-                    <InputText v-model="slotMats.data.req_qtt" style="width: 100%" readonly />
+                    <InputNumber v-model="slotMats.data.req_qtt"   :min="0" showButtons  :inputStyle="{ width: '100%' }" />
                     <!-- <Select v-model="slotMats.data.spec" :options="specOptions" optionLabel="label" optionValue="value" placeholder="규격"  style="width: 100%"/> -->
                 </template>
             </Column>
@@ -181,15 +161,15 @@ onMounted(async () => {
                 </template>
             </Column>            
 
-            <Column field="mat_sup" header="공급업체" style="width: 60px" bodyStyle="width: 100px">
+            <Column field="client_name" header="공급업체" style="width: 60px" bodyStyle="width: 100px">
                 <template #body="slotMats">
-                    <InputText v-model="slotMats.data.mat_sup" style="width: 100%" readonly />
+                    <InputText v-model="slotMats.data.client_name" style="width: 100%" readonly />
                 </template>
             </Column>
 
-            <Column field="note" header="비고" style="width: 100px" bodyStyle="width: 100px">
+            <Column field="note" header="비고" style="width: 150px" bodyStyle="width: 150px">
                 <template #body="slotMats">
-                    <InputNumber v-model="slotMats.data.prod_price" :inputStyle="{ width: '100%' }"/>
+                    <InputText v-model="slotMats.data.note" :inputStyle="{ width: '100%' }"/>
                 </template>
             </Column>
         </DataTable>
@@ -197,13 +177,12 @@ onMounted(async () => {
   </div>
 
   <!-- ===== 자재 팝업 ===== -->
-   <!-- 동의씨 코드 참고하기 -->
   <SinglePopup
       v-model:visible="matPopupVisible"
-      :selectedHeader = "['mat_code', 'mat_name','save_inven', 'unit', 'sup', 'material_type_code']"
+      :selectedHeader = "['mat_code', 'mat_name','save_inven', 'unit', 'client_name', 'material_type_code']"
       :items="matList"
       @confirm="handleMatConfirm"
-      :mapper="mprMapping.MprMapper"
+      :mapper="mprMapping.MatMapper"
       :dataKey="'mat_code'"
   />
 </template>
