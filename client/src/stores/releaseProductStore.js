@@ -1,8 +1,8 @@
-// stores/orderProductStore.js
+// stores/releaseProductStore.js
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-export const useOrderProductStore = defineStore('orderProductStore', () => {
+export const useReleaseProductStore = defineStore('releaseProductStore', () => {
   const productRows = ref([]);
   const selectedProducts = ref([]);
 

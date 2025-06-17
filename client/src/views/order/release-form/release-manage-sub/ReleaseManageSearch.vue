@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useOrderProductStore } from '@/stores/OrderProductStore';
+import { useReleaseProductStore } from '@/stores/releaseProductStore';
 
 import axios from 'axios';
 import moment from 'moment';
@@ -17,14 +17,14 @@ import Button from 'primevue/button';
 const props = defineProps({
   ordCode: { type: Object, required: true },
   ordDate: { type: Object, required: true },
-  selectedClient: { type: Object, required: true },
   empCode: { type: Object, required: true }, // 사용자가 입력
-  note: { type: Object, required: true } // 사용자가 입력
+  note: { type: Object, required: true }, // 사용자가 입력
+  releaseCode: { type: Object, required: true },
+  releaseDate: { type: Object, required: true }
 });
 
 // 피니아
-// const { productRows, selectedProducts, setProductRows, resetProductRows, setSelectedProducts } = useOrderProductStore();
-const prodStore = useOrderProductStore();
+const prodStore = useReleaseProductStore();
 // Store에서 프로퍼티를 추출하면서 반응성을 유지하려면 storeToRefs()를 사용해야 한다.
 // storeToRefs()는 Pinia 스토어의 "상태!"를 반응형으로 변환해준다.
 // 따라서, storeToRefs()를 사용하여 상태를 추출하는 것이 좋다.
@@ -51,18 +51,32 @@ const allClients = ref([]);
 // 출고 정보 목록
 const releaseList = ref([]);
 
+// 거래처명
+const clientLabel = ref('');
+
+// 거래처 코드
+const clientCode = ref('');
+
 
 /* ===== FUNCTIONS ===== */
 //초기화
 const handleReset = () => {
-    // 주문 기본정보 초기화
-    props.ordCode.value = '';
-    props.ordDate.value = '';
-    props.selectedClient.value = null;
+  // 주문/출고 기본 정보 초기화
+  props.ordCode.value = '';
+  props.ordDate.value = '';
+  props.releaseCode.value = '';
+  props.releaseDate.value = '';
+  props.empCode.value = '';
+  props.note.value = '';
 
-    // 제품 목록 초기화, store 함수 사용
-    resetProductRows();
-    console.log('초기화 완료 (출고 + 제품 목록)');
+  // 거래처 관련
+  clientLabel.value = '';
+  clientCode.value = '';
+
+  // 제품 목록 초기화
+  resetProductRows();
+
+  console.log('초기화 완료 (출고 + 주문정보 + 거래처 + 제품 목록)');
 };
 
 //삭제
@@ -113,7 +127,7 @@ const handleSave = async () => {
         req_qtt,
         outbnd_qtt,
         delivery_date: row.delivery_date,
-        client_code: props.selectedClient.value,
+        client_code: productRows.value[0]?.client_code || '',
         mcode: props.empCode.value ?? 'EMP-10001',
         note: props.note.value,
         outbound_request_code,
@@ -129,7 +143,7 @@ const handleSave = async () => {
       const payload = {
         ord_code: props.ordCode.value,
         release_date: moment().format("YYYY-MM-DD"),
-        client_code: props.selectedClient.value,
+        client_code: clientCode.value,
         mcode: props.empCode.value ?? 'EMP-10001',
         note: props.note.value,
         details
@@ -176,9 +190,14 @@ const orderHandleConfirm = async (selectedOrder) => {
     props.ordCode.value = selectedOrder.ord_code;
     props.ordDate.value = moment(selectedOrder.ord_date).format("YYYY-MM-DD");
 
-    // 거래처 정보 설정
     const client = allClients.value.find(c => c.client_code === selectedOrder.client_code);
-    props.selectedClient.value = client ? client.client_code : '';
+    clientLabel.value = client ? client.client_name : '';
+    clientCode.value = selectedOrder.client_code;
+    clientLabel.value = client ? client.client_name : '';
+
+    console.log('선택된 거래처 코드:', selectedOrder.client_code);
+    console.log('전체 거래처 목록:', allClients.value);
+    console.log('매핑된 거래처 이름:', client?.client_name);
   } catch (err) {
     console.error('주문 상세 조회 실패:', err);
   }
@@ -187,28 +206,38 @@ const orderHandleConfirm = async (selectedOrder) => {
 // 출고정보 팝업 Confirm 핸들러
 const releaseHandleConfirm = async (selectedRelease) => {
   try {
-    const poutbnd_code = selectedRelease.poutbnd_code;
+    const out_req_code = selectedRelease.out_req_code;
 
-    // 서버에서 상세정보 조회
-    const res = await axios.get(`/api/order/releases/${poutbnd_code}`);
-    const details = res.data.data;
+    // 출고 상세 조회
+    const res = await axios.get(`/api/order/releases/recode/${out_req_code}`);
+    const { productList } = res.data.data;
 
     // 포맷 처리
-    details.forEach((item, idx) => {
+    productList.forEach((item, idx) => {
       item.ord_d_code = item.ord_d_code || `row-${idx}`;
       item.delivery_date = moment(item.delivery_date).format("YYYY-MM-DD");
     });
 
     // 제품 목록 저장
-    setProductRows(details);
+    setProductRows(productList);
+
+    // 출고 기본 정보 설정
+    props.releaseCode.value = out_req_code;
+    props.releaseDate.value = moment().format("YYYY-MM-DD"); // 출고일자 설정 필요시 수정
 
     // 주문 기본정보 설정
-    props.ordCode.value = details[0].outbound_request_code;
-    props.ordDate.value = moment(details[0].deadline).format("YYYY-MM-DD");
+    props.ordCode.value = selectedRelease.ord_code;
+    props.ordDate.value = moment().format("YYYY-MM-DD"); // 출고일자 설정 필요시 수정
 
     // 거래처 이름 매핑
-    const client = allClients.value.find(c => c.client_code === details[0].client_code);
-    props.selectedClient.value = client ? client.client_name : '';
+    clientLabel.value = selectedRelease.client_name;
+    clientCode.value = productList[0].client_code || '';
+
+    // 등록자 설정
+    props.empCode.value = productList[0].mcode || 'EMP-10001'; // 기본값 설정
+
+    // 비고 설정
+    props.note.value = selectedRelease.note || '';
 
   } catch (err) {
     console.error("출고 상세 조회 실패:", err);
@@ -231,19 +260,19 @@ onMounted(async () => {
       ord_date: moment(order.ord_date).format('YYYY-MM-DD')
     }));
 
-    // 전체 거래처 목록 조회
-    const clientRes = await axios.get('/api/order/clients');
-    const clientList = clientRes.data.data;
-
-    // 전체 목록 저장
-    allClients.value = clientList;
-
     // 출고 정보 목록 조회
-    const releaseRes = await axios.get('/api/order/releases');
+    // 출고 정보 목록은 팝업에서 사용하기 위해 별도로 조회
+    const releaseRes = await axios.get('/api/order/releases/popup');
     releaseList.value = releaseRes.data.data.map(release => ({
       ...release,
       out_req_date: moment(release.out_req_date).format('YYYY-MM-DD')
     }));
+
+    // 거래처 목록 조회
+    const clientRes = await axios.get('/api/order/clients');
+    const clientList = clientRes.data.data;
+    allClients.value = clientList;
+
   } catch (err) {
     console.error('데이터 로딩 실패:', err);
   }
@@ -280,19 +309,19 @@ onMounted(async () => {
 
       <!-- 입력 폼 영역 1 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <LabeledInput label="출고코드" placeholder="출고코드" :disabled="true" />
+          <LabeledInput label="출고코드" v-model="props.releaseCode.value" placeholder="출고코드" :disabled="true" />
           <LabeledInput label="주문코드" v-model="props.ordCode.value" placeholder="주문코드" :disabled="true" />
       </div>
 
       <!-- 입력 폼 영역 2 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <LabeledInput label="출고일자" :disabled="true"/>
+          <LabeledInput label="출고일자" v-model="props.releaseDate.value" :disabled="true"/>
           <LabeledInput label="주문일자" v-model="props.ordDate.value" :disabled="true"/>
       </div>
 
       <!-- 입력 폼 영역 3 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <LabeledInput label="거래처" v-model="props.selectedClient.value" :disabled="true"/>
+          <LabeledInput label="거래처" v-model="clientLabel" :disabled="true"/>
           <LabeledInput label="등록자" v-model="props.empCode.value" :disabled="true"/>
           
       </div>
@@ -306,5 +335,12 @@ onMounted(async () => {
   <SinglePopup v-model:visible="orderPopupVisible" :items="ordersRef" @confirm="orderHandleConfirm" :mapper="orderMapping" :dataKey="'ord_code'" />
 
   <!-- ===== 출고정보 팝업 ===== -->
-  <SinglePopup v-model:visible="releasePopupVisible" :items="releaseList" @confirm="releaseHandleConfirm" :mapper="releaseMapping" :dataKey="'poutbnd_code'"/>
+   <SinglePopup
+      v-model:visible="releasePopupVisible"
+      :selectedHeader = "['out_req_code', 'total_order_qtt', 'total_release_qtt', 'ord_code', 'client_name', 'mcode', 'out_req_date']"
+      :items="releaseList"
+      @confirm="releaseHandleConfirm"
+      :mapper="releaseMapping"
+      :dataKey="'out_req_code'"
+  />
 </template>

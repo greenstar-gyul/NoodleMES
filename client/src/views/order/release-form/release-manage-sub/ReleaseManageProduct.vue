@@ -1,22 +1,18 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useOrderProductStore } from '@/stores/OrderProductStore';
+import { useReleaseProductStore } from '@/stores/releaseProductStore';
 
 import axios from 'axios';
-import SinglePopup from '@/components/popup/SinglePopup.vue';
-import productMapping from '@/service/ProductMapping.js';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import Calendar from 'primevue/calendar';
 
 // 피니아
-// const { productRows, selectedProducts, setProductRows, resetProductRows, setSelectedProducts } = useOrderProductStore();
-const prodStore = useOrderProductStore();
+const prodStore = useReleaseProductStore();
 // Store에서 프로퍼티를 추출하면서 반응성을 유지하려면 storeToRefs()를 사용해야 한다.
 // storeToRefs()는 Pinia 스토어의 "상태!"를 반응형으로 변환해준다.
 // 따라서, storeToRefs()를 사용하여 상태를 추출하는 것이 좋다.
@@ -41,13 +37,6 @@ const formatNumber = (value) => {
     if (!value) return '0';
     return new Intl.NumberFormat().format(value);
 };
-
-//총액 자동 계산
-watch(productRows, (rows) => {
-  rows.forEach(row => {
-    row.total_price = (row.prod_amount || 0) * (row.prod_price || 0);
-  });
-}, { deep: true });
 
 // 출고요청수량 변화에 따라 남은수량 계산
 watch(productRows, (rows) => {
@@ -99,21 +88,33 @@ onMounted(async () => {
                 <template #body="slotProps">
                     <InputText v-model="slotProps.data.com_value" style="width: 100%" readonly />
                 </template>
-            </Column>    
-            
-            <Column field="spec" header="주문수량" style="width: 130px" bodyStyle="width: 130px">
+            </Column>
+
+            <Column field="spec" header="규격" style="width: 120px" bodyStyle="width: 120px">
                 <template #body="slotProps">
-                    <InputText v-model="slotProps.data.prod_amount" style="width: 100%" readonly />
+                    <InputText v-model="slotProps.data.spec" style="width: 100%" readonly />
                 </template>
             </Column>
 
-            <Column field="out_req_d_amount" header="출고수량" style="width: 130px" bodyStyle="width: 100px">
+            <Column field="unit" header="단위" style="width: 120px" bodyStyle="width: 120px">
+                <template #body="slotProps">
+                    <InputText v-model="slotProps.data.unit" style="width: 100%" readonly />
+                </template>
+            </Column>
+            
+            <Column field="ord_amount" header="주문수량" style="width: 130px" bodyStyle="width: 130px">
+                <template #body="slotProps">
+                    <InputText v-model="slotProps.data.ord_amount" style="width: 100%" readonly />
+                </template>
+            </Column>
+
+            <Column field="outbnd_qtt" header="출고수량" style="width: 130px" bodyStyle="width: 100px">
                 <template #body="slotProps">
                     <template v-if="!isReleaseLoaded">
-                        <InputNumber v-model="slotProps.data.out_req_d_amount" :min="0" :max="slotProps.data.prod_amount" showButtons :inputStyle="{ width: '100%' }"/>
+                        <InputNumber v-model="slotProps.data.outbnd_qtt" :min="0" :max="slotProps.data.outbnd_qtt" showButtons :inputStyle="{ width: '100%' }"/>
                     </template>
                     <template v-else>
-                        <InputText :value="formatNumber(slotProps.data.out_req_d_amount)" readonly style="width: 100%"/>
+                        <InputText :value="formatNumber(slotProps.data.outbnd_qtt)" readonly style="width: 100%"/>
                     </template>
                 </template>
             </Column>

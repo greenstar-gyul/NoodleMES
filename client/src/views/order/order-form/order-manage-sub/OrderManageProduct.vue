@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useOrderProductStore } from '@/stores/OrderProductStore';
+import { useOrderProductStore } from '@/stores/orderProductStore';
 
 import axios from 'axios';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
