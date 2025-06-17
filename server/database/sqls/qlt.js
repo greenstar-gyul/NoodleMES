@@ -12,6 +12,23 @@ JOIN
     qi_tbl qi ON qio.qi_code = qi.qi_code
 `;
 
+//
+const selectQcrList = 
+`SELECT
+    qcr_code,
+    inspection_item,
+    range_top,
+    range_bot,
+    unit,
+    check_method,
+    regdate,
+    note
+FROM
+    qcr_tbl
+WHERE    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+`;
+
+
 const selectList =
 `SELECT
     qio.qio_code,
@@ -32,8 +49,64 @@ WHERE 1=1
 ORDER BY prdp_date;
 `;
 
+// const selectQualityStandards = `
+// SELECT 
+//     qcr_code,
+//     po_code,
+//     inspection_item,
+//     check_method
+// FROM quality_std_tbl
+// WHERE 1=1
+//     AND (? IS NULL OR qcr_code LIKE CONCAT('%', ?, '%'))
+//     AND (? IS NULL OR po_code LIKE CONCAT('%', ?, '%'))
+//     AND (? IS NULL OR inspection_item LIKE CONCAT('%', ?, '%'))
+//     AND (? IS NULL OR check_method = ?)
+// ORDER BY qcr_code;
+// `;
+
+// 기준정보 등록
+const insertQcr = `
+INSERT INTO qcr_tbl (
+    qcr_code,
+    inspection_item,
+    range_top,
+    range_bot,
+    unit,
+    check_method,
+    regdate,
+    com_value,
+    note
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+`;
+
+// 제품검사 품질기준코드
+const selectQcrcodeProd = `
+SELECT CONCAT(
+    'QCR-PROD-',
+    LPAD(IFNULL(MAX(CAST(SUBSTRING(qcr_code, 10) AS UNSIGNED)), 0) + 1, 3, '0')
+)
+FROM qcr_tbl
+WHERE qcr_code LIKE 'QCR-PROD-%'
+FOR UPDATE
+`;
+
+// 자재검사 품질기준코드
+const selectQcrCodeMat = `
+SELECT CONCAT(
+    'QCR-MAT-',
+    LPAD(IFNULL(MAX(CAST(SUBSTRING(qcr_code, 9) AS UNSIGNED)), 0) + 1, 3, '0')
+)
+FROM qcr_tbl 
+WHERE qcr_code LIKE 'QCR-MAT-%'
+FOR UPDATE`
+;
+
 
 module.exports = {
+    fetchOrders,
     selectList,
-    fetchOrders
+    selectQcrList,
+    insertQcr,
+    selectQcrcodeProd,
+    selectQcrCodeMat
 }

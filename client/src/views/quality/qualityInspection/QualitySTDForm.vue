@@ -1,7 +1,6 @@
 <template>
-    <!-- 우측: 모델 등록/수정 영역 (45%) -->
     <div class="card space-y-6 p-6" style="width: 45%">
-        <!-- 버튼 영역 -->
+        <!-- 상단 버튼 및 타이틀 -->
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
                 <div>
@@ -9,74 +8,60 @@
                         {{ isEditMode ? '수정' : '등록' }}
                     </div>
                     <div v-if="isEditMode" class="text-sm text-blue-600 mt-1">
-                        선택된 행: {{ eqForm.prod_code }}
+                        선택된 행: {{ eqForm.qcr_code }}
                     </div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
-                    <Button v-if="isEditMode" label="취소" severity="secondary" class="min-w-fit whitespace-nowrap"
-                        outlined @click="cancelEdit" />
-                    <Button v-if="isEditMode" label="수정" severity="info" class="min-w-fit whitespace-nowrap"
-                        @click="updateEquipment" />
-                    <Button v-if="!isEditMode" label="등록" severity="success" class="min-w-fit whitespace-nowrap"
-                        @click="saveEquipment" />
+                    <Button v-if="isEditMode" label="취소" severity="secondary" class="min-w-fit whitespace-nowrap" outlined @click="cancelEdit" />
+                    <Button v-if="isEditMode" label="수정" severity="info" class="min-w-fit whitespace-nowrap" @click="updateEquipment" />
+                    <Button v-if="!isEditMode" label="등록" severity="success" class="min-w-fit whitespace-nowrap" @click="registerQCR" />
                 </div>
             </div>
         </div>
 
-        <!-- 설비코드 / 모델명 -->
+        <!-- 입력 항목들 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">품질기준코드</label>
-                <InputText v-model="eqForm.prod_code" type="text" placeholder="자동 생성" :disabled="true" class="w-full" />
-            </div>
-            <div>
-                <label class="font-semibold text-xl block mb-2">검사대상</label>
-                <Dropdown v-model="eqForm.eq_type" :options="TypeOptions" optionLabel="label" optionValue="value"
-                    placeholder="유형 선택" class="w-full" />
-            </div>
-        </div>
-
-        <!-- 모델명 / 제조사 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="font-semibold text-xl block mb-2">기준(상한)</label>
-                <InputText v-model="eqForm.range_top" type="text" placeholder="기준치 입력" class="w-full" />
+                <InputText v-model="eqForm.qcr_code" type="text" placeholder="자동 생성" class="w-full" disabled />
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">검사항목</label>
                 <InputText v-model="eqForm.inspection_item" type="text" placeholder="검사항목 입력" class="w-full" />
             </div>
-        </div>
 
-        <!-- 용량 / 등록일자 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="font-semibold text-xl block mb-2">기준(상한)</label>
+                <InputText v-model="eqForm.range_top" type="text" placeholder="상한 기준치" class="w-full" />
+            </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">기준(하한)</label>
-                <InputText v-model="eqForm.range_bot" type="text" placeholder="기준치 입력" class="w-full" />
+                <InputText v-model="eqForm.range_bot" type="text" placeholder="하한 기준치" class="w-full" />
+            </div>
+
+            <div>
+                <label class="font-semibold text-xl block mb-2">품목유형</label>
+                <Dropdown v-model="eqForm.com_value" :options="valueOptions" optionLabel="label" optionValue="value" class="w-full" />
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">단위</label>
-                <Dropdown v-model="eqForm.unit" :options="eqTypeOptions" optionLabel="label" optionValue="value"
-                    placeholder="유형 선택" class="w-full" />
+                <Dropdown v-model="eqForm.unit" :options="TypeOptions" optionLabel="label" optionValue="value" placeholder="단위 선택" class="w-full" />
             </div>
-        </div>
 
-        <!-- 용량 / 등록일자 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <LabeledDatePicker :key="`regdate_from_${isEditMode}_${eqForm.prod_code}`" v-model="eqForm.regdate_from"
-                    label="등록일자" placeholder="날짜를 선택" :disabled="false" />
+                <LabeledDatePicker :key="`regdate_from_${isEditMode}_${eqForm.qcr_code}`" v-model="eqForm.regdate_from"
+                    label="등록일자" placeholder="날짜 선택" :disabled="false" />
             </div>
-            <div>
-                <label class="font-semibold text-xl block mb-2">판정방식</label>
+            <div class="flex items-center space-x-2">
                 <Checkbox v-model="isUnused" binary variant="filled" inputId="usage-checkbox" />
                 <label for="usage-checkbox" class="text-lg">
-                {{ isUnused ? ' 수동' : ' 자동' }}
-            </label>
+                    {{ isUnused ? '수동' : '자동' }}
+                </label>
             </div>
-            <div>
+
+            <div class="md:col-span-2">
                 <label class="font-semibold text-xl block mb-2">비고</label>
-                <InputText v-model="eqForm.note" type="text" placeholder="" class="w-full" />
+                <InputText v-model="eqForm.note" type="text" placeholder="비고 입력" class="w-full" />
             </div>
         </div>
     </div>
@@ -84,14 +69,13 @@
 
 <script setup>
 import { ref, watch, computed, defineProps, defineEmits, nextTick } from 'vue';
+import axios from 'axios';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import LabeledDatePicker from '../../../components/common/LabeledDatePicker.vue';
-import axios from 'axios';
 
-// Props 정의 (부모에서 선택된 데이터 받기)
 const props = defineProps({
     selectedData: {
         type: Object,
@@ -99,178 +83,161 @@ const props = defineProps({
     }
 });
 
-// Emits 정의 (부모에게 이벤트 전달)
 const emit = defineEmits(['data-updated']);
 
-// 모델 폼 데이터
 const eqForm = ref({
-    prod_code: '',
-    prod_name: '',
-    regdate_from: '',
-    regdate_to: '',
-    is_used: ''
+    qcr_code: '',
+    inspection_item: '',
+    range_top: '',
+    range_bot: '',
+    com_value: null,
+    unit: null,
+    note: '',
+    regdate_from: null,
+    regdate_to: null,
+    is_used: 'f2'
 });
 
-// 수정 모드 여부 계산
-const isEditMode = computed(() => {
-    return props.selectedData !== null && props.selectedData !== undefined;
-});
+const isEditMode = computed(() => !!props.selectedData);
 
-// checkbox
 const isUnused = computed({
-    get() {
-        // is_used가 'f1'이면 체크박스가 선택됨 (미사용)
-        return eqForm.value.is_used === 'f1';
-    },
-    set(value) {
-        // 체크박스가 선택되면(true) is_used는 'f1' (미사용)
-        // 체크박스가 해제되면(false) is_used는 'f2' (사용)
-        eqForm.value.is_used = value ? 'f1' : 'f2';
-    }
+    get: () => eqForm.value.is_used === 'f1',
+    set: val => eqForm.value.is_used = val ? 'f1' : 'f2'
 });
+
+const valueOptions = [
+    { label: '완제품', value: 'i1' },
+    { label: '반제품', value: 'i2' },
+    { label: '원자재', value: 'i4' }
+];
 
 const TypeOptions = [
-    { label: '배합기', value: 'MIX' },
-    { label: '숙성기', value: 'REM' },
-    { label: '압연기', value: 'ROP' },
-    { label: '절단기', value: 'CUT' },
-    { label: '성형기', value: 'SHM' },
+    { label: 'EA', value: 'EA' },
+    { label: 'KG', value: 'KG' },
+    { label: 'T', value: 'T' },
+    { label: 'L', value: 'L' },
+    { label: 'BOX', value: 'BOX' },
+    { label: 'g', value: 'g' },
+    { label: 'mm', value: 'mm' },
+    { label: '%', value: '%' },
+    { label: 'cm', value: 'cm' },
+    { label: 'N', value: 'N' }
 ];
-
-// 단위
-const eqTypeOptions = [
-    { label: '단위1', value: 'EA' },
-    { label: '단위1', value: 'EA' },
-    { label: '단위1', value: 'EA' },
-    { label: '단위1', value: 'EA' },
-    { label: '단위1', value: 'EA' },
-];
-
-// 폼 초기화 함수
-const resetForm = async () => {
-    eqForm.value = {
-        prod_code: '',
-        prod_name: '',
-        regdate_from: null,
-        regdate_to: null,
-        is_used: 'f2',
-    };
-
-    await nextTick();
-};
-
-// 선택된 데이터 변경 감지 (테이블에서 행 선택 시)
-watch(
-    () => props.selectedData,
-    (newData) => {
-        if (newData) {
-            console.log('📝 선택된 데이터를 폼에 설정:', newData);
-            // 선택된 데이터를 폼에 채우기
-            eqForm.value = {
-                prod_code: newData.prod_code || '',
-                prod_name: newData.prod_name || '',
-                regdate_from: newData.regdate_from ? new Date(newData.regdate_from) : null,
-                regdate_to: newData.regdate_to ? new Date(newData.regdate_to) : null,
-                is_used: newData.is_used || 'f2'
-            };
-        } else {
-            // 선택 해제 시 폼 초기화
-            resetForm();
-        }
-    },
-    { immediate: true }
-);
 
 const formatDateForDB = (date) => {
     if (!date) return null;
     if (date instanceof Date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
     }
     return null;
 };
 
-// 모델 등록 함수
-const saveEquipment = async () => {
-    try {
-        console.log('모델 등록:', eqForm.value);
+const resetForm = async () => {
+    eqForm.value = {
+        qcr_code: '',
+        inspection_item: '',
+        range_top: '',
+        range_bot: '',
+        com_value: null,
+        unit: null,
+        note: '',
+        regdate_from: null,
+        regdate_to: null,
+        is_used: 'f2'
+    };
+    await nextTick();
+};
 
-        // 필수 필드 검증
-        if (!eqForm.value.eq_type || !eqForm.value.prod_name) {
-            alert('모델명은 필수 항목입니다.');
+watch(() => props.selectedData, (data) => {
+    if (data) {
+        eqForm.value = {
+            qcr_code: data.qcr_code || '',
+            inspection_item: data.inspection_item || '',
+            range_top: data.range_top || '',
+            range_bot: data.range_bot || '',
+            com_value: data.com_value || null,
+            unit: data.unit || null,
+            note: data.note || '',
+            regdate_from: data.regdate_from ? new Date(data.regdate_from) : null,
+            regdate_to: data.regdate_to ? new Date(data.regdate_to) : null,
+            is_used: data.is_used || 'f2'
+        };
+    } else {
+        resetForm();
+    }
+}, { immediate: true });
+
+const registerQCR = async () => {
+    try {
+        if (!eqForm.value.inspection_item || !eqForm.value.range_top || !eqForm.value.range_bot) {
+            alert('검사항목과 기준(상/하한)은 필수 입력입니다.');
             return;
         }
 
         const submitData = {
-            ...eqForm.value,
+            inspection_item: eqForm.value.inspection_item,
+            range_top: eqForm.value.range_top,
+            range_bot: eqForm.value.range_bot,
+            com_value: eqForm.value.com_value,
+            unit: eqForm.value.unit,
+            note: eqForm.value.note?.trim() || '',
             regdate_from: formatDateForDB(eqForm.value.regdate_from) || formatDateForDB(new Date()),
             regdate_to: formatDateForDB(eqForm.value.regdate_to) || formatDateForDB(new Date()),
             is_used: eqForm.value.is_used
         };
 
-
-        const response = await axios.post('/api/eq', submitData);
+        const response = await axios.post('/api/qcr/register', submitData);
 
         if (response.data.success) {
-            console.log('등록 완료');
-            alert('성공적으로 등록되었습니다.');
+            alert(`✅ 등록 성공! 생성된 코드: ${response.data.qcr_codes.join(', ')}`);
             await resetForm();
-            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+            emit('data-updated');
         } else {
-            console.error('등록 실패:', response.data.error);
-            alert('등록에 실패했습니다.');
+            alert('❌ 등록 실패: ' + response.data.message);
         }
-    } catch (error) {
-        console.error('등록 실패:', error);
-        alert('등록 중 오류가 발생했습니다.');
+    } catch (err) {
+        console.error('❗ 등록 중 오류:', err);
+        alert('🚨 등록 중 오류가 발생했습니다.');
     }
 };
 
-// 모델 수정 함수
 const updateEquipment = async () => {
     try {
-        console.log('수정:', eqForm.value);
-
-        // 필수 필드 검증
-        if (!eqForm.value.prod_name) {
-            alert('코드명은 필수입니다.');
+        if (!eqForm.value.inspection_item) {
+            alert('검사항목은 필수 입력입니다.');
             return;
         }
 
         const submitData = {
             ...eqForm.value,
             regdate_from: formatDateForDB(eqForm.value.regdate_from) || formatDateForDB(new Date()),
-            regdate_to: formatDateForDB(eqForm.value.regdate_to) || formatDateForDB(new Date()),
-            is_used: eqForm.value.is_used
+            regdate_to: formatDateForDB(eqForm.value.regdate_to) || formatDateForDB(new Date())
         };
 
-
-        const response = await axios.put(`/api/eq/${eqForm.value.prod_code}`, submitData);
+        const response = await axios.put(`/api/eq/${eqForm.value.qcr_code}`, submitData);
 
         if (response.data.success) {
-            console.log('모델 수정 완료');
-            alert('모델명이 성공적으로 수정되었습니다.');
+            alert('수정이 완료되었습니다.');
             await resetForm();
-            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+            emit('data-updated');
         } else {
-            console.error('수정 실패:', response.data.error);
-            alert('모델 수정에 실패했습니다.');
+            alert('수정 실패: ' + response.data.message);
         }
-    } catch (error) {
-        console.error('모델 수정 실패:', error);
-        alert('모델 수정 중 오류가 발생했습니다.');
+    } catch (err) {
+        console.error(err);
+        alert('수정 중 오류 발생');
     }
 };
 
-// 수정 취소 함수
 const cancelEdit = () => {
-    console.log('수정 취소');
-    emit('data-updated'); // 부모에서 선택 해제하도록 알림
+    resetForm();
+    emit('data-updated');
 };
 </script>
 
 <style scoped>
-/* 필요시 커스텀 스타일 여기에 추가 */
+/* 커스텀 스타일은 필요 시 작성 */
 </style>
