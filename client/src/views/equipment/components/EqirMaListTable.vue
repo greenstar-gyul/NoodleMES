@@ -191,7 +191,7 @@ watch(
 
             <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-            <Column field="chk_text" header="항목명">
+            <Column field="chk_text" header="">
                 <template #body="{ data }">
                     <span @click="openItemCodePopup(data)" class="cursor-pointer text-blue-600 hover:underline">
                         {{ data.chk_text }}

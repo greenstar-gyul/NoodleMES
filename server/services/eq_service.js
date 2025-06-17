@@ -178,6 +178,25 @@ const updateEqii = async (eqiiCode, eqiiData) => {
   }
 };
 
+const searchEqii = async (params) => {
+  // 각 조건마다 [value, value] 패턴
+  const bindParams = [
+    params.eqii_code, params.eqii_code,
+    params.stat, params.stat,  
+    params.inst_emp_name, params.inst_emp_name,
+    params.start_date, params.start_date,
+    params.end_date, params.end_date
+  ].map(param => param ?? null);
+
+  try {
+    const list = await mariadb.query("searchEqii", bindParams);
+    return list;
+  } catch (err) {
+    console.error('검색 오류:', err);
+    return [];
+  }
+};
+
 // 점검결과 수정
 const updateEqir = async (eqirCode, eqirData) => {
   try {
@@ -438,5 +457,6 @@ module.exports = {
   saveEqiiWithDetails,
   findEqiiByCode,
   updateEqir,
-  deleteEqii
+  deleteEqii,
+  searchEqii
 };

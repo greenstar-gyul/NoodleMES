@@ -4,7 +4,7 @@ export const eqiiMapping = {
     chk_exp_date: '설비 점검 예정일',
     stat: '점검 상태',
     note: '비고',
-    inst_emp_code: '지시자 코드',
+    inst_emp_name: '지시자',
 };
 
 export default eqiiMapping;

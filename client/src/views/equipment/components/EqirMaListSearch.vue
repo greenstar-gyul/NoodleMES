@@ -10,6 +10,7 @@ import LabeledDatePicker from '../../../components/registration-bar/LabeledDateP
 import LabeledDropdown from '../../../components/common/LabeledDropdown.vue';
 import LabeledSelect from '../../../components/registration-bar/LabeledSelect.vue';
 import moment from 'moment';
+import LabeledDateTimePicker from '../../../components/registration-bar/LabeledDateTimePicker.vue';
 
 const emit = defineEmits(['updateList', 'updatePrdp', 'resetList', 'saveData', 'update:data']);
 const props = defineProps({
@@ -59,7 +60,6 @@ watch(() => props.data, (newData) => {
             inst_emp_name: newData.inst_emp_name || 'EMP-10001'
         };
     }
-    console.log('props.data 변경 감지:', currentData.value);
 }, { immediate: true, deep: true });
 
 // 🎯 개별 업데이트 함수들
@@ -96,14 +96,14 @@ const deletePlan = async () => {
         alert('삭제할 지시서가 없습니다.');
         return;
     }
-    
+
     if (!confirm('정말로 이 지시서를 삭제하시겠습니까?')) {
         return;
     }
-    
+
     try {
         const response = await axios.delete(`/api/eq/eqii/${currentData.value.eqii_code}`);
-        
+
         if (response.data.success) {
             alert('삭제에 성공했습니다.');
             emit('resetList'); // 데이터 초기화
@@ -178,31 +178,40 @@ const eqiis = ref([]);
         <div class="grid grid-cols-1 gap-4">
             <div class="flex justify-between">
                 <div>
-                    <div class="font-semibold text-2xl"><b>설비 점검 지시서 정보</b></div>
+                    <div class="font-semibold text-2xl"><b>조치 결과 정보</b></div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit" @click="deletePlan" />
                     <Button label="초기화" severity="contrast" class="min-w-fit" v-on:click="emit('resetList')" />
                     <Button label="저장" severity="info" class="min-w-fit" v-on:click="saveMRP" />
-                    <Button label="지시서 불러오기" severity="success" class="min-w-fit whitespace-nowrap"
+                    <Button label="조치결과 불러오기" severity="success" class="min-w-fit whitespace-nowrap"
                         @click="openPopup" />
                 </div>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="점검지시서 코드" :model-value="currentData.eqii_code" :disabled="true"
+            <LabeledInput label="조치 코드" :model-value="currentData.eqii_code" :disabled="true"
                 placeholder="저장 시 자동으로 생성됩니다." />
-            <LabeledDatePicker label="지시일자" :model-value="currentData.inst_date" @update:model-value="updateInstDate" />
+            <LabeledInput label="설비명" :model-value="currentData.eqii_code" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledDateTimePicker label="조치시작일시" :model-value="currentData.inst_date"
+                @update:model-value="updateInstDate" />
+            <LabeledDateTimePicker label="조치종료일시" :model-value="currentData.chk_exp_date"
+                @update:model-value="updateChkExpDate" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <LabeledDatePicker label="점검예정일" :model-value="currentData.chk_exp_date"
                 @update:model-value="updateChkExpDate" />
-            <LabeledSelect label="상태" :model-value="currentData.stat" @update:model-value="updateStat"
+            <LabeledSelect label="조치결과" :model-value="currentData.stat" @update:model-value="updateStat"
                 :options="statusOptions" placeholder="상태를 선택하세요" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="지시자" :model-value="currentData.inst_emp_name" :disabled="true" />
-            <LabeledTextarea label="비고" :model-value="currentData.note" @update:model-value="updateNote" />
+            <LabeledTextarea label="조치내용" :model-value="currentData.emp_name" />
+            <LabeledTextarea label="비고" :model-value="currentData.stat" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledInput label="담당자" :model-value="currentData.emp_name" :disabled="true" />
         </div>
     </div>
 

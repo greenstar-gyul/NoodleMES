@@ -155,6 +155,37 @@ router.post('/eqir', async (req, res) => {
     }
 });
 
+router.get('/eqii/search', async (req, res) => {
+    try {
+        // 쿼리 파라미터에서 검색 조건 추출
+        const searchParams = {
+            eqii_code: req.query.eqii_code || null,
+            stat: req.query.stat || null,
+            inst_emp_name: req.query.inst_emp_name || null,
+            start_date: req.query.start_date || null,
+            end_date: req.query.end_date || null
+        };
+
+        console.log('🔍 검색 조건:', searchParams);
+
+        const eqiiList = await eqService.searchEqii(searchParams);
+
+        res.json({
+            success: true,
+            data: eqiiList,
+            count: eqiiList.length  // 🔥 검색 결과 개수도 함께!
+        });
+
+    } catch (error) {
+        console.error('🚨 검색 오류:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            message: '검색 중 오류가 발생했습니다.'
+        });
+    }
+});
+
 // 지시서 단건 조회
 router.get('/eqii/:code', async (req, res) => {
     try {
@@ -166,6 +197,7 @@ router.get('/eqii/:code', async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 
 // 지시서 수정
 router.put('/eqii/:code', async (req, res) => {

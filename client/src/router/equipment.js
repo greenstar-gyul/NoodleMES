@@ -5,7 +5,8 @@ export default [
         component: () => import('@/views/equipment/EqInfo.vue')
     },
     {
-        path: '/equipment/eqiilist',
+        // 🔥 eqii_code 파라미터 추가!
+        path: '/equipment/eqiilist/:eqiiCode?',
         name: 'eqiilist',
         component: () => import('@/views/equipment/EqInspecList.vue')
     },
