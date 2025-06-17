@@ -4,6 +4,7 @@ import axios from 'axios';
 import TableWDE from '@/components/form/TableWithDelExcel.vue';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import facilitieMapping from '@/service/FacilitieMapping.js';
+import processPMapping from '@/service/ProcessPMapping.js';
 import processMapping from '@/service/ProcessMapping.js';
 import lineMapping from '@/service/LineMapping.js';
 
@@ -32,9 +33,13 @@ const selectedLines = ref([]);
 
 const currentEditingRow = ref(null); 
 
+//  공정 팝업 세팅
+const processPopupVisible = ref(false);
 // 설비 팝업 세팅
 const facilitiePopupVisible = ref(false);
 
+// ✔ 공정 목록 
+const processList = ref([]);
 
 // ✔ 설비 목록 
 const facilitieList = ref([]);
@@ -77,6 +82,20 @@ const deleteSelected = () => {
   selectedLines.value = [];
 };
 
+// 공정 팝업 열기
+const openProcessPopup = async (row) => {
+  currentEditingRow.value = row;
+
+  try {
+    const res = await axios.get('/api/line/process-popup');
+    processList.value = res.data;
+    processPopupVisible.value = true; // 성공적으로 불러오면 팝업 열기
+  } catch (err) {
+    console.error(' 프로세스 흐름 목록 불러오기 실패:', err);
+    alert('프로세스 흐름 목록을 불러오지 못했습니다.');
+  }
+};
+
 
 // 설비 팝업 열기 
 const openFacilitiePopup = async (row) => {
@@ -93,7 +112,20 @@ const openFacilitiePopup = async (row) => {
   }
 };
 
+// 공정 팝업 확인 후 값 반영
+const handleProcessConfirm = (selectedItem) => {
+  if (!currentEditingRow.value || !selectedItem) return;
 
+
+  currentEditingRow.value.no = selectedItem.no;
+  currentEditingRow.value.po_code = selectedItem.po_code;
+  currentEditingRow.value.po_name = selectedItem.po_name;
+  currentEditingRow.value.eq_type = selectedItem.eq_type;
+
+  currentEditingRow.value.pp_code = selectedItem.pp_code ?? ''; 
+
+  processPopupVisible.value = false;
+};
 
 // 설비 팝업 확인 후 값 반영
 const handleFacilitieConfirm = (selectedItem) => {
@@ -124,7 +156,7 @@ watch(() => props.tableData, (newData) => {
       eq_type_name: item.eq_type_name,
       eq_code: '',
       eq_name: '',
-      pp_code: item.pp_code ?? ''
+      pp_code: item.pp_code
     }));
   }
 });
@@ -211,7 +243,15 @@ watch(() => props.tableData, (newData) => {
       
     </div>
   </div>
-
+  <!-- 공정 선택 팝업 -->
+  <SinglePopup
+    v-model:visible="processPopupVisible"
+    :items="processList"
+    :dataKey="'no'"
+    :mapper="processPMapping"
+    @confirm="handleProcessConfirm"
+    placeholder="공정코드 또는 공정명 검색"
+  />
   <!-- 설비 선택 팝업 -->
   <SinglePopup
     v-model:visible="facilitiePopupVisible"
@@ -219,6 +259,6 @@ watch(() => props.tableData, (newData) => {
     :dataKey="'eq_code'"
     :mapper="facilitieMapping"
     @confirm="handleFacilitieConfirm"
-    placeholder="자재코드 또는 자재명 또는 자재유형 검색"
+    placeholder="설비코드 또는 설비명  검색"
   />
 </template>

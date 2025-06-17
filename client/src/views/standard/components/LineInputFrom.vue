@@ -17,7 +17,8 @@ const emit = defineEmits(['register', 'product-selected'])
 // 옵션 정의
 const lineTypeOptions = [
   { label: '봉지라면', value: 's1' },
-  { label: '컵라면', value: 's2' },
+  { label: '컵라면(대)', value: 's2' },
+  { label: '컵라면(소)', value: 's4' },
   { label: '제품전용', value: 's3' }
 ]
 const deptOptions = [
