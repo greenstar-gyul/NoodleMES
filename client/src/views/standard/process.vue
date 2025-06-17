@@ -121,7 +121,9 @@ const handleMaterialSelected = (matRow) => {
 
 // 초기화 버튼 클릭시
 const handleReset = async () => {
-  await fetchBomList(); // 전체 목록 다시 불러오기
+  await fetchprocList(); // 전체 목록 다시 불러오기
+  formRef.value.resetForm();  
+  tableRef.value.resetRows(); 
 };
 </script>
 

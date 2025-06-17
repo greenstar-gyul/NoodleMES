@@ -1,12 +1,26 @@
 <script setup>
-import { ref,defineProps } from 'vue';
-import TableWithDelExcelWidthfix from '@/components/form/TableWithDelExcelWidthfix.vue';
+import { defineProps, defineEmits } from 'vue';
+import TableWithDelExcelFixClick from '../../../components/form/TableWithDelExcelFixClick.vue';
 
-defineProps({
-  data: Array
-})
+const props = defineProps({
+  data: Array,
+  mapper: Object // 있으면 받아줍니다
+});
+
+const emit = defineEmits(['row-click']);
+
+const handleRowClick = (row) => {
+  emit('row-click', row);
+};
 </script>
 
 <template>
-  <TableWithDelExcelWidthfix :data="data" :dataKey="'prdr_code'" title="검색결과" class="mt-5"/>
+  <TableWithDelExcelFixClick
+    :data="props.data"
+    :mapper="props.mapper"
+    :dataKey="'prdr_code'"
+    title="검색결과"
+    class="mt-5"
+    @row-click="handleRowClick"
+  />
 </template>

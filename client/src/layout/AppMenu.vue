@@ -91,10 +91,6 @@ const model = ref([
                         to: '/wko/manage'
                     },
                     {
-                        label: '생산실적상세',
-                        to: '/performance/detail'
-                    },
-                    {
                         label: '생산실적조회',
                         to: '/performance/list'
                     },

@@ -27,8 +27,8 @@ const today = moment().format('YYYY-MM-DD')
 // 폼 상태값
 const prod_proc_code = ref('')
 const po_name = ref('')
-const prod_code = ref('')
-const prod_name = ref('')
+const prod_code = ref(null)
+const prod_name = ref(null)
 const po_type = ref('')
 const reg = ref('EMP-10001')
 const reg_date = ref(today)
@@ -36,10 +36,12 @@ const note = ref('')
 
 // ✅ 외부에서 set할 수 있게
 const setFormData = (data) => {
+  if (!data) return;
+
   prod_proc_code.value = data.prod_proc_code ?? ''
   po_name.value = data.po_name ?? ''
-  prod_code.value = data.prod_code ?? ''
-  prod_name.value = data.prod_name ?? ''
+  prod_code.value = data.prod_code ?? null
+  prod_name.value = data.prod_name ?? null
   po_type.value = data.po_type ?? 'p2'
   reg.value = data.reg ?? ''
   reg_date.value = data.reg_date ?? ''
@@ -62,8 +64,8 @@ const getFormData = () => ({
 const resetForm = () => {
   prod_proc_code.value = ''
   po_name.value = ''
-  prod_code.value = ''
-  prod_name.value = ''
+  prod_code.value = null
+  prod_name.value = null
   po_type.value = 'p2'
   reg.value = 'EMP-1001'
   reg_date.value = today

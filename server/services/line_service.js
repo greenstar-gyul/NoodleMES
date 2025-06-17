@@ -55,7 +55,7 @@ const searchLineList = async (params) => {
 const getProcessListPopup = async () => {
   const conn = await mariadb.connectionPool.getConnection();
   try {
-    const result = await conn.query(linesql.processListPopup);
+    const result = await conn.query(linesql.processPopup);
     return result;
   } catch (err) {
     console.error('❌ 공정 흐름 팝업 목록 조회 실패:', err);
