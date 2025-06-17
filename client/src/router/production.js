@@ -20,6 +20,11 @@ export default [
         component: () => import('@/views/working/WorkProcess.vue')
     },
     {
+        path: '/work/list',
+        name: 'working',
+        component: () => import('@/views/working/WorkList.vue')
+    },
+    {
         path: '/performance/detail/:prdr_code',
         name: 'PerformanceDetail',
         component: () => import('../views/performance/performanceDetail.vue')

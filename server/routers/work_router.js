@@ -6,7 +6,7 @@ const workService = require('../services/work_service.js');
 // 작업지시서 전체 조회
 router.get('/all', async (req, res) => {
     try {
-        const wkoList = await wkoService.findAll();
+        const wkoList = await workService.findAll();
         res.status(200).json({
             "result_code": "SUCCESS",
             "message": "성공",
@@ -21,5 +21,24 @@ router.get('/all', async (req, res) => {
         });
     }
 });
+
+// 📡 작업지시서 월간 조회 API
+router.get('/month', async (req, res) => {
+  const { start, end } = req.query;
+
+  if (!start || !end) {
+    return res.status(400).send("❌ 시작일과 종료일이 필요합니다.");
+  }
+
+  try {
+    const data = await workService.getMonthlyPerformance(start, end);
+    res.send(data);
+  } catch (err) {
+    console.error('❌ 생산실적 월간 조회 실패:', err);
+    res.status(500).send("서버 에러 발생");
+  }
+});
+
+
 
 module.exports = router;
