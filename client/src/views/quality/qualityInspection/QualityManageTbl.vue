@@ -21,7 +21,7 @@ const props = defineProps({
     columns: {
         type: Array,
         default: [],
-    },
+    },  
     subData: {
         type: Array,
         default: [],
@@ -60,7 +60,7 @@ const loadEqir = async () => {
         
         if (qioList && qioList.length > 0) {
             console.log('🔍 첫 번째 qio 아이템:', qioList[0]);
-            console.log('🔍 eqir_code:', qioList[0].eqir_code);
+            console.log('🔍 inspection_item:', qioList[0].inspection_item);
         }
 
         // 1단계: 빈 배열로 초기화
@@ -116,7 +116,7 @@ const deleteSelected = () => {
     
     if (confirm('선택한 항목을 삭제하시겠습니까?')) {
         const remainingData = props.subData.filter(item => 
-            !selectedWAD.value.some(selected => selected.eqir_code === item.eqir_code)
+            !selectedWAD.value.some(selected => selected.inspection_item === item.inspection_item)
         );
         emit('update:subData', remainingData);
         selectedWAD.value = []; // 선택 초기화
@@ -184,7 +184,7 @@ watch(
         <DataTable 
             v-model:selection="selectedWAD" 
             :value="subData" 
-            dataKey="eqir_code"
+            dataKey="inspection_item"
             showGridlines 
             scrollable
             scrollHeight="400px" 
@@ -192,70 +192,43 @@ watch(
             
             <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-            <Column field="eqir_code" header="항목코드">
+            <Column field="inspection_item" header="검사항목">
                 <template #body="slotProps">
-                    {{ slotProps.data.eqir_code }}
+                    {{ slotProps.data.inspection_item }}
                 </template>
             </Column>
 
-            <Column field="eq_name" header="설비명" style="width: 200px">
+            <Column field="range_top" header="기준(상한)" style="width: 200px">
                 <template #body="slotProps">
-                    {{ slotProps.data.eq_name }}
+                    {{ slotProps.data.range_top }}
                 </template>
             </Column>
 
-            <Column field="chk_start_date" header="점검시작일">
+            <Column field="range_bot" header="기준(하한)">
                 <template #body="slotProps">
-                    {{ slotProps.data.chk_start_date }}
+                    {{ slotProps.data.range_bot }}
                 </template>
             </Column>
 
-            <Column field="chk_end_date" header="점검종료일">
+            <Column field="unit" header="단위">
                 <template #body="slotProps">
-                    {{ slotProps.data.chk_end_date }}
+                    {{ slotProps.data.unit }}
                 </template>
             </Column>
 
-            <Column field="chk_detail" header="점검내용">
-                <template #body="slotProps">
-                    {{ slotProps.data.chk_detail }}
-                </template>
-            </Column>
-
-            <Column field="note" header="비고">
-                <template #body="slotProps">
-                    {{ slotProps.data.note }}
-                </template>
-            </Column>
-
-            <Column field="chk_result" header="점검결과">
-                <template #body="slotProps">
-                    {{ slotProps.data.chk_result }}
-                </template>
-            </Column>
-
-            <Column field="eqi_stat" header="상태">
-                <template #body="slotProps">
-                    {{ slotProps.data.eqi_stat }}
-                </template>
-            </Column>
         </DataTable>
     </div>
     <MultiplePopup 
         v-model:visible="dialogVisible" 
         :items="popupEqirs" 
         @confirm="addEqiType"
-        :selectedHeader="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'chk_detail', 'note', 'chk_result', 'eqi_stat']"
+        :selectedHeader="['inspection_item', 'range_top', 'range_bot', 'unit']"
         :mapper="{ 
-            eqir_code: '점검항목 코드', 
-            eq_name: '설비명', 
-            chk_start_date: '점검시작일', 
-            chk_end_date: '점검종료일', 
-            chk_detail: '점검내용', 
-            note: '비고', 
-            chk_result: '점검결과', 
-            eqi_stat: '상태' 
+            inspection_item: '검사항목', 
+            range_top: '기준(상한)', 
+            range_bot: '기준(하한)', 
+            unit: '단위', 
         }"
-        :dataKey="'eqir_code'">
+        :dataKey="'inspection_item'">
     </MultiplePopup>
 </template>
