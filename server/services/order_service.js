@@ -183,6 +183,26 @@ const insertOrderTx = async (data) => {
   }
 };
 
+// 주문 삭제 (트랜잭션)
+const deleteOrderTx = async (ordCode) => {
+  const conn = await mariadb.connectionPool.getConnection();
+  try {
+    await conn.beginTransaction();
+    // 상세 먼저 삭제 → 마스터 삭제
+    await mariadb.queryConn(conn, "deleteOrderDetail", [ordCode]);
+    await mariadb.queryConn(conn, "deleteOrder", [ordCode]);
+    await conn.commit();
+    return { success: true };
+  } catch (err) {
+    await conn.rollback();
+    console.error("삭제 실패:", err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+
 
 // 출고 등록(제품 하나만.. 사용안할거임)
 const insertRelease = async (release) => {
@@ -285,7 +305,7 @@ const insertFinalRelease = async (release) => {
       if (outbnd_qtt === req_qtt) stat = "출고완료";
       else if (outbnd_qtt > 0) stat = "부분출고";
 
-      // ✅ 출고상세 등록
+      // 출고상세 등록
       await mariadb.queryConn(conn, "insertOutReqDetail", [
         out_req_d_code,
         req_qtt,
@@ -302,7 +322,7 @@ const insertFinalRelease = async (release) => {
 
     const poutbnd_code = poutbndCodeRes[0].poutbnd_code;
 
-      // ✅ 본출고 등록
+      // 본출고 등록
       await mariadb.queryConn(conn, "insertRelease", [
         poutbnd_code,      // 동일한 출고코드
         req_qtt,
@@ -327,8 +347,6 @@ const insertFinalRelease = async (release) => {
     conn.release();
   }
 };
-
-
 
 // 출고 수정(하나의 출고 요청에 하나의 제품 수정)
 const updateRelease = async (poutbnd_code, release) => {
@@ -406,33 +424,13 @@ const updateFinalRelease = async (poutbnd_code, releaseDetails) => {
 };
 
 // 출고 상세 조회
-const findReleaseDetails = async (poutbnd_code) => {
-  const result = await mariadb.query("selectReleaseDetailList", [poutbnd_code])
+const findReleaseDetails = async (outbound_request_code ) => {
+  const result = await mariadb.query("releaseList", [outbound_request_code ])
     .catch(err => {
       console.error("출고 상세 조회 실패:", err);
       throw err;
     });
   return result;
-};
-
-
-// 주문 삭제 (트랜잭션)
-const deleteOrderTx = async (ordCode) => {
-  const conn = await mariadb.connectionPool.getConnection();
-  try {
-    await conn.beginTransaction();
-    // 상세 먼저 삭제 → 마스터 삭제
-    await mariadb.queryConn(conn, "deleteOrderDetail", [ordCode]);
-    await mariadb.queryConn(conn, "deleteOrder", [ordCode]);
-    await conn.commit();
-    return { success: true };
-  } catch (err) {
-    await conn.rollback();
-    console.error("삭제 실패:", err);
-    throw err;
-  } finally {
-    conn.release();
-  }
 };
 
 // 출고 상태 목록 조회
@@ -456,7 +454,47 @@ const updateReleaseStat = async (stat, poutbnd_code) => {
   return result;
 };
 
+// 출고요청코드 기준 총주문수량, 총 출고수량, 출고에 포함된 제품목록
+const getReleaseByOutReqCode = async (out_req_code) => {
+  try {
+    // 1. 총 주문수량
+    const totalOrderRes = await mariadb.query("sumOrderQ", [out_req_code]);
+    const total_order_qtt = totalOrderRes[0]?.total_order_qtt ?? 0;
 
+    // 2. 총 출고수량
+    const totalReleaseRes = await mariadb.query("sumReleaseQ", [out_req_code]);
+    const total_release_qtt = totalReleaseRes[0]?.total_release_qtt ?? 0;
+
+    // 3. 제품 목록
+    const productList = await mariadb.query("selectRProdByOutReqCode", [out_req_code]);
+
+    return {
+      out_req_code,
+      total_order_qtt,
+      total_release_qtt,
+      productList
+    };
+  } catch (err) {
+    console.error("출고요청 상세 조회 실패:", err);
+    throw err;
+  }
+};
+
+// 출고 정보 팝업
+const findReleasePopList = async () => {
+  const result = await mariadb.query("releaseList")
+    .catch(err => {
+      console.error("출고 정보 팝업 조회 실패:", err);
+      throw err;
+    });
+  return result;
+};
+
+// 출고 배치 업데이트
+// 이미 정의된 updateFinalRelease 함수를 재사용하여 출고 배치 업데이트를 수행
+const updateReleaseBatch = async (poutbnd_code, releaseDetails) => {
+  return await updateFinalRelease(poutbnd_code, releaseDetails); // 이미 정의된 함수 재사용
+};
 
 module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
@@ -480,5 +518,8 @@ module.exports ={
     insertFinalRelease,
     updateFinalRelease,
     findReleaseDetails,
-    findAvailableLotByProduct
+    findAvailableLotByProduct,
+    getReleaseByOutReqCode,
+    findReleasePopList,
+    updateReleaseBatch
 };

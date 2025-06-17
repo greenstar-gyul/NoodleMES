@@ -6,9 +6,10 @@ import ReleaseManageProduct from './release-manage-sub/ReleaseManageProduct.vue'
 /* ===== 중앙 상태 관리 ===== */
 const ord_code = ref({});
 const ord_date = ref({});
-const selectedClient = ref({});
 const empCode = ref({});
 const note = ref({});
+const releaseCode = ref({});
+const releaseDate = ref({});
 </script>
 
 <template>
@@ -16,9 +17,10 @@ const note = ref({});
   <ReleaseManageSearch
     :ord-code="ord_code"
     :ord-date="ord_date"
-    :selected-client="selectedClient"
     :emp-code="empCode"
     :note="note"
+    :release-code="releaseCode"
+    :release-date="releaseDate"
   />
 
   <!-- ===== 제품 영역 ===== -->

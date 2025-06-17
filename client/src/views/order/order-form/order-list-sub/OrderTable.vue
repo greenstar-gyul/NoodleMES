@@ -2,7 +2,7 @@
 import TableWithExcel from '@/components/form/TableWithExcel.vue';
 import orderMapper from '@/service/OrderMapping.js';
 import { onMounted, nextTick } from 'vue';
-import { useOrderListStore } from '@/stores/OrderListStore';
+import { useOrderListStore } from '@/stores/orderListStore';
 import { storeToRefs } from 'pinia';
 
 // 피니아
