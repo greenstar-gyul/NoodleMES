@@ -31,6 +31,7 @@ const selectOrderDetailList = `
        , comm_name(p.spec) AS spec
        , p.note
        , comm_name(p.com_value) AS com_value
+       , p.com_value AS com_value_code
   FROM ord_d_tbl od
   JOIN prod_tbl p ON od.prod_code = p.prod_code
   WHERE od.ord_code = ?
@@ -143,9 +144,9 @@ const selectReleaseList = `
          p.outbound_request_code,
          p.lot_num,
          prod.prod_name,
-         comm_name(prod.com_value) AS prod_type,
+         comm_name(prod.com_value) AS com_value,
          c.client_name,
-         e.emp_name AS manager_name
+         e.emp_name AS mcode
     FROM poutbnd_tbl p
     JOIN prod_tbl prod ON p.prod_code = prod.prod_code
     JOIN client_tbl c ON p.client_code = c.client_code
@@ -160,42 +161,34 @@ const updateReleaseStatus = `
   WHERE poutbnd_code = ?
 `;
 
-// 출고요청 코드 생성 (형식: OUT-YYYYMMDD-0001)
+// 출고요청코드 자동 생성 (예: OUT-20250617-0001)
 const selectOutReqCodeForUpdate = `
-  SELECT CONCAT(
-           'OUT-', 
-           DATE_FORMAT(CURDATE(), '%Y%m%d'), 
-           '-', 
-           LPAD(IFNULL(MAX(CAST(SUBSTRING(out_req_code, 13) AS UNSIGNED)), 0) + 1, 4, '0')
+  SELECT CONCAT('OUT-', DATE_FORMAT(CURDATE(), '%Y%m%d'), '-',
+           LPAD(IFNULL(MAX(CAST(SUBSTR(out_req_code, 14, 4) AS UNSIGNED)), 0) + 1, 4, '0')
          ) AS out_req_code
-    FROM out_req_tbl
-   WHERE SUBSTRING(out_req_code, 5, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
-   FOR UPDATE
+  FROM out_req_tbl
+  WHERE SUBSTR(out_req_code, 5, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+  FOR UPDATE
 `;
 
-// 출고요청 상세 코드 생성
+
+// 출고요청상세코드 자동 생성 (예: OUT-20250617-0001-D0001)
 const selectOutReqDCodeForUpdate = `
-  SELECT CONCAT(
-            'OUT-D-', 
-            LPAD(IFNULL(MAX(CAST(SUBSTRING(out_req_d_code, 8) AS UNSIGNED)), 0) + 1, 4, '0')
+  SELECT CONCAT(?, '-D', LPAD(IFNULL(MAX(CAST(SUBSTR(out_req_d_code, LENGTH(?) + 4, 4) AS UNSIGNED)),0) + 1, 4, '0')
          ) AS out_req_d_code
-    FROM out_req_d_tbl
-    FOR UPDATE
+  FROM out_req_d_tbl
+  WHERE out_req_d_code LIKE CONCAT(?, '-D%')
+  FOR UPDATE
 `;
 
-// 출고코드 자동 생성 (형식: OUT-YYYYMMDD-0001)
+// 본출고코드 자동 생성 (예: OUT-20250617-0001-P0001)
 const selectReleaseCodeForUpdate = `
-  SELECT CONCAT(
-           'OUT-', 
-           DATE_FORMAT(CURDATE(), '%Y%m%d'), 
-           '-', 
-           LPAD(IFNULL(MAX(CAST(SUBSTRING(poutbnd_code, 13) AS UNSIGNED)), 0) + 1, 4, '0')
+  SELECT CONCAT(?, '-P', LPAD(IFNULL(MAX(CAST(SUBSTR(poutbnd_code, LENGTH(?) + 4, 4) AS UNSIGNED)),0) + 1, 4, '0')
          ) AS poutbnd_code
-    FROM poutbnd_tbl
-   WHERE SUBSTRING(poutbnd_code, 5, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
-   FOR UPDATE
+  FROM poutbnd_tbl
+  WHERE poutbnd_code LIKE CONCAT(?, '-P%')
+  FOR UPDATE
 `;
-
 
 // 주문 코드 생성용 (FOR UPDATE 잠금)
 const selectOrdCodeForUpdate = `
@@ -258,21 +251,21 @@ const insertOutReq = `
     out_req_date,
     mcode,
     note,
-    ord_predict_date
-  ) VALUES (?, ?, ?, ?, ?, ?)
+    ord_predict_date,
+    client_code  
+  ) VALUES (?, ?, ?, ?, ?, ?, ?)
 `;
 
 // 출고요청 상세 등록
 const insertOutReqDetail = `
   INSERT INTO out_req_d_tbl (
     out_req_d_code,
-    out_req_code,
-    prod_code,
     out_req_d_amount,
-    delivery_date,
-    prod_type,
-    ord_amount
-  ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    com_value,
+    ord_amount,
+    out_req_code,
+    prod_code   
+  ) VALUES (?, ?, ?, ?, ?, ?)
 `;
 
 // 출고 본테이블 등록
@@ -328,7 +321,7 @@ const selectReleaseDetailList = `
          p.lot_num,
          p.prod_code,
          pr.prod_name,
-         comm_name(pr.com_value) AS prod_type,
+         comm_name(pr.com_value) AS com_value,
          p.client_code,
          c.client_name,
          p.mcode,
@@ -341,6 +334,14 @@ const selectReleaseDetailList = `
 `;
 
 
+// 사용 가능한 LOT 중 가장 오래된 LOT 1개 조회
+const selectLotByProduct = `
+  SELECT lot_num
+  FROM lot_tbl
+  WHERE prod_code = ?
+  ORDER BY issdate ASC
+  LIMIT 1
+`;
 
 
 module.exports = {
@@ -356,6 +357,7 @@ module.exports = {
   selectReleaseStatuses,
   selectReleaseList,
   selectReleaseDetailList,
+  selectLotByProduct,
 
   // 등록
   selectOrdCodeForUpdate,

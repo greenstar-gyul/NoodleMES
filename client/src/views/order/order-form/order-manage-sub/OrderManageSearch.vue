@@ -70,7 +70,7 @@ const handleReset = () => {
     props.ordDate.value = '';
     props.note.value = '';
     props.selectedClient.value = null;
-    props.empCode.value = null;
+    props.empCode.value = 'EMP-10001';
 
     // 제품 목록 초기화, store 함수 사용
     resetProductRows();
