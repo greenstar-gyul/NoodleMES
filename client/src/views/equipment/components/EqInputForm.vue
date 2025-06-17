@@ -154,13 +154,15 @@ const eqTypeOptions = [
     { label: '튀김기', value: 'FRY' },
     { label: '건조기', value: 'DRY' },
     { label: '냉각기', value: 'COO' },
-    { label: '스프계량기', value: 'SDP' },
+    { label: '스프투입기', value: 'SDP' },
     { label: '충전기', value: 'FIL' },
     { label: '포장기', value: 'PCK' },
     { label: '인쇄기', value: 'INK' },
     { label: '중량 선별기', value: 'WEI' },
     { label: '박스포장기', value: 'CTN' },
-    { label: '출하설비', value: 'CVY' }
+    { label: '출하설비', value: 'CVY' },
+    { label: '반죽기', value: 'DOM' },
+    { label: '비닐포장기', value: 'PWM' }
 ];
 
 // 폼 초기화 함수

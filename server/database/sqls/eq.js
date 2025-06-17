@@ -71,6 +71,26 @@ JOIN eqi_type_tbl AS t ON r.chk_type_code = t.chk_type_code
 WHERE r.eqii_code = ?
 `;
 
+const selectEqirMgList = `
+SELECT m.eq_ma_code
+       ,m.eq_name
+       ,m.fail_date
+       ,m.fail_cause
+       ,m.act_detail
+       ,m.act_result
+       ,m.start_date
+       ,m.end_date
+       ,m.re_chk_exp_date
+       ,m.regdate
+       ,m.note
+       ,e.emp_name
+FROM   eq_ma_tbl AS m
+JOIN emp_tbl AS e ON m.emp_code = e.emp_code
+JOIN 
+WHERE m.eqir_code = ?
+ORDER BY eq_ma_code
+`;
+
 // 파라미터별 검색
 function buildSearch(searchParams) {
   const hasCondition = searchParams &&
@@ -123,6 +143,25 @@ function buildSearch(searchParams) {
   return { sql, values };
 }
 
+const searchEqii = `
+SELECT e.eqii_code
+        ,e.inst_date
+        ,e.chk_exp_date
+        ,e.stat
+        ,e.note
+        ,e.inst_emp_code
+        ,m.emp_name AS inst_emp_name
+FROM eqii_tbl e
+JOIN emp_tbl AS m ON e.inst_emp_code = m.emp_code
+WHERE 1=1
+  AND (? IS NULL OR e.eqii_code LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR e.stat LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR m.emp_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR DATE(e.inst_date) >= DATE(?))
+  AND (? IS NULL OR DATE(e.inst_date) <= DATE(?))
+ORDER BY e.eqii_code
+`;
+
 // eq_code 자동생성 
 // SELECT eq_code for new insert
 const selectEqCodeForUpdate = `
@@ -148,6 +187,20 @@ FROM eqir_tbl
 WHERE eqir_code LIKE 'EQIR-%'
 FOR UPDATE
 `;
+
+// eq_ma_tbl의 PK, eq_ma_code 자동생성
+// EQMA-20250515-001
+const selectEqMaCodeForUpdate = `
+SELECT CONCAT(
+    'EQMA-', 
+    DATE_FORMAT(NOW(), '%Y%m%d'), '-', 
+    LPAD(COALESCE(MAX(SUBSTR(eq_ma_code, -3)), 0) + 1, 3, '0')
+) AS next_eq_ma_code
+FROM eq_ma_tbl
+WHERE eq_ma_code LIKE CONCAT('EQMA-', DATE_FORMAT(NOW(), '%Y%m%d'), '-%')
+FOR UPDATE
+`;
+
 
 // eqii_code 자동생성
 // eqii code = EQI-20250601-001
@@ -321,9 +374,11 @@ module.exports = {
     DELETE FROM eq_ma_tbl 
     WHERE eqir_code = ?
   `,
+  searchEqii: searchEqii,
   selectEqCodeForUpdate: selectEqCodeForUpdate,
   selectEqirCodeForUpdate: selectEqirCodeForUpdate,
   selectEqiiCodeForUpdate: selectEqiiCodeForUpdate,
+  selectEqMaCodeForUpdate: selectEqMaCodeForUpdate,
   insertEqii: insertEqii,
   updateEqii: updateEqii,
   insertEqir: insertEqir,
