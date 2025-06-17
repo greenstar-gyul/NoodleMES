@@ -19,39 +19,42 @@ const props = defineProps({
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledInput label="공정명" v-model="props.detail.prdr_code" :readonly="true" />
-      <LabeledInput label="제품명" v-model="props.detail.prod_code" :readonly="true" />
+      <LabeledInput label="공정명" v-model="props.detail.po_name" :readonly="true" />
+      <LabeledInput label="설비명" v-model="props.detail.eq_name" :readonly="true" />
     </div>
-
+    
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <LabeledInput label="제품명" v-model="props.detail.prod_name" :readonly="true" />
       <LabeledInput label="작업지시코드" v-model="props.detail.wko_code" :readonly="true" />
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="라인코드" v-model="props.detail.line_code" :readonly="true" />
+      <LabeledDateTimePicker label="시작시간" v-model="props.detail.start_date" :readonly="true" />
     </div>
-
+    
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledDateTimePicker label="시작일시" v-model="props.detail.start_date" :readonly="true" />
-      <LabeledDateTimePicker label="종료일시" v-model="props.detail.end_date" :readonly="true" />
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <LabeledDateTimePicker label="종료시간" v-model="props.detail.end_date" :readonly="true" />
       <LabeledDateTimePicker label="소요시간" v-model="props.detail.total_time" :readonly="true" />
-      <LabeledInput label="작업자" v-model="props.detail.emp_code" :readonly="true" />
     </div>
-
+    
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <LabeledInput label="투입량" v-model="props.detail.input_qtt" :readonly="true" />
       <LabeledInput label="목표수량" v-model="props.detail.wko_qtt" :readonly="true" />
-      <LabeledInput label="생산수량" v-model="props.detail.make_qtt" :readonly="true" />
     </div>
-
+    
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <LabeledInput label="생산수량" v-model="props.detail.make_qtt" :readonly="true" />
       <LabeledInput label="불량수량" v-model="props.detail.def_qtt" :readonly="true" />
-      <LabeledInput label="달성률" v-model="props.detail.peform_rate" :readonly="true" />
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <LabeledInput label="달성률" v-model="props.detail.perform_rate" :readonly="true" />
     </div>
 
     <div class="flex justify-center gap-3 mt-4">
       <Button label="뒤로가기" severity="secondary" raised />
       <Button label="작업시작" severity="success"  raised  /> 
-      <Button label="작업시작" severity="contrast" raised />
+      <Button label="작업종료" severity="contrast" raised />
     </div>
 
   </div>

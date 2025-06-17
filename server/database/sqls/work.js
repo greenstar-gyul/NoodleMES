@@ -103,10 +103,42 @@ WHERE 1 = 1
 ORDER BY w.wko_code;
 `;
 
+// 작업진행 상세 단건 조회
+const selectWorkDetailOne = `
+SELECT  v.po_name,
+        v.eq_name,
+        v.prod_code,
+        p.prod_name,
+        v.wko_code,
+        v.line_code,
+        v.start_date,
+        v.end_date,
+        v.end_date - v.start_date AS "total_time",
+        v.input_qtt,
+        v.wko_qtt,
+        v.make_qtt,
+        v.def_qtt,
+        (v.make_qtt / v.wko_qtt) * 100 AS "perform_rate"
+FROM   processes_v v
+LEFT JOIN prod_tbl p ON v.prod_code = p.prod_code
+WHERE v.wko_code = ? AND v.eq_code = ?
+`;
+
+// 상세에 맞는 설비 들고오는 쿼리
+const selectEquipmentList= `
+SELECT eq.eq_code, eq.eq_name
+FROM line_d_tbl ld
+JOIN eq_tbl eq ON ld.eq_code = eq.eq_code
+WHERE ld.line_code = ?
+ORDER BY eq.eq_code;
+`;
+
 module.exports = {
   selectPRDRCodeForUpdate,
   insertPRDR,
   getCurrentMonthPlan,
   searchWorkingList,
-  selectWKOProcesses
+  selectWKOProcesses,
+  selectWorkDetailOne,
+  selectEquipmentList
 }

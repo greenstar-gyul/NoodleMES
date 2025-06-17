@@ -5,7 +5,7 @@ import Calendar from 'primevue/calendar'
 const props = defineProps({
   label: { type: String, required: true },
   modelValue: { type: Date, default: null },
-  placeholder: { type: String, default: '날짜 선택' },
+  placeholder: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
   showIcon: { type: Boolean, default: true },
   showTime: { type: Boolean, default: true },

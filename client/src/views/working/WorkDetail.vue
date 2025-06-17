@@ -7,15 +7,18 @@ import workDetailTop from './Work-sub/work-detail-top.vue';
 import workDetailBottom from './Work-sub/work-detail-bottom.vue';
 
 const route = useRoute();
-const prdr_d_code = route.params.prdr_d_code;
+console.log('📦 쿼리 파라미터:', route.query);
+const wko_code = route.params.wko_code;
+const eq_code = route.params.eq_code;
+console.log('🧩 wko_code:', wko_code, '| eq_code:', eq_code);
 
 const workDetail = ref(null); // 처음에는 null
 
 // 상세 데이터 조회
 onMounted(async () => {
   try {
-    const res = await axios.get(`/api/prdr/detail`, {
-      params: { prdr_d_code }
+    const res = await axios.get(`/api/work/detail/one`, {
+      params: { wko_code, eq_code }
     });
     workDetail.value = res.data;
     console.log('✅ 상세 데이터:', workDetail.value);
