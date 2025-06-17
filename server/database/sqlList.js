@@ -9,6 +9,7 @@ const mpr = require('./sqls/mpr.js');
 const qlt = require('./sqls/qlt.js');
 const line = require('./sqls/line.js');
 const wko = require('./sqls/wko.js');
+const work = require('./sqls/work.js');
 const prdr = require('./sqls/prdr.js');
 const proc = require('./sqls/proc.js');
 
@@ -24,6 +25,7 @@ module.exports = {
   ...qlt,
   ...line,
   ...wko,
+  ...work,
   ...prdr,
   ...proc,
 }

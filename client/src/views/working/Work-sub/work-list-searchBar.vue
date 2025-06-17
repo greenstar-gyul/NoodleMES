@@ -16,6 +16,7 @@ const lastDay = moment().endOf('month').format('YYYY-MM-DD');
 const search = reactive({
     wko_code: '',
     prod_code: '',
+    prod_name: '',
     line_code: '',
     reg_date_from: firstDay,
     reg_date_to: lastDay, 
@@ -30,8 +31,8 @@ const fetchPrdps = () => {
 const resetSearch = () => {
     search.wko_code = '';
     search.prod_code = '';
+    search.prod_name = '',
     search.line_code = '';
-    search.wko_code = '';
     search.reg_date_from =  moment().startOf('month').format('YYYY-MM-DD');
     search.reg_date_to = moment().endOf('month').format('YYYY-MM-DD');
   emit('reset'); // 필요 시
@@ -44,10 +45,10 @@ const resetSearch = () => {
 <template>
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <SearchText v-model="search.wko_code" label="생산실적코드" />
+            <SearchText v-model="search.wko_code" label="작업지시코드" />
             <SearchText v-model="search.prod_name" label="제품명" />
-            <SearchText v-model="search.line_code" label="작업지시코드" />
-            <SearchDateBetween label="작업등록일" 
+            <SearchText v-model="search.line_code" label="라인코드" />
+            <SearchDateBetween label="등록일자" 
             :from="search.reg_date_from" 
             :to="search.reg_date_to" 
             @update:from="search.reg_date_from = $event" 

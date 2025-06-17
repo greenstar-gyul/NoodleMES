@@ -29,7 +29,7 @@ const props = defineProps({
   },
   scrollHeight: {
     type: String,
-    default: '200px'
+    default: '500px'
   }
 });
 

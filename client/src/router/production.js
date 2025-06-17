@@ -21,7 +21,7 @@ export default [
     },
     {
         path: '/work/list',
-        name: 'working',
+        name: 'workingList',
         component: () => import('@/views/working/WorkList.vue')
     },
     {
