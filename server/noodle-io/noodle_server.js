@@ -79,47 +79,6 @@ class NoodleServer {
           });
           break;
           
-        // 작업 시작 메시지 브로드캐스트
-        case 'START_WORK':
-          this.broadcast({
-            type: 'WORK_STARTED',
-            orderId: data.orderId,
-            lineId: data.lineId,
-            initiatedBy: clientId,
-            timestamp: Date.now()
-          });
-          break;
-          
-        case 'STOP_WORK':
-          // 작업 중단 메시지 브로드캐스트
-          this.broadcast({
-            type: 'WORK_STOPPED',
-            orderId: data.orderId,
-            stoppedBy: clientId,
-            timestamp: Date.now()
-          });
-          break;
-
-        case 'PAUSE_WORK':
-          // 작업 일시정지
-          this.broadcast({
-            type: 'WORK_PAUSED',
-            orderId: data.orderId,
-            pausedBy: clientId,
-            timestamp: Date.now()
-          });
-          break;
-
-        case 'RESUME_WORK':
-          // 작업 재개
-          this.broadcast({
-            type: 'WORK_RESUMED',
-            orderId: data.orderId,
-            resumedBy: clientId,
-            timestamp: Date.now()
-          });
-          break;
-          
         default:
           // 기본 에코 메시지
           this.sendToClient(clientId, {
@@ -129,7 +88,8 @@ class NoodleServer {
           });
       }
       
-    } catch (error) {
+    } 
+    catch (error) {
       console.error(`❌ [${clientId}] 메시지 파싱 오류:`, error);
       this.sendToClient(clientId, {
         type: 'ERROR',
@@ -196,24 +156,24 @@ class NoodleServer {
     }
   }
 
-  async insertPrdr(data) {
-    const conn = await mariadb.connectionPool.getConnection();
+//   async insertPrdr(data) {
+//     const conn = await mariadb.connectionPool.getConnection();
 
-    // 트랜잭션 내에서 실행
-    try {
-        await conn.beginTransaction(); // 트랜잭션 BEGIN
+//     // 트랜잭션 내에서 실행
+//     try {
+//         await conn.beginTransaction(); // 트랜잭션 BEGIN
         
-        // PRDR 코드 새로 생성해 가져오기
-        const prdrCodeRes = await mariadb.queryConn(conn, 'selectPRDRCodeForUpdate');
-        const prdrCode = prdrCodeRes[0].prdr_code;
+//         // PRDR 코드 새로 생성해 가져오기
+//         const prdrCodeRes = await mariadb.queryConn(conn, 'selectPRDRCodeForUpdate');
+//         const prdrCode = prdrCodeRes[0].prdr_code;
 
-        // PRDR 코드 저장
-        const prdrData = [ prdrCode, data.note, data.wko_qtt, data.wko_code, data.emp_code, data.prod_code ];
-        const result = await mariadb.queryConn(conn, 'insertPRDR', prdrData);
+//         // PRDR 코드 저장
+//         const prdrData = [ prdrCode, data.note, data.wko_qtt, data.wko_code, data.emp_code, data.prod_code ];
+//         const result = await mariadb.queryConn(conn, 'insertPRDR', prdrData);
 
-        // const 
-    }
-  }
+//         // const 
+//     }
+//   }
 
 
   // 2. 타이머가 작동 되면서 작업 수량이 올라가면서 진행도와 달성률이 올라가야함.

@@ -2,7 +2,7 @@
   <div class="websocket-test">
     <div class="card">
       <h2>🔌 웹소켓 테스트</h2>
-      
+
       <!-- 연결 상태 -->
       <div class="status-section">
         <div class="status-indicator">
@@ -16,24 +16,17 @@
 
       <!-- 제어 버튼 -->
       <div class="control-section">
-        <button 
-          @click="connect" 
-          :disabled="isConnected" 
-          class="btn btn-primary">
+        <button @click="connect" :disabled="isConnected" class="btn btn-primary">
           연결
         </button>
-        <button 
-          @click="disconnect" 
-          :disabled="!isConnected" 
-          class="btn btn-danger">
+        <button @click="disconnect" :disabled="!isConnected" class="btn btn-danger">
           연결 해제
         </button>
-        <button 
-          @click="startTest" 
-          :disabled="!isConnected || isTestRunning" 
-          class="btn btn-success">
+        <button @click="startHelloTest" :disabled="!isConnected || isTestRunning" class="btn btn-success">
           5초 테스트 시작
         </button>
+        <button @click="client.requestStatus()" :disabled="!isConnected" class="btn btn-primary">상태 요청</button>
+        <button @click="client.sendTestMessage()" :disabled="!isConnected" class="btn btn-primary">테스트 메시지</button>
       </div>
 
       <!-- 통계 정보 -->
@@ -59,11 +52,7 @@
           <button @click="clearLog" class="btn btn-small">지우기</button>
         </div>
         <div class="log-container" ref="logContainer">
-          <div 
-            v-for="(log, index) in logs" 
-            :key="index" 
-            class="log-item"
-            :class="log.type">
+          <div v-for="(log, index) in logs" :key="index" class="log-item" :class="log.type">
             <span class="log-time">{{ log.time }}</span>
             <span class="log-type">[{{ log.type.toUpperCase() }}]</span>
             <span class="log-message">{{ log.message }}</span>
@@ -76,10 +65,13 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { NoodleClient } from '@/service/noodle_client.js'; // 경로는 실제 위치에 맞게 조정
+
+// NoodleClient 인스턴스 생성
+const client = new NoodleClient();
 
 // 반응형 데이터
-const socket = ref(null);
-const connectionStatus = ref('disconnected'); // disconnected, connecting, connected
+const connectionStatus = ref('disconnected');
 const clientId = ref('');
 const messageCount = ref(0);
 const testProgress = ref('');
@@ -111,7 +103,7 @@ const getStatusText = () => {
 const addLog = (type, message) => {
   const now = new Date();
   const time = now.toLocaleTimeString();
-  
+
   logs.value.push({
     type,
     message,
@@ -132,55 +124,53 @@ const addLog = (type, message) => {
   });
 };
 
-// 웹소켓 연결
-const connect = () => {
-  if (socket.value) return;
+// NoodleClient 이벤트 핸들러 설정
+client.onConnect = () => {
+  connectionStatus.value = 'connected';
+  isConnected.value = true;
+  connectionStartTime.value = Date.now();
+  startConnectionTimer();
+  addLog('system', '✅ 웹소켓 연결 성공!');
+};
 
+client.onDisconnect = (event) => {
+  connectionStatus.value = 'disconnected';
+  isConnected.value = false;
+  isTestRunning.value = false;
+  clientId.value = '';
+  stopConnectionTimer();
+  addLog('system', `❌ 연결 종료 (코드: ${event.code})`);
+};
+
+client.onMessage = (data) => {
+  messageCount.value++;
+
+  // 클라이언트 ID 업데이트
+  if (data.type === 'CONNECTION_SUCCESS' && data.clientId) {
+    clientId.value = data.clientId;
+  }
+
+  // 메시지 로그 추가
+  if (data.type === 'RAW') {
+    addLog('received', `Raw: ${data.data}`);
+  } else {
+    addLog('received', `${data.type}: ${JSON.stringify(data)}`);
+  }
+};
+
+client.onError = (error) => {
+  connectionStatus.value = 'disconnected';
+  isConnected.value = false;
+  addLog('error', `🚨 연결 오류: ${error}`);
+};
+
+// 웹소켓 연결
+const connect = async () => {
   connectionStatus.value = 'connecting';
   addLog('system', '웹소켓 서버에 연결 시도...');
 
   try {
-    // 실제 서버 주소로 변경하세요
-    socket.value = new WebSocket('ws://localhost:3721');
-
-    socket.value.onopen = () => {
-      connectionStatus.value = 'connected';
-      isConnected.value = true;
-      connectionStartTime.value = Date.now();
-      startConnectionTimer();
-      addLog('system', '✅ 웹소켓 연결 성공!');
-    };
-
-    socket.value.onmessage = (event) => {
-      messageCount.value++;
-      
-      try {
-        const data = JSON.parse(event.data);
-        addLog('received', `${data.type || 'MESSAGE'}: ${JSON.stringify(data)}`);
-        
-        // 클라이언트 ID 저장
-        if (data.type === 'CONNECTION_SUCCESS' && data.clientId) {
-          clientId.value = data.clientId;
-        }
-      } catch (e) {
-        addLog('received', `Raw: ${event.data}`);
-      }
-    };
-
-    socket.value.onclose = (event) => {
-      connectionStatus.value = 'disconnected';
-      isConnected.value = false;
-      isTestRunning.value = false;
-      stopConnectionTimer();
-      addLog('system', `❌ 연결 종료 (코드: ${event.code})`);
-    };
-
-    socket.value.onerror = (error) => {
-      connectionStatus.value = 'disconnected';
-      isConnected.value = false;
-      addLog('error', `🚨 연결 오류: ${error}`);
-    };
-
+    await client.connect('ws://localhost:3721');
   } catch (error) {
     connectionStatus.value = 'disconnected';
     addLog('error', `🚨 연결 실패: ${error.message}`);
@@ -189,16 +179,11 @@ const connect = () => {
 
 // 웹소켓 연결 해제
 const disconnect = () => {
-  if (socket.value) {
-    socket.value.close();
-    socket.value = null;
-  }
-  clientId.value = '';
-  stopConnectionTimer();
+  client.disconnect();
 };
 
-// 5초 테스트 시작
-const startTest = () => {
+// 5초 Hello 테스트
+const startHelloTest = () => {
   if (!isConnected.value || isTestRunning.value) return;
 
   isTestRunning.value = true;
@@ -213,7 +198,7 @@ const startTest = () => {
     testProgress.value = `${count}/${maxCount}`;
 
     // Hello 메시지 전송
-    sendMessage({
+    client.send({
       type: 'TEST_HELLO',
       message: 'Hello',
       count: count,
@@ -229,23 +214,6 @@ const startTest = () => {
       addLog('system', '✅ 5초 테스트 완료!');
     }
   }, 1000);
-};
-
-// 메시지 전송
-const sendMessage = (message) => {
-  if (!socket.value || socket.value.readyState !== WebSocket.OPEN) {
-    addLog('error', '웹소켓이 연결되지 않았습니다!');
-    return false;
-  }
-
-  try {
-    const messageStr = JSON.stringify(message);
-    socket.value.send(messageStr);
-    return true;
-  } catch (error) {
-    addLog('error', `메시지 전송 실패: ${error.message}`);
-    return false;
-  }
 };
 
 // 로그 지우기
@@ -276,7 +244,8 @@ const stopConnectionTimer = () => {
 
 // 컴포넌트 언마운트 시 정리
 onUnmounted(() => {
-  disconnect();
+  client.disconnect();
+  stopConnectionTimer();
 });
 </script>
 
@@ -337,9 +306,17 @@ h2 {
 }
 
 @keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 .client-info {
@@ -382,6 +359,11 @@ h2 {
 .btn-success {
   background: #28a745;
   color: white;
+}
+
+.btn-warning {
+  background: #ffc107;
+  color: #212529;
 }
 
 .btn-small {
