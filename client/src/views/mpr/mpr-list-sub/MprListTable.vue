@@ -1,7 +1,7 @@
 <script setup>
 // import axios from 'axios';
 import { onMounted, defineProps, defineEmits } from 'vue';
-import MprMapper from '@/service/MprMapping.js';
+import mprMapping from '@/service/MprMapping.js';
 import TableWithExcel from '../../../components/form/TableWithExcel.vue';
 
 // 상위에서 전달받은 데이터
@@ -19,5 +19,5 @@ onMounted(() => {
 
 <template>
    <!-- 결과 테이블 -->
-  <TableWithExcel :data="mprdata" :dataKey="'req_code'" :mapper="MprMapper" title="검색결과" />
+  <TableWithExcel :data="mprdata" :dataKey="'req_code'" :mapper="mprMapping.MprMapper" title="검색결과" />
 </template>

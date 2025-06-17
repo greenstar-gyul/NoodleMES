@@ -5,7 +5,6 @@ import Button from 'primevue/button';
 import SearchText from '@/components/search-bar/SearchText.vue';
 import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
-import MprData from '@/service/MprData.js';
 
 
 // 데이터 및 옵션

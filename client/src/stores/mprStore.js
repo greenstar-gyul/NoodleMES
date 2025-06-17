@@ -12,17 +12,17 @@ export const useMprStore = defineStore('mprStore', () => {
 
   // 목록 데이터 저장
   function setMprRows(data) {
-    productRows.value = data;
+    mprRows.value = data;
   };
 
   // 목록을 초기상태로 되돌림
   function resetMprRows() {
-    productRows.value = [];
+    mprRows.value = [];
   };
 
   // 선택한 목록을 저장
   function setSelectedMpr(list){
-    selectedProducts.value = list;
+    selectedMpr.value = list;
   };
 
   return {
