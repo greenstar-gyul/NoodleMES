@@ -4,17 +4,17 @@ require('dotenv').config({ path: './database/configs/dbConfig.env' });
 const PORT = 3721;
 
 const express = require('express');
-// const http = require('http');
-// const NoodleServer = require('./noodle-io/noodle_server.js'); // 웹 소켓 클래스
+const http = require('http');
+const NoodleServer = require('./noodle-io/noodle_server.js'); // 웹 소켓 클래스
 
 const app = express();
 
 // HTTP 서버 생성 (Express와 WebSocket이 같은 포트를 사용하도록)
-// const server = http.createServer(app);
+const server = http.createServer(app);
 
 // 🚀 웹소켓 서버 생성 및 연결
-// const noodleServer = new NoodleServer();
-// noodleServer.create(server);
+const noodleServer = new NoodleServer();
+noodleServer.create(server);
 
 // 미들웨어 등록 영역
 // 1. body parser
@@ -23,17 +23,17 @@ app.use(express.urlencoded({ extended: false }));
 // content-type : application/json
 app.use(express.json());
 
-app.listen(PORT, () => {
-  console.log('server start');
-})
+// app.listen(PORT, () => {
+//   console.log('server start');
+// })
 
 // Server 실행 (HTTP와 WebSocket 모두)
-// server.listen(PORT, () => {
-//   console.log('🚀 Server Start');
-//   console.log(`🌐 HTTP Server: http://localhost:${PORT}`);
-//   console.log(`🔌 WebSocket Server: ws://localhost:${PORT}`);
-//   console.log(`📊 WebSocket Status: http://localhost:${PORT}/api/websocket/status`);
-// });
+server.listen(PORT, () => {
+  console.log('🚀 Server Start');
+  console.log(`🌐 HTTP Server: http://localhost:${PORT}`);
+  console.log(`🔌 WebSocket Server: ws://localhost:${PORT}`);
+  console.log(`📊 WebSocket Status: http://localhost:${PORT}/api/websocket/status`);
+});
 
 // 라우팅 등록 영역
 const deptRouter = require('./routers/dept_router.js');
