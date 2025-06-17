@@ -71,9 +71,26 @@ const searchWorkingList = async (params) => {
   }
 };
 
+// 작업 지시서 코드로 상세의 공정 조회
+const findProcessByWkoCode = async (wko_code) => {
+  if (!wko_code) {
+    throw new Error("❌ 작업지시서 코드를 입력해주세요.");
+  }
+
+  try {
+    const result = await mariadb.query('selectWKOProcesses', [wko_code]);
+    return result;
+  } 
+  catch (err) {
+    console.error('❌ 공정 조회 실패:', err);
+    throw err;
+  }
+};
+
 
 module.exports = {
   findAll,
   getMonthlyPerformance,
-  searchWorkingList
+  searchWorkingList,
+  findProcessByWkoCode,
 }
