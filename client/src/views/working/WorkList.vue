@@ -5,6 +5,9 @@ import axios from 'axios';
 import moment from 'moment';
 import workListSearchBar from './Work-sub/work-list-searchBar.vue';
 import workListTable from './Work-sub/work-list-table.vue';
+import workMapping from '@/service/WorkMapping.js';
+
+console.log('🚀 컴포넌트 마운트됨');
 
 const tableData = ref([]);
 
@@ -15,6 +18,8 @@ const end = moment().endOf('month').format('YYYY-MM-DD 23:59:59');
 
 // 초기 리스트 조회
 const loadTableData = async () => {
+  console.log('📡 loadTableData 시작'); // ✅ 확인 로그 1
+
   try {
     const res = await axios.get('/api/work/month', {
       params: {
@@ -22,17 +27,18 @@ const loadTableData = async () => {
         end
       }
     });
+    console.log('📦 원본 응답 데이터:', res.data); // ✅ 확인 로그 2
     tableData.value = formatDateFields(res.data);
-    console.log('✅ 조회된 리스트:', tableData.value);
   } catch (err) {
-    console.error('❌ 리스트 조회 실패:', err);
+    console.error('❌ axios 요청 실패:', err); // ✅ 반드시 찍히는 로그
   }
 };
 
-// 날자 변환 함수 
+// 날짜 포맷 가공 함수
 const formatDateFields = (list) => {
   return list.map(item => ({
     ...item,
+    reg_date: item.reg_date ? moment(item.reg_date).format('YYYY-MM-DD') : '',
     start_date: item.start_date ? moment(item.start_date).format('YYYY-MM-DD HH:mm') : '',
     end_date: item.end_date ? moment(item.end_date).format('YYYY-MM-DD HH:mm') : ''
   }));
@@ -53,6 +59,10 @@ const handleSearch = async (searchParams) => {
     Object.entries(searchParams).map(([key, val]) => [key, val === '' ? null : val])
   );
 
+  // 날짜 가공
+  if (cleanParams.reg_date_from) cleanParams.reg_date_from += ' 00:00:00';
+  if (cleanParams.reg_date_to) cleanParams.reg_date_to += ' 23:59:59';
+
   console.log('👉 정제된 검색 파라미터:', cleanParams);
 
   try {
@@ -61,17 +71,17 @@ const handleSearch = async (searchParams) => {
     if (Array.isArray(response.data)) {
       tableData.value = formatDateFields(response.data);
     } else {
-      console.error('검색 실패:', response.data);
+      console.error('📛 예상치 못한 응답:', response.data);
       tableData.value = [];
     }
   } catch (error) {
-    console.error('검색 API 호출 실패:', error);
+    console.error('❌ 검색 API 호출 실패:', error);
     tableData.value = [];
   }
 };
 
 const handleRowClick = (row) => {
-  router.push(`/work/${row.prdr_code}`);
+  router.push(`/work/${row.wko_code}`);
 };
 
 </script>
@@ -79,7 +89,7 @@ const handleRowClick = (row) => {
 <template>
     <workListSearchBar @search="handleSearch" @reset="resetSearch"/>
 
-    <workListTable :data="tableData" :mapper="PrdrMapper" @row-click="handleRowClick"/>
+    <workListTable :data="tableData" :mapper="workMapping" @row-click="handleRowClick"/>
     <div v-if="tableData.length === 0" class="text-center text-gray-500 mt-4">
     조건에 맞는 데이터가 없습니다.
     </div>
