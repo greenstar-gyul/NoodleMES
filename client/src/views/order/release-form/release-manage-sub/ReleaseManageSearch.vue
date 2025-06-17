@@ -116,7 +116,8 @@ const handleSave = async () => {
         client_code: props.selectedClient.value,
         mcode: props.empCode.value ?? 'EMP-10001',
         note: props.note.value,
-        outbound_request_code
+        outbound_request_code,
+        com_value: row.com_value_code
       };
     });
 
@@ -126,8 +127,11 @@ const handleSave = async () => {
     if (isAllNew) {
       // 전체 등록
       const payload = {
+        ord_code: props.ordCode.value,
+        release_date: moment().format("YYYY-MM-DD"),
         client_code: props.selectedClient.value,
         mcode: props.empCode.value ?? 'EMP-10001',
+        note: props.note.value,
         details
       };
       await axios.post('/api/order/releases', payload);
@@ -162,6 +166,8 @@ const orderHandleConfirm = async (selectedOrder) => {
       item.ord_d_code = item.ord_d_code || `row-${idx}`;
       item.delivery_date = moment(item.delivery_date).format('YYYY-MM-DD');
       item.outbound_request_code = props.ordCode.value;
+      item.com_value_code = item.com_value_code || '';  // DB 저장용 코드 유지
+      item.com_value = item.com_value || '';  
     });
 
     setProductRows(details);
@@ -172,7 +178,7 @@ const orderHandleConfirm = async (selectedOrder) => {
 
     // 거래처 정보 설정
     const client = allClients.value.find(c => c.client_code === selectedOrder.client_code);
-    props.selectedClient.value = client ? client.client_name : '';
+    props.selectedClient.value = client ? client.client_code : '';
   } catch (err) {
     console.error('주문 상세 조회 실패:', err);
   }
@@ -236,7 +242,7 @@ onMounted(async () => {
     const releaseRes = await axios.get('/api/order/releases');
     releaseList.value = releaseRes.data.data.map(release => ({
       ...release,
-      poutbnd_date: moment(release.poutbnd_date).format('YYYY-MM-DD')
+      out_req_date: moment(release.out_req_date).format('YYYY-MM-DD')
     }));
   } catch (err) {
     console.error('데이터 로딩 실패:', err);
@@ -287,16 +293,13 @@ onMounted(async () => {
       <!-- 입력 폼 영역 3 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <LabeledInput label="거래처" v-model="props.selectedClient.value" :disabled="true"/>
-          <LabeledInput label="등록자" :disabled="true"/>
+          <LabeledInput label="등록자" v-model="props.empCode.value" :disabled="true"/>
           
       </div>
 
       <!-- 입력 폼 영역 3 -->
       <div class="grid grid-cols-1 md:grid-cols-1 gap-4">          
-          <LabeledTextarea
-              label="비고"
-              placeholder="특이사항 입력"
-          />          
+          <LabeledTextarea label="비고" v-model="props.note.value" placeholder="특이사항 입력"/>         
       </div>
   </div>
   <!-- ===== 주문정보 팝업 ===== -->

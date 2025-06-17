@@ -231,6 +231,16 @@ const insertRelease = async (release) => {
   }
 };
 
+// 특정 제품의 사용 가능한 LOT 조회
+// 제품 코드(prod_code)를 입력받아 해당 제품의 사용 가능한 LOT 번호를 조회
+const findAvailableLotByProduct = async (prod_code) => {
+  const res = await mariadb.query("selectLotByProduct", [prod_code])
+    .catch(err => {
+      console.error("LOT 조회 실패:", err);
+      throw err;
+    });
+  return res.length > 0 ? res[0].lot_num : null;
+};
 
 // 출고 등록(하나의 출고 요청에 여러 제품 등록)
 const insertFinalRelease = async (release) => {
@@ -239,48 +249,76 @@ const insertFinalRelease = async (release) => {
   try {
     await conn.beginTransaction();
 
-    // 출고 코드 자동 생성 (공통 출고코드 하나)
-    const codeRes = await mariadb.queryConn(conn, "selectReleaseCodeForUpdate");
-    const poutbnd_code = codeRes[0].poutbnd_code;
+    // 출고요청코드 생성
+    const codeRes = await mariadb.queryConn(conn, "selectOutReqCodeForUpdate");
+    const out_req_code = codeRes[0].out_req_code;
 
+
+
+    // 출고기본정보 등록
+    await mariadb.queryConn(conn, "insertOutReq", [
+      out_req_code,
+      release.ord_code,
+      release.release_date,
+      release.mcode ?? "EMP-10001",
+      release.note ?? "",
+      release.release_date, // 예측일 = 출고일
+      release.client_code 
+    ]);
+
+    // 출고상세 및 본출고 등록
     for (const item of release.details) {
-      console.log("📦 받은 item 내용:", item);
+      // 출고상세코드 생성
+      const outReqDCodeRes = await mariadb.queryConn(conn, "selectOutReqDCodeForUpdate", [
+        out_req_code, out_req_code, out_req_code
+      ]);
+
+      const out_req_d_code = outReqDCodeRes[0].out_req_d_code;
+
+      const lot_num = await findAvailableLotByProduct(item.prod_code);
+      if (!lot_num) throw new Error(`제품 ${item.prod_name}의 유효한 LOT 번호가 없습니다.`);
+
       const req_qtt = item.req_qtt;
       const outbnd_qtt = item.outbnd_qtt;
 
-      console.log("🧮 req_qtt:", req_qtt, "outbnd_qtt:", outbnd_qtt);
-
-      if (outbnd_qtt > req_qtt) {
-        throw new Error("출고 수량은 주문 수량을 초과할 수 없습니다.");
-      }
-
-      
-
-      // 상태 계산
       let stat = "출고대기";
       if (outbnd_qtt === req_qtt) stat = "출고완료";
       else if (outbnd_qtt > 0) stat = "부분출고";
 
-      const values = [
-        poutbnd_code,
+      // ✅ 출고상세 등록
+      await mariadb.queryConn(conn, "insertOutReqDetail", [
+        out_req_d_code,
+        req_qtt,
+        item.com_value_code,
+        req_qtt, // 주문 수량 그대로
+        out_req_code,
+        item.prod_code,
+      ]);
+
+    // 본출고코드 생성
+    const poutbndCodeRes = await mariadb.queryConn(conn, "selectReleaseCodeForUpdate", [
+      out_req_code, out_req_code, out_req_code
+    ]);
+
+    const poutbnd_code = poutbndCodeRes[0].poutbnd_code;
+
+      // ✅ 본출고 등록
+      await mariadb.queryConn(conn, "insertRelease", [
+        poutbnd_code,      // 동일한 출고코드
         req_qtt,
         outbnd_qtt,
         item.delivery_date,
         stat,
-        item.outbound_request_code,
-        null, // lot_num
+        out_req_code,
+        lot_num,
         item.prod_code,
         release.client_code,
         release.mcode ?? "EMP-10001"
-      ];
-
-      console.log("📝 insertRelease values:", values);
-
-      await mariadb.queryConn(conn, "insertRelease", values);
+      ]);
     }
 
     await conn.commit();
-    return { success: true, poutbnd_code };
+    return { success: true, out_req_code };
   } catch (err) {
     await conn.rollback();
     console.error("출고 등록 실패:", err);
@@ -289,6 +327,7 @@ const insertFinalRelease = async (release) => {
     conn.release();
   }
 };
+
 
 
 // 출고 수정(하나의 출고 요청에 하나의 제품 수정)
@@ -342,9 +381,9 @@ const updateFinalRelease = async (poutbnd_code, releaseDetails) => {
       const values = [
         req_qtt,
         outbnd_qtt,
-        item.delivery_date,
+        item.deadline,
         stat,
-        null, // outbound_request_code
+        item.outbound_request_code || '',
         null, // lot_num
         item.prod_code,
         item.client_code,
@@ -375,8 +414,6 @@ const findReleaseDetails = async (poutbnd_code) => {
     });
   return result;
 };
-
-
 
 
 // 주문 삭제 (트랜잭션)
@@ -443,4 +480,5 @@ module.exports ={
     insertFinalRelease,
     updateFinalRelease,
     findReleaseDetails,
+    findAvailableLotByProduct
 };
