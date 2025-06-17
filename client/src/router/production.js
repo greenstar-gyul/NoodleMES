@@ -15,9 +15,14 @@ export default [
         component: () => import('../views/performance/performanceList.vue')
     },
     {
-        path: '/work/working',
+        path: '/work/:wko_code',
         name: 'working',
         component: () => import('@/views/working/WorkProcess.vue')
+    },
+    {
+        path: '/work/detail/:wko_code/:eq_code',
+        name: 'workingDetail',
+        component: () => import('@/views/working/WorkDetail.vue')
     },
     {
         path: '/work/list',

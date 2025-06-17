@@ -15,7 +15,8 @@
     "express": "^5.1.0",
     "jsonserver": "^0.1.6",
     "mariadb": "^3.4.2",
-    "pinia": "^3.0.3"
+    "pinia": "^3.0.3",
+    "ws": "^8.18.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

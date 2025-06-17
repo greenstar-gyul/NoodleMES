@@ -37,16 +37,47 @@ router.get('/month', async (req, res) => {
   }
 });
 
+// 작업 지시서 코드로 상세의 공정 조회
+router.get('/:wkoCode/process', async (req, res) => {
+  const wko_code = req.params.wkoCode;
+  // console.log('🔍 작업지시서 코드:', wko_code);
+  try {
+    const result = await workService.findProcessByWkoCode(wko_code);
+    // console.log('🔍 조회된 공정 목록:', result);
+    res.status(200).json({
+        "result_code": "SUCCESS",
+        "message": "성공",
+        "data": result
+    });
+  } 
+  catch (err) {
+    console.error('❌ 공정 조회 실패:', err);
+    res.status(500).json({
+            "result_code": "FAIL",
+            "message": "실패",
+            "data": err.message || "서버 오류가 발생했습니다."
+        });
+  }
+});
+
 // 작업진행 조건 검색
 router.post('/search', async (req, res) => {
   try {
     const result = await workService.searchWorkingList(req.body);
-    res.send(result);
-  } catch (err) {
+    res.status(200).json({
+        "result_code": "SUCCESS",
+        "message": "성공",
+        "data": result
+    });
+  } 
+  catch (err) {
     console.error('❌ 검색 실패:', err); // 🔍 원인 추적에 도움됨
-    res.status(500).send('DB 조회 오류');
+    res.status(500).json({
+            "result_code": "FAIL",
+            "message": "실패",
+            "data": err.message || "서버 오류가 발생했습니다."
+        });
   }
 });
-
 
 module.exports = router;

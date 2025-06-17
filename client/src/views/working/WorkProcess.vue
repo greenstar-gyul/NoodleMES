@@ -1,32 +1,57 @@
 <script setup>
+import axios from 'axios';
 import moment from 'moment';
-console.log(moment('2025.06.16', 'YYYY.MM.DD').format('YYYY년 MM월 DD일'));
-const props = defineProps({
-  data: {
-    type: Array,
-    default: [
-      {
-        po_name: '원료 배합',
-        proc_rate: '10.5',
-        eq_code: 'EQ-AAA-0001',
-        eq_name: '배합기',
-        start_date: moment('2025.06.16-09:33:12', 'YYYY.MM.DD-HH:mm:ss').format('YYYY-MM-DD HH:mm:ss'),
-        end_date: '-',
-        input_qtt: 8080,
-        def_qtt: 10,
-        make_qtt: 8070
-      }
-    ]
-  },
-  dataKey: {
-    type: String,
-    default: 'id'
-  },
-})
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+// console.log(moment('2025.06.16', 'YYYY.MM.DD').format('YYYY년 MM월 DD일'));
 
+const route = useRoute();
+const wkoCode = route.params.wko_code;
+
+const data = ref({});
+const dataKey = ref('id');
+
+console.log(wkoCode);
+
+// 공정 목록을 불러오는 함수
 const loadProcess = async () => {
-
+    try {
+        const response = await axios.get(`/api/work/${wkoCode}/process`);
+        const result = await response.data;
+        if (result.result_code === "SUCCESS") {
+            // 공정 목록 가져오기 성공 시 테이블 값 설정, 공정명과 설비를 제외한 나머지 필드는 널 체크
+            await result.data.forEach(element => {
+                element.po_name = element.po_name || '-',
+                element.proc_rate = element.proc_rate || 0,
+                element.eq_code = element.eq_code || '-',
+                element.eq_name = element.eq_name || '-',
+                element.start_date = element.start_date ? moment(element.start_date).format('YYYY-MM-DD HH:mm:ss') : '-',
+                element.end_date = element.end_date ? moment(element.end_date).format('YYYY-MM-DD HH:mm:ss') : '-',
+                element.input_qtt = element.input_qtt || '-',
+                element.def_qtt = element.def_qtt || '-',
+                element.make_qtt = element.make_qtt || '-'
+            })
+            data.value = result.data;
+            console.log('공정 목록 불러오기 성공:', data.value);
+            
+        } else {
+            console.error('공정 목록 불러오기 실패:', result.message);
+            data.value = {};
+        }
+    } catch (error) {
+        console.error('공정 목록 불러오기 중 오류 발생:', error);
+        data.value = {};
+    }
 }
+
+onMounted(() => {
+    console.log('🚀 컴포넌트 마운트됨');
+    if (wkoCode) {
+        loadProcess();
+    } else {
+        console.warn('작업지시서 코드가 없습니다.');
+    }
+});
 
 </script>
 <template>
@@ -47,9 +72,9 @@ const loadProcess = async () => {
             :dataKey="dataKey" 
             showGridlines 
             scrollable
-            scrollHeight="400px" 
+            scrollHeight="100%" 
             tableStyle="min-width: 50rem"
-            :emptyMessage="data.length === 0 ? '생산계획과 제품을 선택하면 공정 목록이 표시됩니다.' : '공정 정보가 없습니다.'">
+            :emptyMessage="data != null ? '생산계획과 제품을 선택하면 공정 목록이 표시됩니다.' : '공정 정보가 없습니다.'">
             
             <Column field="po_name" header="공정명" style="width: 10%">
                 <template #body="slotProps">
@@ -89,7 +114,7 @@ const loadProcess = async () => {
                 <template #body="slotProps">
                     <div class="flex items-center gap-2">
                         <!-- <span class="font-medium text-gray-600" v-on:click="$router.push('//')">{{ slotProps.data.eq_code }} - {{ slotProps.data.eq_name }}</span> -->
-                        <Button :label="slotProps.data.eq_code + ' ' + slotProps.data.eq_name" severity="secondary" @click="$router.push('//')" class="flex-1" />
+                        <Button :label="slotProps.data.eq_code + ' ' + slotProps.data.eq_name" severity="secondary" @click="$router.push(`/work/detail/${wkoCode}/${slotProps.data.eq_code}`)" class="flex-1" />
                     </div>
                 </template>
             </Column>
