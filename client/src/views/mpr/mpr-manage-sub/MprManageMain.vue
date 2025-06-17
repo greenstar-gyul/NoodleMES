@@ -5,7 +5,6 @@ import { useMprStore } from '@/stores/mprStore';
 import SearchText from '@/components/search-bar/SearchText.vue';
 import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
-import MprData from '@/service/MprData.js';
 import axios from 'axios';
 import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
@@ -15,6 +14,7 @@ import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import Button from 'primevue/button';
+import LabeledDatePicker from '../../../components/registration-bar/LabeledDatePicker.vue';
 
 // 상위에서 전달받은 props
 const mprs = defineProps({
@@ -55,7 +55,7 @@ const handleReset = () => {
     mprs.reqDate.value = '';
     mprs.deadLine.value = '';
     mprs.mrpCode.value = '';
-    mprs.mCode.value = null;
+    mprs.mCode.value = 'EMP-10001'; // 초기값을 로그인한 유저의 값으로 고정할거임
 
     // 제품 목록 초기화, store 함수 사용
     resetMprRows();
@@ -125,32 +125,31 @@ const handleDelete = async () => {
     }
 };
 
-// MPR 팝업 Confirm 핸들러 / 이거 잘 모르겠음 ㅇㅅㅇ
+// MPR 팝업 Confirm 핸들러 / 확인필요
 const handleConfirm = async (selectedMpr) => {
   console.log('선택된 MPR:', selectedMpr);
 
   try {
-    // 주문 상세 조회
+    // mpr 상세 조회
     const detailRes = await axios.get(`/api/mpr/${selectedMpr.mpr_code}/details`);
     const details = detailRes.data.data;//store 함수 사용
 
     // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
     details.forEach((item, idx) => {
       item.mpr_d_code = item.mpr_d_code || `row-${idx}`;
-      item.delivery_date = moment(item.delivery_date).format('YYYY-MM-DD');
+      // item.req_qtt = moment(item.delivery_date).format('YYYY-MM-DD');
     });
 
     setMprRows(details);
 
-    // 주문 기본 정보 설정
-    mprs.ordCode.value = selectedMpr.ord_code;
-    mprs.ordName.value = selectedMpr.ord_name;
-    mprs.ordDate.value = moment(selectedMpr.ord_date).format("YYYY-MM-DD");
-    mprs.note.value = selectedMpr.note || '';
-    mprs.selectedClient.value = selectedMpr.client_code;
-    mprs.empCode.value= selectedMpr.mcode;
+    // mpr 기본 정보 설정
+    mprs.mprCode.value = selectedMpr.mpr_code;
+    mprs.reqDate.value = moment(selectedMpr.reqdate).format("YYYY-MM-DD");
+    mprs.deadLine.value = moment(selectedMpr.deadline).format("YYYY-MM-DD");
+    mprs.mrpCode.value = selectedMpr.mrp_code;
+    mprs.mCode.value = selectedMpr.mcode;
   } catch (err) {
-    console.error('주문 상세 조회 실패:', err);
+    console.error('mpr 상세 조회 실패:', err);
   }
 };
 
@@ -210,21 +209,23 @@ onMounted(async () => {
             />
         </div>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-      <!-- 구매요청코드 -->
-      <LabeledInput label="요청코드" placeholder="readonly로 변경 예정"/>
-      
-      <!-- 요청일자 -->
-      <LabeledInput label="요청일자" placeholder="요청자입력"/>
-
-      <!-- 납기일자 -->
-      <LabeledInput label="납기일자" placeholder="납기일자입력"/>
-
-      <!-- MRP 계획번호 -->
-      <LabeledInput label="MRP 계획번호" placeholder="MRP 계획번호 입력"/>
-
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- 구매요청코드  -->
+      <LabeledInput label="요청코드" v-model="mprs.mprCode.value" placeholder="구매요청코드" :disabled="true"/>
       <!-- 요청자 -->
-      <LabeledInput label="요청자" placeholder="readonly로 변경 예정"/>
+      <LabeledInput label="요청자" v-model="mprs.mCode.value" placeholder="readonly로 변경 예정"/>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- 요청일자 -->
+      <!-- <LabeledInput label="요청일자" v-model="mprs.reqDate.value" placeholder="요청일자입력"/> -->
+      <LabeledDatePicker label="요청일자" v-model="mprs.reqDate.value" />
+      <!-- 납기일자 -->
+      <!-- <LabeledInput label="납기일자" v-model="mprs.deadLine.value" placeholder="납기일자입력"/> -->
+      <LabeledDatePicker label="납기일자" v-model="mprs.deadLine.value" />
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- MRP 계획번호 -->
+      <LabeledInput label="MRP 계획번호" v-model="mprs.mrpCode.value" placeholder="MRP 계획번호 선택"/>
     </div>
   </div>
 
@@ -233,7 +234,7 @@ onMounted(async () => {
       v-model:visible="mprPopupVisible"
       :items="mprRef"
       @confirm="handleConfirm"
-      :mapper="mprMapping"
+      :mapper="mprMapping.MprMapper"
       :dataKey="'mpr_code'"
   />
 

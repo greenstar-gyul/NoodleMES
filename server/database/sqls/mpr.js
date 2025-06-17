@@ -63,6 +63,27 @@ FROM     mrp_tbl
 ORDER BY mrp_code
 `;
 
+// 자재 전체 조회
+const selectMatList = 
+`
+SELECT mat_code
+      ,mat_name
+      ,save_inven
+      ,comm_name(unit) as unit
+	    ,sup
+      ,comm_name(material_type_code) as material_type_code
+    
+      ,spec
+      ,edate
+      ,comm_name(is_used)
+      ,is_used
+      ,regdate
+      ,note
+      ,emp_code
+FROM mat_tbl
+ORDER BY mat_code;
+`;
+
 
 /* ================================== 조회 끝 ================================== */
 /* ================================== 등록 시작 ================================== */
@@ -137,6 +158,7 @@ module.exports = {
   selectSearchMprList,
   selectMprDList,
   selectMRPList,
+  selectMatList,
 
   /* 등록 */
   insertMpr,

@@ -46,6 +46,14 @@ const findAllMRP = async () => {
 };
 // end of findAllMRP
 
+// MRP 전체 조회
+const findAllMat = async () => {
+  const result = await mariadb.query("selectMatList")
+    .catch(err => console.log(err));
+  return result;
+};
+//
+
 // MPR 등록
 const insertMpr = async (mprData) => {
   // mprData는 mpr_code부터 client_code까지 배열 형태로 전달됨
@@ -128,7 +136,8 @@ module.exports ={
     findAllMpr,
     findSearchMpr,
     findMprDetails,
-    findAllMRP, 
+    findAllMRP,
+    findAllMat,
 
     /* 등록 */
     insertMpr,
