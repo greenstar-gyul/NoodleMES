@@ -9,9 +9,26 @@ export const useWebSocketStore = defineStore('websocket', () => {
   const clientId = ref('');
   const connectionStatus = ref('disconnected');
   const messages = ref([]);
+
+  const prdr = ref({
+    prdr_code: '',
+    start_date: '',
+    end_date: '',
+    total_time: '',
+    production_qtt: '',
+    ord_qtt: '',
+    perform_rate: '',
+    work_order_code: '',
+    emp_code: '',
+    prod_code: '',
+    note: '',
+    stat: '',
+  })
+
+  const prdrD = ref([]);
   
   // 서버 설정
-  const HOST = '192.168.0.25';
+  const HOST = 'localhost';
   const PORT = '3721';
   const server = `ws://${HOST}:${PORT}`;
   
@@ -99,6 +116,14 @@ export const useWebSocketStore = defineStore('websocket', () => {
   const sendMessage = (message) => {
     return client.send(message);
   };
+
+  const getPrdrInfo = (data) => {
+    return client.send({
+      type: 'GET_PRDR_INFO',
+      message: data,
+      timestamp: Date.now()
+    });
+  }
   
   return {
     // State
@@ -114,6 +139,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
     connect,
     disconnect,
     startProcess,
+    getPrdrInfo,
     sendMessage
   };
 });

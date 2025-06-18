@@ -87,8 +87,8 @@ FOR UPDATE
 
 // PRDR 저장
 const insertPRDR = `
-INSERT INTO prdr_tbl(prdr_code, start_date, end_date, total_time, note, production_qtt, work_order_code, emp_code, prod_code, perform_rate)
-VALUES(?, NULL, NULL, NULL, ?, ?, ?, ?, ?, NULL)
+INSERT INTO prdr_tbl(prdr_code, start_date, note, ord_qtt, work_order_code, emp_code, prod_code)
+VALUES(?, NOW(), ?, ?, ?, ?, ?)
 `
 
 // PRDR-D 코드 생성
@@ -187,6 +187,60 @@ SET proc_rate = ?
 WHERE prdr_d_code = ?
 `;
 
+
+// 자재 출고 코드 생성
+const selectMoutbndCode = `
+SELECT CONCAT(
+              CONCAT('MOUT-', DATE_FORMAT( CURDATE(), '%Y%m%d-')), 
+              LPAD(IFNULL(MAX(SUBSTR(moutbnd_code, -3)), 0) + 1, 3, '0')
+             ) AS "moutbnd_code"
+FROM moutbnd_tbl
+WHERE SUBSTR(moutbnd_code, 5, 8) = DATE_FORMAT( CURDATE(), '%Y%m%d')
+`
+
+// 자재 재고 상태 파악 용 자재 재고 조회
+const selectMaterialListForPRDR = `
+SELECT   bm.mat_code,
+         bm.mat_name,
+        --  SUM(bm.req_qtt * prdr.ord_qtt) AS "req_qtt",
+        --  comm_name(bm.unit) AS "unit",
+         
+         CASE
+            WHEN bm.unit = 'h6' THEN ROUND(SUM(bm.req_qtt * prdr.ord_qtt / 1000), 2)
+            WHEN bm.unit = 'h1' THEN ROUND(SUM(bm.req_qtt * prdr.ord_qtt), 2)
+            WHEN bm.unit = 'h2' THEN ROUND(SUM(bm.req_qtt * prdr.ord_qtt * 1000), 2)
+            WHEN bm.unit = 'h3' THEN ROUND(SUM(bm.req_qtt * prdr.ord_qtt / 1000), 2)
+            WHEN bm.unit = 'hc' THEN ROUND(SUM(bm.req_qtt * prdr.ord_qtt / 1000000), 2)
+            WHEN bm.unit = 'h4' THEN SUM(bm.req_qtt * prdr.ord_qtt)
+            ELSE SUM(bm.req_qtt * prdr.ord_qtt)
+         END AS "req_qtt",
+
+         comm_name(CASE
+            WHEN bm.unit = 'h6' THEN 'h1'
+            WHEN bm.unit = 'h1' THEN 'h1'
+            WHEN bm.unit = 'h2' THEN 'h1'
+            WHEN bm.unit = 'h3' THEN 'h3'
+            WHEN bm.unit = 'hc' THEN 'h3'
+            ELSE bm.unit
+          END) AS "unit",
+
+         mstock.cur_qtt,
+         comm_name(mstock.unit) AS "stock_unit"
+FROM     bom_mat bm JOIN bom_tbl bt 
+                      ON bm.bom_code = bt.bom_code
+                    JOIN prdr_tbl prdr 
+                      ON bt.prod_code = prdr.prod_code
+                    JOIN mat_stock_v mstock 
+                      ON bm.mat_code = mstock.mat_code
+WHERE    prdr.prdr_code = ?
+GROUP BY bm.mat_code, bm.mat_name, mstock.cur_qtt, unit, stock_unit
+`;
+
+const insertMoutbnd = `
+INSERT INTO moutbnd_tbl(moutbnd_code, mat_unit, outbnd_qtt, moutbnd_date, emp_code, mat_code, prdr_code)
+VALUES (?, ?, ?, curdate(), ?, ?, ?)
+`;
+
 module.exports = {
   selectPRDRCodeForUpdate,
   insertPRDR,
@@ -201,4 +255,7 @@ module.exports = {
   selectPrdrDCodeForDetail,
   selectPrdrDCodeByWkoCode,
   updatePRDRDRate,
+  selectMoutbndCode,
+  selectMaterialListForPRDR,
+  insertMoutbnd,
 }

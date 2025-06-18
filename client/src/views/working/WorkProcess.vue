@@ -3,13 +3,18 @@ import axios from 'axios';
 import moment from 'moment';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { useWebSocketStore } from '../../stores/websocket';
 // console.log(moment('2025.06.16', 'YYYY.MM.DD').format('YYYY년 MM월 DD일'));
+
+const wsStore = useWebSocketStore();
 
 const route = useRoute();
 const wkoCode = route.params.wko_code;
 
 const data = ref({});
 const dataKey = ref('id');
+
+const prdrCode = ref('');
 
 console.log(wkoCode);
 
