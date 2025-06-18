@@ -98,16 +98,17 @@ const findWorkDetailOne = async (wko_code, eq_code) => {
   }
 };
 
-// 특정 line_code에 맞는 설비 목록 조회
-const findEquipmentsByLine = async (line_code) => {
+// 특정 wko_code 에 맞는 설비 목록 조회
+const findWkoCodeEqList = async (wko_code) => {
   try {
-    const result = await mariadb.query('selectEquipmentList', [line_code]);
+    const result = await mariadb.query('selectWkocodeEqList', [wko_code]);
     return result;
-  } catch (err) {
-    console.error('❌ 설비 목록 조회 실패:', err);
+  } catch (err){
+    console.error('특정 설비 목록 조회 실패', err);
     throw err;
   }
 };
+
 
 module.exports = {
   findAll,
@@ -115,5 +116,5 @@ module.exports = {
   searchWorkingList,
   findProcessByWkoCode,
   findWorkDetailOne,
-  findEquipmentsByLine
+  findWkoCodeEqList
 }

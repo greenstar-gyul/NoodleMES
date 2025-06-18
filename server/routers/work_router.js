@@ -99,19 +99,22 @@ router.get('/detail/one', async (req, res) => {
   }
 });
 
-// 설비 목록 조회 API
-router.get('/equipments', async (req, res) => {
-  const { line_code } = req.query;
+// 특정 wko_code 에 맞는 설비 목록 조회
+router.get('/eqList', async (req, res) => {
+  const { wko_code } = req.query;
 
-  if (!line_code) {
-    return res.status(400).send('line_code는 필수입니다.');
+  console.log('쿼리 파라미터:', req.query);
+
+  if(!wko_code){
+    return res.status(400).send('wko_code는 필수입니다.');
   }
 
-  try {
-    const data = await workService.findEquipmentsByLine(line_code);
-    res.send(data);
-  } catch (err) {
-    res.status(500).send('DB 조회 오류');
+  try{
+    const result = await workService.findWkoCodeEqList(wko_code);
+    res.send(result);
+  }catch (err) {
+    console.error('설비 목록 조회 실패 :', err);
+    res.status(500).send('DB 오류');
   }
 });
 
