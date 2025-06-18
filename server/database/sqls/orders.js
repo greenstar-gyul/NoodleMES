@@ -462,39 +462,39 @@ const releaseDataForLists = `
    ORDER BY d.out_req_d_code
 `;
 
-// 출고 목록 조회
+// 출고 목록 검색 조회
 const findReleaseDataForList = `
   SELECT d.out_req_d_code,
-        prod.prod_name,
-        IFNULL(p.outbnd_qtt, 0) AS outbnd_qtt,
-        r.out_req_date,
-        r.mcode,
-        e.emp_name,
-        r.client_code,
-        c.client_name
-  FROM out_req_d_tbl d
-  JOIN out_req_tbl r 
-    ON d.out_req_code = r.out_req_code
-  LEFT JOIN poutbnd_tbl p 
-    ON p.outbound_request_code = d.out_req_code
-    AND p.prod_code = d.prod_code
-  JOIN prod_tbl prod 
-    ON d.prod_code = prod.prod_code
-  JOIN emp_tbl e 
-    ON r.mcode = e.emp_code
-  JOIN client_tbl c 
-    ON r.client_code = c.client_code
-  WHERE 1 = 1
-    AND (? IS NULL OR d.out_req_d_code LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR prod.prod_name LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR p.outbnd_qtt >= ?)
-    AND (? IS NULL OR p.outbnd_qtt <= ?)
-    AND (? IS NULL OR r.out_req_date >= ?)
-    AND (? IS NULL OR r.out_req_date <= ?)
-    AND (? IS NULL OR c.client_name LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR e.emp_name LIKE CONCAT('%', ?, '%'))
-  ORDER BY d.out_req_d_code
+         prod.prod_name,
+         IFNULL(p.outbnd_qtt, 0) AS outbnd_qtt,
+         r.out_req_date,
+         e.emp_name,
+         c.client_name,
+         comm_name(p.stat) AS stat -- ✅ 출고상태명 추가
+    FROM out_req_d_tbl d
+    JOIN out_req_tbl r 
+      ON d.out_req_code = r.out_req_code
+    LEFT JOIN poutbnd_tbl p 
+      ON p.outbound_request_code = d.out_req_code
+     AND p.prod_code = d.prod_code
+    JOIN prod_tbl prod 
+      ON d.prod_code = prod.prod_code
+    JOIN emp_tbl e 
+      ON r.mcode = e.emp_code
+    JOIN client_tbl c 
+      ON r.client_code = c.client_code
+   WHERE 1 = 1
+     AND (? IS NULL OR d.out_req_d_code LIKE CONCAT('%', ?, '%'))
+     AND (? IS NULL OR prod.prod_name LIKE CONCAT('%', ?, '%'))
+     AND (? IS NULL OR p.outbnd_qtt >= ?)
+     AND (? IS NULL OR p.outbnd_qtt <= ?)
+     AND (? IS NULL OR r.out_req_date >= ?)
+     AND (? IS NULL OR r.out_req_date <= ?)
+     AND (? IS NULL OR c.client_name LIKE CONCAT('%', ?, '%'))
+     AND (? IS NULL OR e.emp_name LIKE CONCAT('%', ?, '%'))
+   ORDER BY d.out_req_d_code
 `;
+
 
 
 
