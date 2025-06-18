@@ -1,10 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 
 import workDetailTop from './Work-sub/work-detail-top.vue';
 import workDetailBottom from './Work-sub/work-detail-bottom.vue';
+import { useWebSocketStore } from '../../stores/websocket';
+
+const wsStore = useWebSocketStore();
 
 const route = useRoute();
 console.log('📦 쿼리 파라미터:', route.query);
@@ -15,7 +18,12 @@ console.log('🧩 wko_code:', wko_code, '| eq_code:', eq_code);
 const workDetail = ref(null); // 처음에는 null
 
 // 상세 데이터 조회
-onMounted(async () => {
+onMounted(() => {
+  console.log('🧩 wko_code:', wko_code, '| eq_code:', eq_code);
+  loadDetail();
+});
+
+const loadDetail = async () => {
   try {
     const res = await axios.get(`/api/work/detail/one`, {
       params: { wko_code, eq_code }
@@ -26,7 +34,16 @@ onMounted(async () => {
   } catch (err) {
     console.error('❌ 상세조회 실패:', err);
   }
-});
+}
+
+// 공정 상세 업데이트 받기
+watch(() => wsStore.messages, (messages) => {
+  const latest = messages[messages.length - 1];
+  if (latest?.type === 'PROCESS_UPDATE') {
+    // 진행률 업데이트
+    console.log('진행률:', latest.progress);
+  }
+}, { deep: true });
 </script>
 
 <template>
