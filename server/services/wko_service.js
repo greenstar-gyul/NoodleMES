@@ -206,7 +206,7 @@ const getProdSearch = async (values) => {
   const list = await mariadb.query('selectProdAllForWKOByName', values)
     .catch(err => console.log(err));
   
-  console.log('아니 개빡치네:', values);
+  // console.log('아니 개빡치네:', values);
 
   for (let i = 0; i < list.length; i++) {
     list[i].prod_id = i + 1;

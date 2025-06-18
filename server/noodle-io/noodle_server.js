@@ -62,28 +62,41 @@ class NoodleServer {
   }
 
   // 메시지 수신 처리
-  recvMessage(clientId, message) {
+  async recvMessage(clientId, message) {
     try {
-      const data = JSON.parse(message);
-      console.log(`📩 [${clientId}] 메시지 수신:`, data);
+      const recv = JSON.parse(message);
+      console.log(`📩 [${clientId}] 메시지 수신:`, recv);
       
       // 메시지 타입별 처리
-      switch(data.type) {
+      switch(recv.type) {
         case 'TEST_HELLO':
           // Hello 메시지에 대한 응답
           this.sendToClient(clientId, {
             type: 'HELLO_RESPONSE',
-            message: `Hello Response #${data.count}`,
-            originalMessage: data.message,
+            message: `Hello Response from server!`,
+            originalMessage: recv.message,
             timestamp: Date.now()
           });
+          break;
+
+        case 'START_PROCESS':
+          // 작업 시작 요청 처리
+          const data = recv.message;
+          await this.startProcess(data);
+          this.sendToClient(clientId, {
+              type: 'PROCESS_STARTED',
+              message: `작업이 시작되었습니다: ${data.prdr_code}`,
+              data: data,
+              timestamp: Date.now()
+          });
+          console.log(data.prdr_code, '작업 시작 요청 처리 완료', data);
           break;
           
         default:
           // 기본 에코 메시지
           this.sendToClient(clientId, {
             type: 'ECHO',
-            originalMessage: data,
+            originalMessage: recv,
             timestamp: Date.now()
           });
       }
@@ -145,38 +158,108 @@ class NoodleServer {
   }
 
   // 1. 작업 진행 상세 테이블에 저장하기. 있다면 불러오기.
-  startProcess(prdrCode) {
-    
+  async startProcess(data) {
     
     const prdrDetail = { };
 
+    // PRDR 코드가 없다면 신규 등록
+    if (data.prdr_code == null || data.prdr_code === '') {
+      await this.insertPrdr(data);
+      console.log(`✅ PRDR 코드 ${data.prdr_code} 저장 완료`);
+    }
+    // PRDR 코드가 있다면 작업 재개
+    else {
+      // PRDR 코드가 이미 존재하는 경우
+      prdrDetail.prdr_code = data.prdr_code;
+      prdrDetail.note = data.note;
+      prdrDetail.wkoQtt = data.wkoQtt;
+      prdrDetail.wkoCode = data.wkoCode;
+      prdrDetail.empCode = data.empCode;
+      prdrDetail.prodCode = data.prodCode;
 
-    if (prdrCode == null || prdrCode === '') {
-
+      console.log(`✅ PRDR 코드 ${data.prdr_code} 이미 존재, 업데이트 필요`);
     }
   }
 
-//   async insertPrdr(data) {
-//     const conn = await mariadb.connectionPool.getConnection();
+  // 1-1. PRDR 코드가 없으면 새로 생성하고 저장
+  async insertPrdr(data) {
+    const conn = await mariadb.connectionPool.getConnection();
 
-//     // 트랜잭션 내에서 실행
-//     try {
-//         await conn.beginTransaction(); // 트랜잭션 BEGIN
+    // 트랜잭션 내에서 실행
+    try {
+        await conn.beginTransaction(); // 트랜잭션 BEGIN
         
-//         // PRDR 코드 새로 생성해 가져오기
-//         const prdrCodeRes = await mariadb.queryConn(conn, 'selectPRDRCodeForUpdate');
-//         const prdrCode = prdrCodeRes[0].prdr_code;
+        // PRDR 코드 새로 생성해 가져오기
+        const prdrCodeRes = await mariadb.queryConn(conn, 'selectPRDRCodeForUpdate');
+        const prdrCode = prdrCodeRes[0].prdr_code;
 
-//         // PRDR 코드 저장
-//         const prdrData = [ prdrCode, data.note, data.wko_qtt, data.wko_code, data.emp_code, data.prod_code ];
-//         const result = await mariadb.queryConn(conn, 'insertPRDR', prdrData);
+        // PRDR 코드 저장
+        const prdrData = [ 
+          prdrCode, 
+          data.note ?? null, 
+          data.wko_qtt ?? 0, 
+          data.wko_code ?? 'WKO-20250605-001', 
+          data.emp_code ?? 'EMP-10001', 
+          data.prod_code ?? 'PROD-1001' 
+        ];
+        const result = await mariadb.queryConn(conn, 'insertPRDR', prdrData);
 
-//         // const 
-//     }
-//   }
+        if (result.affectedRows > 0) {
+          console.log(`✅ PRDR 코드 ${prdrCode} 저장 성공`);
+        }
+        else {
+          console.error(`❌ PRDR 코드 ${prdrCode} 저장 실패`);
+          throw new Error(`PRDR 코드 ${prdrCode} 저장 실패`);
+        }
+
+        const lineEQCodeList = await mariadb.queryConn(conn, 'selectLineDetailList', [data.wko_code ?? 'WKO-20250605-001']);
+        console.log('라인 공정 코드 목록:', lineEQCodeList);
+        // const prdrDCodeList = [];
+
+        for (const lineEqCode of lineEQCodeList) {
+          const prdrDCodeRes = await mariadb.queryConn(conn, 'selectPRDRDCode');
+          const prdrDCode = prdrDCodeRes[0].prdr_d_code;
+          // prdrDCodeList.push(prdrDCode);
+          
+          const prdrDData = [ prdrDCode, prdrCode, lineEqCode.line_eq_code ];
+          const prdrDRes = await mariadb.queryConn(conn, 'insertPRDRD', prdrDData);
+          
+          if (prdrDRes.affectedRows > 0) {
+            console.log(`✅ PRDR-D 코드 ${prdrDCode} 저장 성공`);
+          }
+          else {
+            console.error(`❌ PRDR-D 코드 ${prdrDCode} 저장 실패`);
+            throw new Error(`PRDR-D 코드 ${prdrDCode} 저장 실패`);
+          }
+        }
+        
+        const prdrDCodeRes = await mariadb.queryConn(conn, 'selectPrdrDCodeForDetail', [ data.wko_code ?? 'WKO-20250606-001', data.eq_code ?? 'EQ-MIX-0001']);
+        const prdrDCode = prdrDCodeRes[0].prdr_d_code;
+        console.log('PRDR-D 코드 조회 결과:', prdrDCode);
+
+        // await conn.commit(); // 트랜잭션 커밋
+        console.log('✅ PRDR 저장 트랜잭션 성공:', prdrCode, prdrDCode);
+
+        data.prdr_code = prdrCode;
+        data.prdr_d_code = prdrDCode;
+
+        await conn.rollback(); // 트랜잭션 커밋은 하지 않고 롤백 (테스트용)
+
+        return { prdrCode, prdrDCode, result };
+    }
+    catch (err) {
+      await conn.rollback(); // 트랜잭션 실패 시 롤백
+      console.error('❌ PRDR 저장 트랜잭션 실패:', err);
+      throw err;
+    }
+    finally {
+      conn.release(); // 컨넥션 풀 반납
+    }
+  }
 
 
   // 2. 타이머가 작동 되면서 작업 수량이 올라가면서 진행도와 달성률이 올라가야함.
+  // 2-1. 작업 진행을 위해 prdr_d 코드를 불러와서 
 
   // 연결된 클라이언트 수 조회
   getConnectedCount() {

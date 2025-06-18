@@ -68,7 +68,7 @@ FOR UPDATE
 
 // PRDR 저장
 const insertPRDR = `
-INSERT INTO prdr_tbl
+INSERT INTO prdr_tbl(prdr_code, start_date, end_date, total_time, note, production_qtt, work_order_code, emp_code, prod_code, perform_rate)
 VALUES(?, NULL, NULL, NULL, ?, ?, ?, ?, ?, NULL)
 `
 
@@ -133,6 +133,27 @@ WHERE ld.line_code = ?
 ORDER BY eq.eq_code;
 `;
 
+// 작업지시서 코드로 라인 상세 조회
+const selectLineDetailList = `
+SELECT ld.line_eq_code
+FROM   line_d_tbl ld JOIN wko_tbl w
+					   ON w.line_code = ld.line_code
+WHERE  w.wko_code = ?
+`;
+
+// 작업 진행 상세 저장
+const insertPRDRD = `
+INSERT INTO prdr_d_tbl(prdr_d_code, prdr_code, line_eq_code)
+VALUES(?, ?, ?)
+`
+
+// 작업지시서 코드와 설비 코드로 PRDR-D 코드 조회
+const selectPrdrDCodeForDetail = `
+SELECT prdr_d_code 
+FROM processes_v
+WHERE wko_code = ? AND eq_code = ?
+`;
+
 module.exports = {
   selectPRDRCodeForUpdate,
   insertPRDR,
@@ -140,5 +161,9 @@ module.exports = {
   searchWorkingList,
   selectWKOProcesses,
   selectWorkDetailOne,
-  selectEquipmentList
+  selectEquipmentList,
+  selectPRDRDCode,
+  selectLineDetailList,
+  insertPRDRD,
+  selectPrdrDCodeForDetail,
 }
