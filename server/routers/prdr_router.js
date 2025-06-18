@@ -21,6 +21,17 @@ router.get('/month', async (req, res) => {
   }
 });
 
+// 📡 생산실적 전체 조회 AP
+router.get('/all', async (req, res) => {
+  try {
+    const data = await prdrService.getAllPrdr();
+    res.send(data);
+  } catch (err) {
+    console.error('❌ 생산실적 전체 조회 실패:', err);
+    res.status(500).send("서버 오류 발생");
+  }
+});
+
 // 검색 조건에 맞게 조회
 router.post('/search', async (req, res) => {
   try {

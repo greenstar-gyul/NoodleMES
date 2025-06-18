@@ -28,6 +28,28 @@ const getEqiiCodeFromRoute = () => {
     return eqiiCodeParam || '';
 }
 
+// currentEqiiCode 변경 감지해서 테이블 데이터 로딩
+watch(currentEqiiCode, async (newCode, oldCode) => {
+    console.log('currentEqiiCode 변경됨:', oldCode, '->', newCode);
+    
+    if (newCode && newCode !== oldCode) {
+        console.log('점검항목 데이터 로딩 시작:', newCode);
+        await loadEqirInfo(newCode);
+    }
+}, { immediate: true }); // immediate: true로 초기에도 실행!
+
+// 또는 eqiiInfo.eqii_code를 직접 watch하는 방법도 있어
+watch(
+    () => eqiiInfo.value.eqii_code, 
+    async (newCode) => {
+        if (newCode && newCode !== currentEqiiCode.value) {
+            currentEqiiCode.value = newCode;
+            await loadEqirInfo(newCode);
+        }
+    },
+    { immediate: true }
+);
+
 const loadEqiiDataByCode = async (eqiiCodeParam) => {
     if (!eqiiCodeParam) return;
 
@@ -35,9 +57,8 @@ const loadEqiiDataByCode = async (eqiiCodeParam) => {
         const response = await axios.get(`/api/eq/eqii/${eqiiCodeParam}`);
 
         if (response.data && response.data.data) {
-            // 실제 데이터는 response.data.data에 있다면
             eqiiInfo.value = {
-                ...response.data.data,  // ← .data 추가
+                ...response.data.data,
                 inst_date: response.data.data.inst_date ? new Date(response.data.data.inst_date) : null,
                 chk_exp_date: response.data.data.chk_exp_date ? new Date(response.data.data.chk_exp_date) : null
             };
@@ -228,19 +249,24 @@ const updateEqiiInfo = (newData) => {
 };
 
 // eqirList 업데이트 함수
-const updateEqirList = (newList) => {
+const updateEqirList = async (newList) => {
     console.log('eqirList 업데이트:', newList);
-    eqirList.value = newList;
-};
+    await loadEqirInfo(currentEqiiCode.value);
+}
 
 </script>
+
 
 <template>
     <div>
         <EqiiManageSearch :data="eqiiInfo" @update:data="updateEqiiInfo" @reset-list="resetData" @save-data="saveData">
         </EqiiManageSearch>
 
-        <EqiiManageTable :subData="eqirList" @update:subData="updateEqirList" :eqii="currentEqiiCode"
+        <!-- currentEqiiCode가 있을 때만 테이블 렌더링 -->
+        <EqiiManageTable
+            :subData="eqirList" 
+            @update:subData="updateEqirList" 
+            :eqii="currentEqiiCode"
             :dataKey="'eqir_code'"
             :columns="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'chk_detail', 'note', 'chk_result', 'eqi_stat']"
             title="설비점검항목">

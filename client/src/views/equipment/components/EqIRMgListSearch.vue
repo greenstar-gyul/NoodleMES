@@ -6,6 +6,7 @@ import SearchText from '@/components/search-bar/SearchText.vue';
 import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 import moment from 'moment';
 import LabeledSelect from '../../../components/registration-bar/LabeledSelect.vue';
+import SearchDropdown from '../../../components/search-bar/SearchDropdown.vue';
 
 // 검색 조건 (설비 유지보수용)
 const searchOption = ref({
@@ -41,11 +42,9 @@ const fetchSearch = () => {
 
 // 조치결과 옵션들
 const actResultOptions = [
-    { label: '전체', value: 'all' },
-    { label: '정상', value: 'normal' },
-    { label: '부분수리', value: 'partial' },
-    { label: '교체필요', value: 'replace' },
-    { label: '폐기', value: 'discard' }
+    { label: '조치중', value: 'g1' },
+    { label: '조치완료', value: 'g2' },
+    { label: '전체', value: 'all' }
 ];
 
 // 초기화
@@ -70,7 +69,7 @@ const handleReset = () => {
 defineExpose({
     resetSearchOption,
     resetSearch: handleReset,
-    setEqCode
+    // setEqCode
 });
 
 </script>
@@ -90,7 +89,7 @@ defineExpose({
                 @update:from="searchOption.start_date = $event" @update:to="searchOption.end_date = $event" />
 
             <!-- 조치결과 -->
-            <LabeledSelect v-model="searchOption.act_result" label="조치결과" :options="actResultOptions"
+            <SearchDropdown v-model="searchOption.act_result" label="조치결과" :options="actResultOptions"
                 defaultValue="전체" />
 
             <!-- 담당자명 -->

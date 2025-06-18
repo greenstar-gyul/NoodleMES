@@ -13,11 +13,8 @@ const emit = defineEmits(['initData', 'update:data']);
 
 // 조치결과 옵션들
 const actResultOptions = [
-    { label: '전체', value: 'all' },
-    { label: '정상', value: 'normal' },
-    { label: '부분수리', value: 'partial' },
-    { label: '교체필요', value: 'replace' },
-    { label: '폐기', value: 'discard' }
+    { label: '조치중', value: 'g1' },
+    { label: '조치완료', value: 'g2' }
 ];
 
 const getActResultLabel = (actValue) => {
