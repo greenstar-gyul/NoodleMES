@@ -67,10 +67,19 @@ JOIN eq_tbl eq ON ld.eq_code = eq.eq_code
 WHERE p.prdr_code = ?
 `;
 
+const simpleSelectPrdr = `
+SELECT p.prdr_code
+       ,d.prod_name
+       ,p.end_date
+       ,p.production_qtt
+FROM prdr_tbl p
+JOIN prod_tbl d ON p.prod_code = d.prod_code
+`;
 
 module.exports = {
   getCurrentMonthPlans,
   searchPrdr,
   selectPrdrOne,
-  selectEquipmentByPrdr
+  selectEquipmentByPrdr,
+  simpleSelectPrdr
 }

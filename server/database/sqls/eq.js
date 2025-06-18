@@ -200,10 +200,11 @@ WHERE 1=1
   AND (? IS NULL OR m.eq_ma_code LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR eq.eq_name LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR m.act_result LIKE CONCAT('%', ?, '%'))
-  AND (? IS NULL OR emp1.emp_name LIKE CONCAT('%', ?, '%'))
-  AND (? IS NULL OR emp2.emp_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR m.fail_cause LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR DATE(m.fail_date) >= DATE(?))
   AND (? IS NULL OR DATE(m.fail_date) <= DATE(?))
+  AND (? IS NULL OR emp1.emp_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR emp2.emp_name LIKE CONCAT('%', ?, '%'))
 ORDER BY m.eq_ma_code DESC
 `;
 

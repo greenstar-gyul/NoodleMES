@@ -60,6 +60,7 @@ const handleSearch = async (searchParams) => {
         if (searchParams.eq_ma_code) params.append('eq_ma_code', searchParams.eq_ma_code);
         if (searchParams.eq_name) params.append('eq_name', searchParams.eq_name);
         if (searchParams.act_result) params.append('act_result', searchParams.act_result);
+        if (searchParams.fail_cause) params.append('fail_cause', searchParams.fail_cause);
         if (searchParams.m_emp_name) params.append('m_emp_name', searchParams.m_emp_name);
         if (searchParams.fix_emp_name) params.append('fix_emp_name', searchParams.fix_emp_name);
         if (searchParams.start_date) params.append('start_date', searchParams.start_date);
