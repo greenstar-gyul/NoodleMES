@@ -7,4 +7,5 @@ export const matMapping = {
   loss_rate: '손실율',
 };
 
+
 export default matMapping;

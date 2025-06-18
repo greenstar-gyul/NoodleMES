@@ -154,11 +154,11 @@ const model = ref([
                     },
                     {
                         label: '자재입고 관리',
-                        to: '/mat/iomanage'
+                        to: '/mat/manage'
                     },
                     {
                         label: '자재입출고 내역조회',
-                        to: '/mat/iolist'
+                        to: '/mat/list'
                     },
                     {
                         label: '자재재고 목록조회',

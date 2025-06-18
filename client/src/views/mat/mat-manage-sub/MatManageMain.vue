@@ -1,14 +1,14 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useMpoStore } from '@/stores/mpoStore';
+import { useMatStore } from '@/stores/matStore';
 import SearchText from '@/components/search-bar/SearchText.vue';
 import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
 import axios from 'axios';
 import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
-import mprMapping from '@/service/MprMapping';
+import matMapping from '@/service/MatMapping';
 
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
@@ -18,30 +18,25 @@ import Button from 'primevue/button';
 import LabeledDatePicker from '../../../components/registration-bar/LabeledDatePicker.vue';
 
 // 상위에서 전달받은 props
-const mprs = defineProps({
-  mprCode: { type: Object, required: true },
-  reqDate: { type: Object, required: true },
-  deadLine: { type: Object, required: true },
-  mrpCode: { type: Object, required: true },
+const mats = defineProps({
+  mInBndCode: { type: Object, required: true },
+  matCode: { type: Object, required: true },
+  inbndQtt: { type: Object, required: true },
+  inbndDate: { type: Object, required: true },
+  ordQtt: { type: Object, required: true },
+  qioCode: { type: Object, required: true },
+  lotNum: { type: Object, required: true },
+  matSup: { type: Object, required: true },
   mCode: { type: Object, required: true },
 });
 
-const mrps = {
-  mrp_code: ref(''),
-  plan_date: ref(''),
-  start_date: ref(''),
-  prdp_code: ref(''),
-  emp_code: ref(''),
-  mrp_note: ref('')
-};
-
 // pinia
-const mpoStore = useMpoStore();
+const matStore = useMatStore();
 
 // 상태는 반응형으로 가져오기
-const { mpoRows } = storeToRefs(mpoStore);
+const { matRows, mrpRows } = storeToRefs(matStore);
 // 순서대로 목록데이터 저장, 초기화, 선택목록 저장
-const { setMprRows, setMrpRows, resetMprRows, resetMrpRows, resetMatRows } = mpoStore;
+const { setMatRows, setSelectedMat, resetMatRows } = matStore;
 
 /* ===== DATA ===== */ 
 // MPP 팝업
@@ -74,8 +69,7 @@ const handleReset = () => {
     mprs.mCode.value = 'EMP-10001'; // 초기값을 로그인한 유저의 값으로 고정할거임
 
     // 제품 목록 초기화, store 함수 사용
-    resetMprRows();
-    resetMrpRows();
+    resetMatRows();
     console.log('mpr 기본정보 초기화 완료');
 };
 
@@ -91,7 +85,7 @@ const handleSave = async () => {
     console.log(mprs.mrpCode.value);
     return;
   }
-  if (mprRows.value.length === 0) {
+  if (matRows.value.length === 0) {
     alert('제품 목록이 비어 있습니다. 최소 하나의 제품을 추가해주세요.');
     return;
   }
@@ -105,7 +99,7 @@ const handleSave = async () => {
     mcode: mprs.mCode.value,
   };
 
-  const details = mprRows.value.map(item => ({
+  const details = matRows.value.map(item => ({
     mpr_d_code: item.mpr_d_code,
     mat_code: item.mat_code,
     req_qtt: item.req_qtt,
@@ -130,10 +124,10 @@ const handleSave = async () => {
       deadline: moment(mpr.deadline).format('YYYY-MM-DD')
     }));
 
-    setMprRows(details); // Pinia에 반영...이 필요한가?
+    setMatRows(details); // Pinia에 반영...이 필요한가?
     handleReset();
-    // resetMrpRows();
-    // mprRows.value = [];
+    // resetMatRows();
+    // matRows.value = [];
 
   } catch (err) {
     console.error('자재구매요청 저장 실패:', err);
@@ -177,7 +171,7 @@ const handleMprConfirm = async (selectedMpr) => {
       // item.req_qtt = moment(item.delivery_date).format('YYYY-MM-DD');
     });
 
-    setMprRows(details);
+    setMatRows(details);
 
     // mpr 기본 정보 설정
     mprs.mprCode.value = selectedMpr.mpr_code;
@@ -294,16 +288,26 @@ onMounted(async () => {
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- 구매요청코드  -->
-      <LabeledInput label="요청코드" v-model="mprs.mprCode.value" placeholder="구매요청코드" :disabled="true"/>
+      <LabeledInput label="자재입고코드" v-model="mprs.mprCode.value" placeholder="자재입고코드" :disabled="true"/>
       <!-- 요청자 -->
-      <LabeledInput label="요청자" v-model="mprs.mCode.value" placeholder="로그인한사람으로 변경예정" readonly/>
+      <LabeledInput label="자재명" v-model="mprs.mCode.value" placeholder="로그인한사람으로 변경예정" readonly/>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- 요청일자 -->
-      <!-- <LabeledInput label="요청일자" v-model="mprs.reqDate.value" placeholder="요청일자입력"/> -->
-      <LabeledDatePicker label="요청일자" v-model="mprs.reqDate.value" />
+      <LabeledInput label="입고수량" v-model="mprs.reqDate.value" />
       <!-- 납기일자 -->
-      <!-- <LabeledInput label="납기일자" v-model="mprs.deadLine.value" placeholder="납기일자입력"/> -->
+      <LabeledInput label="납기일자" v-model="mprs.deadLine.value" />
+    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- 요청일자 -->
+      <LabeledInput label="입고수량" v-model="mprs.reqDate.value" />
+      <!-- 납기일자 -->
+      <LabeledInput label="납기일자" v-model="mprs.deadLine.value" />
+    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- 요청일자 -->
+      <LabeledInput label="입고수량" v-model="mprs.reqDate.value" />
+      <!-- 납기일자 -->
       <LabeledDatePicker label="납기일자" v-model="mprs.deadLine.value" />
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -317,7 +321,7 @@ onMounted(async () => {
       v-model:visible="mprPopupVisible"
       :items="mprRef"
       @confirm="handleMprConfirm"  
-      :mapper="mprMapping.MprMapper"
+      :mapper="matMapping.MprMapper"
       :dataKey="'mpr_code'"
   />
 
@@ -326,7 +330,7 @@ onMounted(async () => {
       v-model:visible="mrpPopupVisible"
       :items="mrpRef"
       @confirm="handleMRPConfirm"  
-      :mapper="mprMapping.MRPMapper"
+      :mapper="matMapping.MRPMapper"
       :dataKey="'mrp_code'"
   />
 
