@@ -1,15 +1,17 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import QualityManageSearch from './QualityManageSearch.vue';
 import QualityManageMiddleTbl from './QualityManageMiddleTbl.vue';
+import QualityManageBottomTbl from './QualityManageBottomTbl.vue';
 import axios from 'axios';
 import moment from 'moment';
-import prdrMapping from '../../../service/PrdrMapping';
-import production from '../../../router/production';
+import QualityManageInputForm from './QualityManageInputForm.vue';
 
 const currentQioCode = ref('');
+const lastProcessedQioCode = ref('');
 const route = useRoute();
+const selectedQir = ref(null);
 
 const qioInfo = ref({
     qio_code: '',
@@ -24,10 +26,11 @@ const qioInfo = ref({
 const qioList = ref([]);
 const prdrList = ref({
     prdr_code: '',
-    po_code: '',
+    po_name: '',
     purchase_code: '',
-    prod_code: '',
-    prodcution_qtt: 0
+    prod_name: '',
+    end_date: null,
+    production_qtt: '0'
 });
 
 // 라우트 파라미터에서 qio_code 가져오기
@@ -35,32 +38,29 @@ const getqioCodeFromRoute = () => {
     const qioCodeParam = route.params.qioCode;
     console.log('라우트에서 가져온 qio_code:', qioCodeParam);
     return qioCodeParam || '';
-}
+};
 
-// currentQioCode 변경 감지해서 테이블 데이터 로딩
-watch(currentQioCode, async (newCode, oldCode) => {
-    console.log('currentQioCode 변경됨:', oldCode, '->', newCode);
+// ✅ QIO 코드 변경 시 데이터 로딩 (watch 대신 직접 호출)
+const handleQioCodeChange = async (newCode) => {
+    console.log('QIO 코드 변경 처리:', newCode);
 
-    if (newCode && newCode !== oldCode) {
-        console.log('점검항목 데이터 로딩 시작:', newCode);
-        await loadQioInfo(newCode);
-        await loadPrdrInfoByQioCode(newCode);
+    // 중복 처리 방지
+    if (!newCode || newCode === lastProcessedQioCode.value) {
+        console.log('중복 처리 방지:', newCode);
+        return;
     }
-}, { immediate: true }); // immediate: true로 초기에도 실행!
 
-// 또는 qioInfo.qio_code를 직접 watch하는 방법도 있어
-watch(
-    () => qioInfo.value.qio_code,
-    async (newCode) => {
-        if (newCode && newCode !== currentQioCode.value) {
-            currentQioCode.value = newCode;
-            await loadQioInfo(newCode);
-            await loadPrdrInfoByQioCode(newCode);
-        }
-    },
-    { immediate: true }
-);
+    lastProcessedQioCode.value = newCode;
+    console.log('데이터 로딩 시작:', newCode);
 
+    // 병렬 처리
+    await Promise.all([
+        loadQioInfo(newCode),
+        loadPrdrInfoByQioCode(newCode)
+    ]);
+};
+
+// ✅ 특정 QIO 코드로 데이터 로딩
 const loadQioDataByCode = async (qioCodeParam) => {
     if (!qioCodeParam) return;
 
@@ -70,29 +70,40 @@ const loadQioDataByCode = async (qioCodeParam) => {
         if (response.data && response.data.data) {
             qioInfo.value = {
                 ...response.data.data,
+                qio_date: response.data.data.qio_date ? new Date(response.data.data.qio_date) : null,
                 insp_date: response.data.data.insp_date ? new Date(response.data.data.insp_date) : null
             };
-            currentQioCode.value = qioInfo.value.qio_code;  // ← .data 제거
-            console.log('qio_code:', qioInfo.value.qio_code);
+
+            // 단순 할당만
+            const qioCode = qioInfo.value.qio_code;
+            currentQioCode.value = qioCode;
+
+            // 데이터 로딩은 별도 호출
+            await handleQioCodeChange(qioCode);
+
+            console.log('로딩된 qio_code:', qioCode);
         }
     } catch (error) {
         console.error('데이터 로딩 실패:', error);
     }
 };
 
+// ✅ 컴포넌트 마운트 시 초기화
 onMounted(async () => {
-    // 라우트 파라미터에서 qio_code 확인
     const qioCodeFromRoute = getqioCodeFromRoute();
 
     if (qioCodeFromRoute) {
-        // 해당 qio_code로 데이터 로딩
         await loadQioDataByCode(qioCodeFromRoute);
+    } else {
+        // 빈페이지일 때 QIR 전체 조회
+        await loadAllQirList();
     }
 });
 
+// 날짜 포맷팅 함수들
 const formatDateForDB = (date) => {
     if (!date) return null;
-    return moment(date).format('YYYY-MM-DD HH:mm:ss');
+    return moment(date).format('YYYY-MM-DD');
 };
 
 const formatDateTimeForDB = (date) => {
@@ -100,13 +111,14 @@ const formatDateTimeForDB = (date) => {
     return moment(date).format('YYYY-MM-DD HH:mm:ss');
 };
 
+// 데이터 유효성 검증
 const validateData = () => {
     // 지시서 정보 검증
     if (!qioInfo.value.insp_date) {
         alert('지시일자를 입력해주세요.');
         return false;
     }
-    if (!qioInfo.value.prdr_code || !qioInfo.purchase_code) {
+    if (!qioInfo.value.prdr_code || !qioInfo.value.purchase_code) {
         alert('제품 혹은 발주서를 선택해주세요.');
         return false;
     }
@@ -140,6 +152,7 @@ const validateData = () => {
     return true;
 };
 
+// ✅ 데이터 저장
 const saveData = async () => {
     if (!confirm('설비점검지시 정보를 저장하시겠습니까?')) {
         alert('저장을 취소했습니다.');
@@ -165,7 +178,7 @@ const saveData = async () => {
             chk_start_date: formatDateTimeForDB(item.chk_start_date),
             chk_end_date: formatDateTimeForDB(item.chk_end_date),
             inst_emp_name: qioInfo.value.inst_emp_code || 'EMP-10001',
-            qio_code: qioInfo.value.qio_code // 연결 코드 설정
+            qio_code: qioInfo.value.qio_code
         }));
 
         const requestData = {
@@ -192,8 +205,9 @@ const saveData = async () => {
             if (result.data.qio_code && !qioInfo.value.qio_code) {
                 qioInfo.value.qio_code = result.data.qio_code;
                 currentQioCode.value = result.data.qio_code;
-                // 점검항목들도 새로 불러오기
-                await loadQioInfo(result.data.qio_code);
+
+                // 데이터 로딩
+                await handleQioCodeChange(result.data.qio_code);
             }
         } else {
             alert('저장에 실패했습니다. 다시 시도해주세요.');
@@ -204,6 +218,7 @@ const saveData = async () => {
     }
 };
 
+// ✅ 데이터 초기화
 const resetData = () => {
     qioList.value = [];
     qioInfo.value = {
@@ -214,15 +229,33 @@ const resetData = () => {
         purchase_code: '',
         emp_name: '정품질'
     };
+    prdrList.value = {
+        prdr_code: '',
+        po_name: '',
+        purchase_code: '',
+        prod_name: '',
+        end_date: null,
+        production_qtt: '0',
+    };
     currentQioCode.value = '';
+    lastProcessedQioCode.value = '';
 };
 
+// ✅ QIR 목록 로딩
 const loadQioInfo = async (qioCodeParam) => {
     if (qioCodeParam && qioCodeParam !== '') {
         try {
-            const result = await axios.get(`/api/qcr/qio/${qioCodeParam}`);
-            qioList.value = result.data;
+            const result = await axios.get(`/api/qcr/qir`);
+
+            if (result.data && result.data.success) {
+                qioList.value = result.data.data || [];
+            } else {
+                qioList.value = result.data || [];
+            }
+
+            console.log('QIR 목록 로딩 완료:', qioList.value.length, '건');
         } catch (error) {
+            console.error('QIR 목록 로딩 실패:', error);
             qioList.value = [];
         }
     } else {
@@ -230,74 +263,164 @@ const loadQioInfo = async (qioCodeParam) => {
     }
 };
 
+// ✅ 생산실적 정보 로딩
 const loadPrdrInfoByQioCode = async (qioCodeParam) => {
-    if (qioCodeParam && qioCodeParam !== '') {
-        try {
-            const result = await axios.get(`/api/qcr/qio/prdr/${qioCodeParam}`);
-            prdrList.value = result.data;
-        } catch (error) {
-            prdrList.value = [];
+    console.log('검사지시에 연결된 생산실적 자동 로딩:', qioCodeParam);
+
+    try {
+        const response = await axios.get(`/api/qcr/qio/prdr/${qioCodeParam}`);
+        console.log('생산실적 API 응답:', response.data);
+
+        if (response.data.data && response.data.data.length > 0) {
+            const data = response.data.data[0];
+            prdrList.value = {
+                qio_code: data.qio_code || '',
+                prdr_code: data.prdr_code || '',
+                po_name: data.po_name || '',
+                prod_name: data.prod_name || '',
+                purchase_code: data.purchase_code || '',
+                end_date: data.end_date,
+                production_qtt: String(data.production_qtt || 0)
+            };
+
+            console.log('생산실적 정보 자동 로딩 완료:', prdrList.value);
         }
-    } else {
-        prdrList.value = [];
+    } catch (error) {
+        console.error('생산실적 자동 로딩 실패:', error);
+        prdrList.value = {
+            prdr_code: '',
+            po_name: '',
+            purchase_code: '',
+            prod_name: '',
+            end_date: null,
+            production_qtt: '0'
+        };
     }
 };
 
-// qioInfo 업데이트 함수 (자식 컴포넌트에서 호출)
-const updateqioInfo = (newData) => {
+// QIR 삭제
+const deleteSelectedQir = (selectedItems) => {
+    console.log('QIR 삭제 요청:', selectedItems);
+    alert('삭제 기능은 아직 구현 중입니다.');
+};
+
+// QIR 엑셀 다운로드
+const exportQirToExcel = (data) => {
+    console.log('QIR 엑셀 다운로드:', data);
+    alert('엑셀 다운로드 기능은 아직 구현 중입니다.');
+};
+
+// ✅ 전체 QIR 목록 로딩
+const loadAllQirList = async () => {
+    try {
+        const response = await axios.get('/api/qcr/qir');
+
+        if (response.data && response.data.success) {
+            qioList.value = response.data.data || [];
+        } else {
+            qioList.value = response.data || [];
+        }
+
+        console.log('QIR 전체 목록 로딩 완료:', qioList.value.length, '건');
+    } catch (error) {
+        console.error('QIR 전체 목록 로딩 실패:', error);
+        qioList.value = [];
+    }
+};
+
+// QIR 선택 변경
+const onSelectionChange = (selectedItems) => {
+    console.log('선택된 QIR:', selectedItems);
+
+    if (selectedItems && selectedItems.length === 1) {
+        selectedQir.value = selectedItems[0];
+        console.log('InputForm으로 전달할 QIR 데이터:', selectedQir.value);
+    } else {
+        selectedQir.value = null;
+    }
+};
+
+// 데이터 업데이트 후 처리
+const onDataUpdated = async () => {
+    console.log('QIR 데이터 업데이트됨, 목록 새로고침');
+
+    if (currentQioCode.value) {
+        await loadQioInfo(currentQioCode.value);
+    } else {
+        await loadAllQirList();
+    }
+
+    selectedQir.value = null;
+};
+
+// ✅ qioInfo 업데이트 함수 (무한루프 방지)
+const updateqioInfo = async (newData) => {
     console.log('qioInfo 업데이트:', newData);
 
-    // 실제로 변경된 경우에만 업데이트
-    const hasChanges = Object.keys(newData).some(key =>
-        qioInfo.value[key] !== newData[key]
-    );
+    // 현재 코드 저장
+    const oldCode = qioInfo.value.qio_code;
+    const newCode = newData.qio_code;
 
-    if (!hasChanges) {
-        console.log('변경사항 없음, 업데이트 건너뜀');
-        return;
-    }
-
+    // 데이터 업데이트
     qioInfo.value = { ...qioInfo.value, ...newData };
 
-    // qio_code가 변경된 경우에만 점검항목 로딩
-    if (newData.qio_code && newData.qio_code !== currentQioCode.value) {
-        currentQioCode.value = newData.qio_code;
-        loadQioInfo(newData.qio_code);
-        loadPrdrInfoByQioCode(newData.qio_code);
+    // 코드가 변경된 경우에만 처리
+    if (newCode && newCode !== oldCode && newCode !== currentQioCode.value) {
+        console.log('새로운 QIO 코드 설정:', newCode);
+        currentQioCode.value = newCode;
+
+        // 데이터 로딩
+        await handleQioCodeChange(newCode);
     }
 };
 
+// prdrList 업데이트
 const updatePrdrList = (newData) => {
     console.log('prdrList 업데이트:', newData);
-
-    // 실제로 변경된 경우에만 업데이트
-    const hasChanges = Object.keys(newData).some(key =>
-        prdrList.value[key] !== newData[key]
-    );
-
-    if (!hasChanges) {
-        console.log('변경사항 없음, 업데이트 건너뜀');
-        return;
-    }
-
     prdrList.value = { ...prdrList.value, ...newData };
 };
 
-// qioList 업데이트 함수
+// qioList 업데이트
 const updateqioList = async (newList) => {
     console.log('qioList 업데이트:', newList);
-    await loadQioInfo(currentQioCode.value);
-}
+    if (currentQioCode.value) {
+        await loadQioInfo(currentQioCode.value);
+    }
+};
 
 </script>
 
-
 <template>
     <div>
-        <QualityManageSearch :data="qioInfo" @update:data="updateqioInfo" @reset-list="resetData" @save-data="saveData">
+        <QualityManageSearch :data="qioInfo" @loadPrdrByQio="loadPrdrInfoByQioCode" @update:data="updateqioInfo"
+            @reset-list="resetData" @save-data="saveData">
         </QualityManageSearch>
-        <!-- currentQioCode가 있을 때만 테이블 렌더링 -->
-        <QualityManageMiddleTbl :data="prdrList" @update:data="updatePrdrList" @reset-list="resetData" @save-data="saveData">
+
+        <QualityManageMiddleTbl :data="prdrList" @update:data="updatePrdrList" @reset-list="resetData"
+            @save-data="saveData">
         </QualityManageMiddleTbl>
+
+        <div class="flex flex-col lg:flex-row gap-6 mt-6">
+            <div class="space-y-6" style="width: 55%">
+                <QualityManageBottomTbl :data="qioList" :dataKey="'qir_code'" :title="'품질검사결과 목록'" :columns="[
+                    'qir_code',
+                    'qio_code',
+                    'inspection_item',
+                    'result',
+                    'unpass_qtt',
+                    'pass_qtt',
+                    'qir_emp_name'
+                ]" :mapper="{
+                        qir_code: '검사결과코드',
+                        qio_code: '검사지시코드',
+                        inspection_item: '품질기준항목',
+                        result: '결과',
+                        unpass_qtt: '불량수량',
+                        pass_qtt: '합격수량',
+                        qir_emp_name: '검사자'
+                    }" @selection-change="onSelectionChange" @delete="deleteSelectedQir" @export="exportQirToExcel" />
+            </div>
+            <QualityManageInputForm :selectedData="selectedQir" @data-updated="onDataUpdated" />
+        </div>
     </div>
 </template>

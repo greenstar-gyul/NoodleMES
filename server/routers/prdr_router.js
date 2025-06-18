@@ -21,7 +21,7 @@ router.get('/month', async (req, res) => {
   }
 });
 
-// 📡 생산실적 전체 조회 AP
+// 생산실적 전체 조회 AP
 router.get('/all', async (req, res) => {
   try {
     const data = await prdrService.getAllPrdr();

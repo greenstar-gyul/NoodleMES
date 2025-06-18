@@ -78,7 +78,9 @@ ORDER BY prdp_date;
 
 const selectPrdrByQioCode = `
 SELECT p.prdr_code
+       ,q.qio_code
        ,o.po_name
+       ,p.end_date
        ,mp.purchase_code
        ,prod.prod_name
        ,p.production_qtt
@@ -141,14 +143,128 @@ WHERE qio_code LIKE CONCAT('QIO-', DATE_FORMAT(NOW(), '%Y%m%d'), '-%')
 FOR UPDATE
 `;
 
+const insertQio = `
+INSERT INTO qio_tbl (
+    qio_code
+    ,qio_date
+    ,insp_date
+    ,prdr_code
+    ,purchase_code
+    ,emp_code
+) VALUES (?, ?, ?, ?, ?, (SELECT emp_code FROM emp_tbl WHERE emp_name = ?));
+`;
+
+const updateQio = `
+UPDATE qio_tbl
+SET 
+    qio_date = ?,
+    insp_date = ?,
+    prdr_code = ?,
+    purchase_code = ?,
+    emp_code = (SELECT emp_code FROM emp_tbl WHERE emp_name = ?)
+WHERE 
+    qio_code = ?;
+`;
+
+const deleteQio = `
+DELETE FROM qio_tbl
+WHERE 
+    qio_code = ?;
+`;
+
+const selectQir = `
+SELECT 
+    q.qir_code,
+    q.start_date,
+    q.end_date,
+    q.unpass_qtt,
+    q.pass_qtt,
+    q.unpass_rate,
+    q.result,
+    q.note,
+    q.qio_code,
+    e.emp_name AS qir_emp_name,
+    qc.inspection_item
+FROM qir_tbl AS q
+JOIN emp_tbl AS e ON q.qir_emp_code = e.emp_code
+JOIN qcr_tbl AS qc ON q.qcr_code = qc.qcr_code
+`;
+
+const insertQir = `
+INSERT INTO qir_tbl (
+    qir_code,
+    start_date,
+    end_date,
+    unpass_qtt,
+    pass_qtt,
+    unpass_rate,
+    result,
+    note,
+    qio_code,
+    qir_emp_code,
+    qcr_code
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT emp_code FROM emp_tbl WHERE emp_name = ?), (SELECT qcr_code FROM qcr_tbl WHERE inspection_item = ?));
+`;
+
+const updateQir = `
+UPDATE qir_tbl
+SET 
+    start_date = ?,
+    end_date = ?,
+    unpass_qtt = ?,
+    pass_qtt = ?,
+    unpass_rate = ?,
+    result = ?,
+    note = ?,
+    qio_code = ?,
+    qir_emp_code = (SELECT emp_code FROM emp_tbl WHERE emp_name = ?),
+    qcr_code = (SELECT qcr_code FROM qcr_tbl WHERE inspection_item = ?)
+WHERE 
+    qir_code = ?;
+`;
+
+const deleteQir = `
+DELETE FROM qir_tbl
+WHERE 
+    qir_code = ?;
+`;
+
+//QIR-001->qir_code
+const selectQirCodeForUpdate = `
+SELECT CONCAT(
+    'QIR-',
+    LPAD(IFNULL(MAX(CAST(SUBSTRING(qir_code, 5) AS UNSIGNED)), 0) + 1, 3, '0')
+)
+FROM qir_tbl
+WHERE qir_code LIKE 'QIR-%'
+FOR UPDATE
+`;
+
+const selectQirCodesByQioCode = `
+  SELECT qir_code 
+  FROM qir_tbl 
+  WHERE qio_code = ?
+`;
+
 module.exports = {
     getQioList: BASE_QUERY + ' ORDER BY qio_code',
     searchQioListByCode: BASE_QUERY + ' WHERE a.qio_code = ?',
     fetchOrders,
     selectList,
+    selectQcrList,
+    selectPrdrByQioCode,
+    selectQir,
+    insertQir,
+    updateQir,
+    deleteQir,
     insertQcr,
+    insertQio,
+    updateQio,
+    deleteQio,
     selectQcrcodeProd,
     selectQcrCodeMat,
     selectPrdrByQioCode,
+    selectQirCodesByQioCode,
     selectQioCodeForUpdate: selectQioCodeForUpdate,
+    selectQirCodeForUpdate: selectQirCodeForUpdate,
 }

@@ -68,11 +68,16 @@ WHERE p.prdr_code = ?
 `;
 
 const simpleSelectPrdr = `
-SELECT p.prdr_code
+SELECT q.qio_code
+       ,p.prdr_code
+       ,po.po_name
        ,d.prod_name
+       ,q.purchase_code
        ,p.end_date
        ,p.production_qtt
 FROM prdr_tbl p
+JOIN qio_tbl q ON p.prdr_code = q.prdr_code
+JOIN po_tbl po ON q.po_code = po.po_code
 JOIN prod_tbl d ON p.prod_code = d.prod_code
 `;
 

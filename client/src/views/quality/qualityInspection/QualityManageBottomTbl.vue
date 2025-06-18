@@ -1,268 +1,164 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, computed, defineEmits } from 'vue';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import axios from 'axios';
-import eqiiresMapping from '@/service/EquipIIResMapping';
-import QualitySinglePopup from './QualitySinglePopup.vue';
-import moment from 'moment';
 
 const props = defineProps({
-    dataKey: { type: String, default: 'id' },
-    title: { type: String, default: '' },
-    columns: { type: Array, default: [] },
-    subData: { type: Array, default: [] },
-    eqii: { type: String, default: '' }
+    data: {
+        type: Array,
+        required: true,
+        default: () => []
+    },
+    dataKey: {
+        type: String,
+        default: 'id'
+    },
+    mapper: {
+        type: Object,
+        required: true,
+        default: () => ({})
+    },
+    title: {
+        type: String,
+        default: '목록'
+    },
+    columns: {
+        type: Array,
+        default: () => []
+    }
 });
+// 테이블에 보여줄 제품 데이터
+const emit = defineEmits(['selection-change', 'updated', 'delete', 'export']);
+const selectedWDEeiqchk = ref([]);
+const dynamicColumns = ref([]);
+// 데이터가 바뀔 때마다 열 추출
+watch(
+    () => props.data,
+    (newVal) => {
+        if (newVal && Array.isArray(newVal) && newVal.length > 0) {
+            dynamicColumns.value = Object.keys(newVal[0]);
+        } else {
+            dynamicColumns.value = [];
+        }
+    },
+    { immediate: true }
+);
 
-const emit = defineEmits(['update:subData']);
-
-const selectedWAD = ref([]);
-const itemsWAD = ref([]);
-const dialogVisible = ref(false);
-const dialogVisible2 = ref(false);
-const popupEqits = ref([]);
-const popupEq = ref([]);
-const mapper = ref({});
-const selectedRowData = ref(null);
-const selectedRowIndex = ref(-1);
-
-const openItemCodePopup = async (rowData) => {
-    await loadEqirList();
-    selectedRowData.value = rowData;
-    selectedRowIndex.value = props.subData.findIndex(item => item === rowData);
-    dialogVisible.value = true;
+const onRowSelect = (event) => {
+    console.log('행 선택됨:', event.data);
+    console.log('현재 선택된 항목들:', selectedWDEeiqchk.value);
+    emit('selection-change', selectedWDEeiqchk.value);  // 전체 선택 배열 보내기
 };
 
-const openEquipmentPopup = async (rowData) => {
-    selectedRowData.value = rowData;
-    selectedRowIndex.value = props.subData.findIndex(item => item === rowData);
-    
-    const currentEqType = rowData.eq_type;
-    
-    if (!currentEqType) {
-        alert('먼저 점검항목을 선택해서 설비유형을 정해주세요.');
-        return;
-    }
-    
-    await loadEqList();
-    const filteredEq = popupEq.value.filter(eq => eq.eq_type === currentEqType);
-    
-    if (filteredEq.length === 0) {
-        alert(`${currentEqType} 유형의 설비가 없습니다.`);
-        return;
-    }
-    
-    popupEq.value = filteredEq;
-    dialogVisible2.value = true;
+const onRowUnselect = (event) => {
+    console.log('행 선택 해제:', event.data);
+    console.log('현재 선택된 항목들:', selectedWDEeiqchk.value);
+    emit('selection-change', selectedWDEeiqchk.value);  // 전체 선택 배열 보내기
 };
 
-const loadEqir = async () => {
-    if (!props.eqii) {
-        alert('지시서를 먼저 불러오세요.');
-        return;
-    }
-    if (!confirm('설비 점검 결과를 새로 불러올까요?')) return;
-    
-    try {
-        const { data } = await axios.get(`/api/eq/eqirall/${props.eqii}`);
-        emit('update:subData', data);
-        selectedWAD.value = [];
-    } catch (err) {
-        console.error(err);
-        alert('데이터 불러오기에 실패했습니다.');
-    }
-};
-    
-const formatDateForDB = (date) => {
-    return moment(date).format('YYYY-MM-DD HH:mm:ss');
-};
-
-const loadEqList = async () => {
-    const { data } = await axios.get(`/api/eq/all`);
-    popupEq.value = data.data || data;
-};
-    
-const loadEqirList = async () => {
-    const { data } = await axios.get(`/api/eq/eqitype`);
-    popupEqits.value = data.data || data;
-};
-
-const addEqiType = (selectedItem) => {
-    const updatedData = [...props.subData];
-    updatedData[selectedRowIndex.value] = {
-        ...updatedData[selectedRowIndex.value],
-        chk_type_code: selectedItem.chk_type_code,
-        chk_text: selectedItem.chk_text,
-        eq_type: selectedItem.eq_type,
-        eq_name: '설비 선택',
-        eq_code: ''
-    };
-    
-    emit('update:subData', updatedData);
-    dialogVisible.value = false;
-};
-
-const addEq = (selectedItem) => {
-    const updatedData = [...props.subData];
-    updatedData[selectedRowIndex.value] = {
-        ...updatedData[selectedRowIndex.value],
-        eq_name: selectedItem.eq_name,
-        eq_type: selectedItem.eq_type,
-    };
-
-    emit('update:subData', updatedData);
-    dialogVisible.value = false;
-};
-
-const addNewRow = () => {
-    const newRow = {
-        eqir_code: '',
-        chk_type_code: '',
-        chk_text: '항목 선택',
-        eq_code: '',
-        eq_name: '설비 선택',
-        eq_type: '', 
-        chk_start_date: formatDateForDB(new Date()), 
-        chk_end_date: formatDateForDB(new Date()), 
-        chk_detail: '',
-        chk_result: '',
-        eqi_stat: '',
-        note: '',
-        eqii_code: props.eqii
-    };
-
-    emit('update:subData', [...props.subData, newRow]);
+// 선택 초기화 메서드
+const clearSelection = () => {
+    selectedWDEeiqchk.value = [];
+    emit('selection-change', []);  // 부모한테도 알려주기
 };
 
 const deleteSelected = () => {
-    if (!selectedWAD.value.length) {
-        alert('삭제할 항목을 선택하세요.');
-        return;
-    }
-    if (confirm('선택한 항목을 삭제하시겠습니까?')) {
-        const remaining = props.subData.filter(
-            item => !selectedWAD.value.some(sel => sel.eqir_code === item.eqir_code)
-        );
-        emit('update:subData', remaining);
-        selectedWAD.value = [];
+    if (selectedWDEeiqchk.value) {
+        console.log('삭제 요청:', selectedWDEeiqchk.value);
+        emit('delete', selectedWDEeiqchk.value);
     }
 };
 
-onMounted(() => {
-    mapper.value = eqiiresMapping.eqiiresMapping;
+defineExpose({
+    clearSelection
 });
 
-watch(
-    () => props.subData,
-    (newVal) => {
-        if (props.columns.length > 0) return;
-        itemsWAD.value = Array.isArray(newVal) && newVal.length ? Object.keys(newVal[0]) : [];
-    },
-    { immediate: true }
-);
+const exportToExcel = () => {
+    console.log('엑셀 다운로드 요청');
+    emit('export', props.data);
+};
 
-watch(
-    () => props.columns,
-    (newVal) => {
-        itemsWAD.value = newVal.length ? newVal :
-            (props.subData.length ? Object.keys(props.subData[0]) : []);
-    },
-    { immediate: true }
-);
 </script>
 
 <template>
-    <div class="card mt-6">
+    <!-- 설비 테이블 영역 -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <!-- 테이블 상단 (타이틀 + 엑셀 다운로드 버튼) -->
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
-                <div class="font-semibold text-2xl">{{ title }}</div>
-                <div class="flex items-center gap-2">
-                    <Button label="설비 점검 결과 불러오기" severity="info" @click="loadEqir" />
-                    <Button label="항목 추가" severity="success" @click="addNewRow" />
-                    <Button label="삭제" severity="danger" @click="deleteSelected" />
+                <div>
+                    <div class="font-semibold text-2xl">{{ title || '설비 목록' }}</div>
+                    <div class="text-sm text-gray-500 mt-1">총 {{ data.length }}건</div>
+                </div>
+                <div class="flex items-center gap-2 flex-nowrap">
+                    <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" 
+                            @click="deleteSelected" :disabled="!selectedWDEeiqchk || selectedWDEeiqchk.length == 0" />
+                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" 
+                            outlined @click="exportToExcel" />
                 </div>
             </div>
         </div>
 
-        <DataTable v-model:selection="selectedWAD" :value="subData" dataKey="eqir_code" showGridlines scrollable
-            scrollHeight="400px" tableStyle="min-width: 50rem">
+        <!-- 데이터 없을 때 표시 -->
+        <div v-if="!data || data.length === 0" class="text-center p-8 text-gray-500">
+            <p>표시할 데이터가 없습니다.</p>
+            <p class="text-sm mt-2">검색 조건을 확인하거나 새로운 설비를 등록해주세요.</p>
+        </div>
 
+        <!-- DataTable (PrimeVue) -->
+        <DataTable
+            v-else
+            v-model:selection="selectedWDEeiqchk"
+            :value="data"
+            :dataKey="dataKey"
+            showGridlines
+            scrollable
+            scrollHeight="400px"
+            tableStyle="min-width: 50rem"
+            selectionMode="multiple"
+            @row-select="onRowSelect"
+            @row-unselect="onRowUnselect"
+        >   
+            <!-- 다중 선택 컬럼 -->
             <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-            <Column field="chk_text" header="항목명">
-                <template #body="{ data }">
-                    <span @click="openItemCodePopup(data)" class="cursor-pointer text-blue-600 hover:underline">
-                        {{ data.chk_text }}
-                    </span>
-                </template>
-            </Column>
-            <Column field="eq_name" header="설비명">
-                <template #body="{ data }">
-                    <span @click="openEquipmentPopup(data)" class="cursor-pointer text-blue-600 hover:underline">
-                        {{ data.eq_name }}
-                    </span>
-                </template>
-            </Column>
-            <Column field="eq_type" header="설비유형" />
+            <!-- 고정 컬럼들 (props.columns가 있으면 사용) -->
+            <Column
+                v-if="columns && columns.length > 0"
+                v-for="col in columns"
+                :key="col"
+                :field="col"
+                :header="mapper[col] ?? col"
+                sortable
+            />
 
-            <Column field="chk_start_date" header="점검시작일시">
-                <template #body="{ data }">
-                    <LabeledDateTimePicker :model-value="new Date(data.chk_start_date)"
-                        @update:model-value="data.chk_start_date = formatDateForDB($event)" class="w-full" />
-                </template>
-            </Column>
-
-            <Column field="chk_end_date" header="점검종료일시">
-                <template #body="{ data }">
-                    <LabeledDateTimePicker :model-value="new Date(data.chk_end_date)"
-                        @update:model-value="data.chk_end_date = formatDateForDB($event)" class="w-full" />
-                </template>
-            </Column>
-
-            <Column field="chk_detail" header="점검내용">
-                <template #body="{ data }">
-                    <input v-model="data.chk_detail" class="w-full p-1 border-0" />
-                </template>
-            </Column>
-
-            <Column field="chk_result" header="점검결과">
-                <template #body="{ data }">
-                    <input v-model="data.chk_result" class="w-full p-1 border-0" />
-                </template>
-            </Column>
-
-            <Column field="eqi_stat" header="상태">
-                <template #body="{ data }">
-                    <select v-model="data.eqi_stat" class="w-full p-1 border-0">
-                        <option value="">선택하세요</option>
-                        <option value="점검중">점검중</option>
-                        <option value="점검완료">점검완료</option>
-                    </select>
-                </template>
-            </Column>
-
-            <Column field="note" header="비고">
-                <template #body="{ data }">
-                    <input v-model="data.note" class="w-full p-1 border-0" />
-                </template>
-            </Column>
+            <!-- 동적 컬럼 생성 (columns가 없으면 자동 생성) -->
+            <Column
+                v-if="!columns || columns.length === 0"
+                v-for="item in dynamicColumns"
+                :key="item"
+                :field="item"
+                :header="mapper[item] ?? item"
+                sortable
+            />
         </DataTable>
+        <!-- 선택된 행 정보 표시 -->
+        <div v-if="selectedWDEeiqchk && selectedWDEeiqchk.length > 0" class="mt-4 p-3 bg-blue-50 rounded">
+            <p class="text-sm text-blue-600">
+                선택된 설비: {{ selectedWDEeiqchk.length }}개
+                <span v-if="selectedWDEeiqchk.length === 1" class="ml-2">
+                    ({{ selectedWDEeiqchk[0][dataKey] }} - 수정 모드)
+                </span>
+                <span v-else class="ml-2">
+                    (다중 선택 - 삭제만 가능)
+                </span>
+            </p>
+        </div>
     </div>
-
-    <QualitySinglePopup v-model:visible="dialogVisible" :items="popupEqits" selectionMode="single" @confirm="addEqiType"
-        :selectedHeader="['chk_text', 'eq_type', 'chk_mth']" :mapper="{
-            chk_text: '점검항목명',
-            eq_type: '설비유형',
-            chk_mth: '점검방법',
-        }" :dataKey="'chk_text'">
-    </QualitySinglePopup>
-
-    <QualitySinglePopup v-model:visible="dialogVisible2" :items="popupEq" selectionMode="single" @confirm="addEq"
-        :selectedHeader="['eq_name', 'eq_type']" :mapper="{
-            eq_name: '설비명',
-            eq_type: '설비유형'
-        }" :dataKey="'eq_code'">
-    </QualitySinglePopup>
 </template>
+
+
+<style scoped>
+/* 필요시 커스텀 스타일 여기에 추가 */
+</style>
