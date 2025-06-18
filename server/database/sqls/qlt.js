@@ -5,11 +5,11 @@ const fetchOrders =
     qio.prod_code,
     qio.qio_date,
     qio.emp_code,
-    qi.note
+    qio.note
 FROM 
     qio_tbl qio
 JOIN 
-    qi_tbl qi ON qio.qi_code = qi.qi_code
+    qio_tbl qio ON qio.qio_code = qio.qio_code
 `;
 
 const selectList =
@@ -55,11 +55,12 @@ INSERT INTO qcr_tbl (
     range_top,
     range_bot,
     unit,
+    note,
     check_method,
     regdate,
     com_value,
-    note
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    is_used
+) VALUES (?, ?, ?, ?, ?, ?, ?, IFNULL(?, curdate()), ?, ?);
 `;
 
 // 제품검사 품질기준코드

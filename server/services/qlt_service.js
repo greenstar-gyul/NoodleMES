@@ -21,7 +21,7 @@ const findAll = async () => {
 
 // standard  기준정보 등록
 const insertQlt = async (data) => {
-  let list = await mariadb.query("insertQlt")
+  let list = await mariadb.query("insertQlt", data)
                           .catch(err => console.log(err));
   return list;
 }
@@ -30,11 +30,13 @@ const insertQcrTx = async (qcrDataList) => {
   const conn = await mariadb.connectionPool.getConnection();
 
   try {
+    const data = qcrDataList;
     await conn.beginTransaction();
     const insertedQcrCodes = [];
 
-    for (const data of qcrDataList) {
-      // com_value에 따라 적절한 쿼리 선택
+    // for (const data of qcrDataList) {
+      console.log('처리 중인 데이터:', data);
+
       let selectCodeQuery = '';
 
       if (['i1', 'i2'].includes(data.com_value)) {
@@ -45,24 +47,31 @@ const insertQcrTx = async (qcrDataList) => {
         throw new Error(`알 수 없는 com_value: ${data.com_value}`);
       }
 
-      // 코드 생성
       const [codeRow] = await conn.query(selectCodeQuery);
+      if (!codeRow) {
+        throw new Error('코드 생성 쿼리 결과가 없습니다.');
+      }
+
       const qcr_code = Object.values(codeRow)[0];
+      console.log('생성된 코드:', qcr_code);
+
       insertedQcrCodes.push(qcr_code);
 
-      // 품질 기준 등록
+      // ❗ 여기만 수정함: 자동 생성된 qcr_code를 사용
       await conn.query(qcrSql.insertQcr, [
-        qcr_code,
+        qcr_code, // ✅ 여기!
         data.inspection_item,
         data.range_top,
         data.range_bot,
-        data.unit,
-        data.check_method,
-        new Date(),
         data.com_value,
-        data.note ?? null
+        data.unit,
+        data.note,
+        data.check_method,
+        data.regdate_from,
+        data.regdate_to,
+        data.is_used
       ]);
-    }
+    // }
 
     await conn.commit();
     return { success: true, qcr_codes: insertedQcrCodes };

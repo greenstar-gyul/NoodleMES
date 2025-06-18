@@ -99,11 +99,15 @@ const rowClass = (data) => {
   return data.disabled ? 'p-disabled-row' : '';
 };
 
+
 const handleRowSelect = (event) => {
   if (event.data.disabled) {
-    // 선택 취소
     selectedItem.value = null;
+    return;
   }
+
+  selectedItem.value = event.data;
+  confirm(); // ✅ 선택 즉시 confirm 호출
 };
 </script>
 

@@ -88,58 +88,6 @@ const handleUpdate = (updatedData) => {
     console.log('EditableTable 업데이트:', updatedData);
 };
 
-// 테이블에 보여줄 목록 데이터 (예시 데이터)
-const qualitys = ref([
-    {
-        qcr_code: '품질기준코드1',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-    {
-        qcr_code: '품질기준코드2',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-    {
-        qcr_code: '품질기준코드3',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드4',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드5',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드6',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드7',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드8',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-]);
-
 </script>
 
 <template>
@@ -231,7 +179,7 @@ const qualitys = ref([
             <LabeledInput label="불량수량" v-model="qio_code" :readonly="isReadonly" />    
             <LabeledInput label="비고" :value="prod_code" placeholder="제품명" :disabled="true" />
         </div>
-        <QualityResultsTbl v-model:subData="eqirList" v-model:eqii="eqiiCode" :dataKey="'eqir_code'"
+        <QualityResultsTbl v-model:subData="qioList" v-model:eqii="qioCode" :dataKey="'eqir_code'"
          :columns="['eqir_code','eq_name', 'chk_start_date','chk_end_date','chk_detail','note','chk_result','eqi_stat']"
           title="품질점검항목"></QualityResultsTbl>
     </div>
