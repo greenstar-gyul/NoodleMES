@@ -5,29 +5,12 @@ const fetchOrders =
     qio.prod_code,
     qio.qio_date,
     qio.emp_code,
-    qi.note
+    qio.note
 FROM 
     qio_tbl qio
 JOIN 
-    qi_tbl qi ON qio.qi_code = qi.qi_code
+    qio_tbl qio ON qio.qio_code = qio.qio_code
 `;
-
-//
-const selectQcrList = 
-`SELECT
-    qcr_code,
-    inspection_item,
-    range_top,
-    range_bot,
-    unit,
-    check_method,
-    regdate,
-    note
-FROM
-    qcr_tbl
-WHERE    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-`;
-
 
 const selectList =
 `SELECT
@@ -72,11 +55,12 @@ INSERT INTO qcr_tbl (
     range_top,
     range_bot,
     unit,
+    note,
     check_method,
     regdate,
     com_value,
-    note
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    is_used
+) VALUES (?, ?, ?, ?, ?, ?, ?, IFNULL(?, curdate()), ?, ?);
 `;
 
 // 제품검사 품질기준코드
@@ -105,7 +89,6 @@ FOR UPDATE`
 module.exports = {
     fetchOrders,
     selectList,
-    selectQcrList,
     insertQcr,
     selectQcrcodeProd,
     selectQcrCodeMat
