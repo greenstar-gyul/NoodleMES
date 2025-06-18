@@ -66,7 +66,7 @@ const handleReset = () => {
   props.ordDate.value = '';
   props.releaseCode.value = '';
   props.releaseDate.value = '';
-  props.empCode.value = '';
+  props.empCode.value = 'EMP-10001';
   props.note.value = '';
 
   // 거래처 관련
@@ -112,8 +112,10 @@ const handleSave = async () => {
   try {
     // 전체 출고 제품 목록 데이터 구성
     const details = productRows.value.map(row => {
-      const req_qtt = Number(row.prod_amount);
-      const outbnd_qtt = Number(row.out_req_d_amount);
+      const req_qtt = Number(row.ord_amount);
+      const outbnd_qtt = Number(row.outbnd_qtt);
+      const ord_amount = Number(row.ord_amount);
+      const com_value = row.com_value_code;
       const outbound_request_code = row.outbound_request_code;
 
       if (outbnd_qtt > req_qtt) {
@@ -127,11 +129,12 @@ const handleSave = async () => {
         req_qtt,
         outbnd_qtt,
         delivery_date: row.delivery_date,
-        client_code: productRows.value[0]?.client_code || '',
+        client_code: clientCode.value || productRows.value[0]?.client_code,
         mcode: props.empCode.value ?? 'EMP-10001',
         note: props.note.value,
         outbound_request_code,
-        com_value: row.com_value_code
+        com_value: row.com_value_code,
+        ord_amount
       };
     });
 
@@ -181,7 +184,8 @@ const orderHandleConfirm = async (selectedOrder) => {
       item.delivery_date = moment(item.delivery_date).format('YYYY-MM-DD');
       item.outbound_request_code = props.ordCode.value;
       item.com_value_code = item.com_value_code || '';  // DB 저장용 코드 유지
-      item.com_value = item.com_value || '';  
+      item.com_value = item.com_value || '';
+      item.req_qtt = item.ord_amount; 
     });
 
     setProductRows(details);
@@ -231,7 +235,8 @@ const releaseHandleConfirm = async (selectedRelease) => {
 
     // 거래처 이름 매핑
     clientLabel.value = selectedRelease.client_name;
-    clientCode.value = productList[0].client_code || '';
+    // clientCode.value = productList[0].client_code || '';
+    clientCode.value = productList[0].client_code || selectedRelease.client_code || '';
 
     // 등록자 설정
     props.empCode.value = productList[0].mcode || 'EMP-10001'; // 기본값 설정

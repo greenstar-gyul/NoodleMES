@@ -156,6 +156,7 @@ const handleConfirm = async (selectedOrder) => {
     details.forEach((item, idx) => {
       item.ord_d_code = item.ord_d_code || `row-${idx}`;
       item.delivery_date = moment(item.delivery_date).format('YYYY-MM-DD');
+      item.prod_amount = item.ord_amount;
     });
 
     setProductRows(details);

@@ -6,7 +6,7 @@ import ReleaseManageProduct from './release-manage-sub/ReleaseManageProduct.vue'
 /* ===== 중앙 상태 관리 ===== */
 const ord_code = ref({});
 const ord_date = ref({});
-const empCode = ref({});
+const empCode = ref({ value: "EMP-10001" });
 const note = ref({});
 const releaseCode = ref({});
 const releaseDate = ref({});
