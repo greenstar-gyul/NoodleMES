@@ -20,6 +20,7 @@ onMounted(async () => {
     const res = await axios.get(`/api/work/detail/one`, {
       params: { wko_code, eq_code }
     });
+    res.data.eq_code = eq_code;
     workDetail.value = res.data;
     console.log('✅ 상세 데이터:', workDetail.value);
   } catch (err) {

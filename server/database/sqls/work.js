@@ -54,7 +54,26 @@ ORDER BY w.wko_code;
 //                  LEFT JOIN eq_tbl eq
 //                  		ON eq.eq_code = ld.eq_code
 const selectWKOProcesses = `
-SELECT *
+SELECT  wko_code,
+        emp_code,
+        prod_code,
+        line_code,
+        wko_qtt,
+        line_eq_code,
+        pp_code,
+        eq_code,
+        eq_name,
+        eq_type,
+        po_code,
+        po_name,
+        prdr_code,
+        prdr_d_code,
+        proc_rate,
+        start_date,
+        end_date,
+        input_qtt,
+        def_qtt,
+        make_qtt
 FROM   processes_v
 WHERE  wko_code = ?
 `;
@@ -124,14 +143,14 @@ LEFT JOIN prod_tbl p ON v.prod_code = p.prod_code
 WHERE v.wko_code = ? AND v.eq_code = ?
 `;
 
-// 상세에 맞는 설비 들고오는 쿼리
-const selectEquipmentList= `
-SELECT eq.eq_code, eq.eq_name
-FROM line_d_tbl ld
-JOIN eq_tbl eq ON ld.eq_code = eq.eq_code
-WHERE ld.line_code = ?
-ORDER BY eq.eq_code;
-`;
+// 상세에 맞는 현재 사용설비가저오는 쿼리
+const selectWkocodeEqList = `
+SELECT  eq_code,
+        eq_name
+FROM    processes_v
+WHERE   wko_code = ?
+ORDER BY pp_code;
+`
 
 module.exports = {
   selectPRDRCodeForUpdate,
@@ -140,5 +159,5 @@ module.exports = {
   searchWorkingList,
   selectWKOProcesses,
   selectWorkDetailOne,
-  selectEquipmentList
+  selectWkocodeEqList
 }

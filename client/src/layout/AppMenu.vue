@@ -21,14 +21,6 @@ const model = ref([
                         to: '/standard/bom'
                     },
                     {
-                        label: '거래처 정보',
-                        to: '/auth/error'
-                    },
-                    {
-                        label: '공정 정보',
-                        to: '/auth/access'
-                    },
-                    {
                         label: '라인 정보',
                         to: '/standard/line'
                     },
@@ -102,10 +94,6 @@ const model = ref([
                         label: '생산실적조회',
                         to: '/performance/list'
                     },
-                    {
-                        label: 'Access Denied',
-                        to: '/auth/access'
-                    }
                 ]
             },
             {
