@@ -54,28 +54,35 @@ ORDER BY w.wko_code;
 //                  LEFT JOIN eq_tbl eq
 //                  		ON eq.eq_code = ld.eq_code
 const selectWKOProcesses = `
-SELECT  wko_code,
-        emp_code,
-        prod_code,
-        line_code,
-        wko_qtt,
-        line_eq_code,
-        pp_code,
-        eq_code,
-        eq_name,
-        eq_type,
-        po_code,
-        po_name,
-        prdr_code,
-        prdr_d_code,
-        proc_rate,
-        start_date,
-        end_date,
-        input_qtt,
-        def_qtt,
-        make_qtt
-FROM   processes_v
-WHERE  wko_code = ?
+SELECT w.wko_code,
+       w.emp_code,
+       w.prod_code,
+       w.line_code,
+       w.wko_qtt,
+       ld.line_eq_code,
+       ld.pp_code,
+       eq.eq_code,
+       eq.eq_name,
+       ppd.eq_type,
+       po.po_code,
+       po.po_name,
+       ppd.no,
+       NULL AS prdr_code,          -- 아직 생성 전
+       NULL AS prdr_d_code,        -- 아직 생성 전
+       0 AS proc_rate,             -- 기본값 0
+       NULL AS start_date,
+       NULL AS end_date,
+       NULL AS input_qtt,
+       NULL AS def_qtt,
+       NULL AS make_qtt
+FROM   wko_tbl w 
+       LEFT JOIN line_tbl l ON w.line_code = l.line_code
+       LEFT JOIN line_d_tbl ld ON l.line_code = ld.line_code
+       LEFT JOIN prod_proc_d_tbl ppd ON ld.pp_code = ppd.pp_code
+       LEFT JOIN po_tbl po ON po.po_code = ppd.po_code
+       LEFT JOIN eq_tbl eq ON eq.eq_code = ld.eq_code
+WHERE w.wko_code = ?
+ORDER BY ppd.no
 `;
 
 // PRDR 코드 생성
@@ -124,21 +131,29 @@ ORDER BY w.wko_code;
 
 // 작업진행 상세 단건 조회
 const selectWorkDetailOne = `
-SELECT  v.po_name,
-        v.eq_name,
+SELECT  COALESCE(v.po_name, '미설정') AS po_name,
+        COALESCE(v.eq_name, '미설정') AS eq_name,
         v.prod_code,
         p.prod_name,
         v.wko_code,
         v.line_code,
         v.start_date,
         v.end_date,
-        v.end_date - v.start_date AS "total_time",
-        v.input_qtt,
+        CASE 
+          WHEN v.end_date IS NOT NULL AND v.start_date IS NOT NULL 
+          THEN v.end_date - v.start_date 
+          ELSE NULL 
+        END AS "total_time",
+        COALESCE(v.input_qtt, 0) AS input_qtt,
         v.wko_qtt,
-        v.make_qtt,
-        v.def_qtt,
-        (v.make_qtt / v.wko_qtt) * 100 AS "perform_rate"
-FROM   processes_v v
+        COALESCE(v.make_qtt, 0) AS make_qtt,
+        COALESCE(v.def_qtt, 0) AS def_qtt,
+        CASE 
+          WHEN v.make_qtt > 0 AND v.wko_qtt > 0 
+          THEN (v.make_qtt / v.wko_qtt) * 100 
+          ELSE 0 
+        END AS "perform_rate"
+FROM   processes_v v  -- ✅ 기존 뷰 사용
 LEFT JOIN prod_tbl p ON v.prod_code = p.prod_code
 WHERE v.wko_code = ? AND v.eq_code = ?
 `;
@@ -241,6 +256,46 @@ INSERT INTO moutbnd_tbl(moutbnd_code, mat_unit, outbnd_qtt, moutbnd_date, emp_co
 VALUES (?, ?, ?, curdate(), ?, ?, ?)
 `;
 
+// 🟢 작업 진행 중인 것만 조회 (PRDR 필수)
+const selectWorkingProcesses = `
+SELECT  wko_code,
+        emp_code,
+        prod_code,
+        line_code,
+        wko_qtt,
+        line_eq_code,
+        pp_code,
+        eq_code,
+        eq_name,
+        eq_type,
+        po_code,
+        po_name,
+        prdr_code,
+        prdr_d_code,
+        proc_rate,
+        start_date,
+        end_date,
+        input_qtt,
+        def_qtt,
+        make_qtt
+FROM   processes_working_v
+WHERE  wko_code = ?
+ORDER BY pp_code
+`;
+
+const updatePRDRStart = `
+UPDATE prdr_tbl
+SET    stat = ?
+WHERE  prdr_code = ?
+`;
+
+const updatePRDRComplete = `
+UPDATE prdr_tbl
+SET    stat = ?,
+       end_date = NOW()
+WHERE  prdr_code = ?
+`;
+
 module.exports = {
   selectPRDRCodeForUpdate,
   insertPRDR,
@@ -258,4 +313,7 @@ module.exports = {
   selectMoutbndCode,
   selectMaterialListForPRDR,
   insertMoutbnd,
+  selectWorkingProcesses,
+  updatePRDRStart,
+  updatePRDRComplete,
 }
