@@ -19,4 +19,9 @@ export default [
         name: 'stdProc',
         component: () => import('@/views/standard/process.vue')
     },
+    {
+        path: '/standard/qcr',
+        name: 'stdQcr',
+        component: () => import('@/views/standard/quality.vue')
+    },
 ];
