@@ -14,7 +14,6 @@ const relStore = useReleaseListStore();
 const { search } = storeToRefs(relStore);
 const { fetchReleasesByDate, fetchReleasesBySearch, resetSearch } = relStore;
 
-// 컴포넌트 초기화 시 거래처 및 주문 상태 목록 가져오기
 onMounted(() => {
   fetchReleasesByDate();
 });
@@ -42,11 +41,11 @@ const onSearch = () => {
     <!-- 검색 조건 영역 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
       <SearchText v-model="search.out_req_d_code" label="출고요청상세코드" placeholder="출고요청상세코드를 입력하세요" />
-      <SearchText v-model="search.prod_name" label="출고제품" placeholder="출고제품명을 입력하세요" />
+      <SearchText v-model="search.prod_name" label="출고제품명" placeholder="출고제품명을 입력하세요" />
       <SearchNumberBetween label="출고수량" v-model:from="search.prod_qtt_from" v-model:to="search.prod_qtt_to" />
 
       <SearchDateBetween
-        label="출고요청일자"
+        label="출고일자"
         :from="search.out_req_date_from"
         :to="search.out_req_date_to"
         @update:from="search.out_req_date_from = $event"

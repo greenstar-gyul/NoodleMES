@@ -70,15 +70,13 @@ const findOrdersByCondition = async (conditions) => {
 
   try {
     const result = await mariadb.query("selectOrderListByCondition", values);
-    console.log("🧪 검색 조건 값 확인:", values);
+    console.log("검색 조건 값 확인:", values);
     return result;
   } catch (err) {
     console.error("조건 주문 조회 실패:", err);
     throw err;
   }
 };
-
-
 
 // 거래처 목록 조회
 const findClientList = async () => {
@@ -221,9 +219,10 @@ const insertRelease = async (release) => {
       throw new Error("출고 수량은 요청 수량을 초과할 수 없습니다.");
     }
 
-    let stat = "출고대기";
-    if (outbnd_qtt === req_qtt) stat = "출고완료";
-    else if (outbnd_qtt > 0) stat = "부분출고";
+    // 출고 상태 계산
+    let stat = 'q1'; // 기본값: 출고대기
+    if (outbnd_qtt === req_qtt) stat = 'q3'; // 출고완료
+    else if (outbnd_qtt > 0) stat = 'q2';   // 부분출고
 
     const values = [
       poutbnd_code,
@@ -302,9 +301,10 @@ const insertFinalRelease = async (release) => {
       const outbnd_qtt = item.outbnd_qtt;
       const ord_amount = item.ord_amount;
 
-      let stat = "출고대기";
-      if (outbnd_qtt === req_qtt) stat = "출고완료";
-      else if (outbnd_qtt > 0) stat = "부분출고";
+      // 출고 상태 계산
+      let stat = 'q1'; // 기본값: 출고대기
+      if (outbnd_qtt === req_qtt) stat = 'q3'; // 출고완료
+      else if (outbnd_qtt > 0) stat = 'q2';   // 부분출고
 
       // 출고상세 등록
       await mariadb.queryConn(conn, "insertOutReqDetail", [
@@ -358,9 +358,10 @@ const updateRelease = async (poutbnd_code, release) => {
     throw new Error("출고 수량은 요청 수량을 초과할 수 없습니다.");
   }
 
-  let stat = "출고대기";
-  if (outbnd_qtt === req_qtt) stat = "출고완료";
-  else if (outbnd_qtt > 0) stat = "부분출고";
+  // 출고 상태 계산
+  let stat = 'q1'; // 기본값: 출고대기
+  if (outbnd_qtt === req_qtt) stat = 'q3'; // 출고완료
+  else if (outbnd_qtt > 0) stat = 'q2';   // 부분출고
 
   const values = [
     req_qtt,
@@ -393,10 +394,10 @@ const updateFinalRelease = async (poutbnd_code, releaseDetails) => {
         throw new Error("출고 수량은 주문 수량을 초과할 수 없습니다.");
       }
 
-      
-      let stat = "출고대기";
-      if (outbnd_qtt === req_qtt) stat = "출고완료";
-      else if (outbnd_qtt > 0) stat = "부분출고";
+      // 출고 상태 계산
+      let stat = 'q1'; // 기본값: 출고대기
+      if (outbnd_qtt === req_qtt) stat = 'q3'; // 출고완료
+      else if (outbnd_qtt > 0) stat = 'q2';   // 부분출고
       
       const lot_num = await findAvailableLotByProduct(item.prod_code);
       if (!lot_num) {
@@ -517,6 +518,47 @@ const findReleaseDataForList = async () => {
   return result;
 };
 
+
+// 검색조건에 맞는 주문 조회(수정해야함)
+const findReleaseByCondition = async (conditions) => {
+  const {ord_date_from, ord_date_to, ord_code, ord_name, client_name, ord_stat, prod_qtt_from, prod_qtt_to, delivery_date_from, delivery_date_to} = conditions;
+
+  // 2번씩 값을 넣는 이유는, SQL문에서 같은 조건에 대해 ?가 두 번 사용되기 때문
+  // 예: (? IS NULL OR ord_code LIKE CONCAT('%', ?, '%')) ← ?가 2개!
+  // 각각의 ? 자리에는 동일한 값이 들어가야 하므로, 배열에 같은 값을 두 번 넣음
+  // Node.js의 mariadb.query(sql, values)는 SQL에 등장하는 ?의 순서에 따라 배열 값을 차례대로 매핑하므로
+  // SQL문에 ?가 12개라면, values도 정확히 12개의 값이 있어야 함
+  // => 따라서 ord_date_from, ord_date_to 등은 두 번씩 values에 포함됨
+
+  const clean = (v) => {
+    if (v === '' || v === undefined || v === null) return null;
+    if (typeof v === 'string' && v.trim() === '') return null;
+    return v;
+  };
+
+  const values = [
+    clean(ord_date_from), clean(ord_date_from),
+    clean(ord_date_to), clean(ord_date_to),
+    clean(ord_code), clean(ord_code),
+    clean(ord_name), clean(ord_name),
+    clean(client_name), clean(client_name),
+    clean(ord_stat), clean(ord_stat),
+    clean(prod_qtt_from), clean(prod_qtt_from),
+    clean(prod_qtt_to), clean(prod_qtt_to),
+    clean(delivery_date_from), clean(delivery_date_from),
+    clean(delivery_date_to), clean(delivery_date_to)
+  ];
+
+  try {
+    const result = await mariadb.query("findReleaseDataForList", values);
+    console.log("검색 조건 값 확인:", values);
+    return result;
+  } catch (err) {
+    console.error("출고 조회 실패:", err);
+    throw err;
+  }
+};
+
 module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
     findAllOrders,
@@ -543,5 +585,6 @@ module.exports ={
     getReleaseByOutReqCode,
     findReleasePopList,
     updateReleaseBatch,
-    findReleaseDataForList
+    findReleaseDataForList,
+    findReleaseByCondition
 };
