@@ -226,20 +226,23 @@ router.get("/products/search", async (req, res) => {
   }
 });
 
+
+
+
 // 출고 목록 조회
 router.get('/releases', async (req, res) => {
   try {
     const result = await orderService.findReleaseList();
     res.json({
       result_code: "SUCCESS",
-      message: "출고요청 목록 조회 성공",
+      message: "성공",
       data: result
     });
   } catch (err) {
     console.error("출고요청 목록 조회 실패:", err);
     res.status(500).json({
       result_code: "FAIL",
-      message: "출고요청 목록 조회 실패",
+      message: "실패",
       error: err.message
     });
   }
@@ -274,14 +277,14 @@ router.put("/releases/:poutbndCode/status", async (req, res) => {
 
     res.json({
       result_code: "SUCCESS",
-      message: "출고 상태 업데이트 성공",
+      message: "성공",
       data: result
     });
   } catch (err) {
     console.error("출고 상태 업데이트 실패:", err);
     res.status(500).json({
       result_code: "FAIL",
-      message: "출고 상태 업데이트 실패",
+      message: "실패",
       error: err.message
     });
   }
@@ -293,14 +296,14 @@ router.post('/releases', async (req, res) => {
     const result = await orderService.insertFinalRelease(req.body);
     res.json({
       result_code: "SUCCESS",
-      message: "출고 등록 성공",
+      message: "성공",
       data: result
     });
   } catch (err) {
     console.error("출고 등록 실패:", err);
     res.status(500).json({
       result_code: "FAIL",
-      message: "출고 등록 실패",
+      message: "실패",
       error: err.message
     });
   }
@@ -317,14 +320,14 @@ router.put('/releases/:poutbndCode', async (req, res) => {
 
     res.json({
       result_code: "SUCCESS",
-      message: "출고 수정 성공",
+      message: "성공",
       data: result
     });
   } catch (err) {
     console.error("출고 수정 실패:", err);
     res.status(500).json({
       result_code: "FAIL",
-      message: "출고 수정 실패",
+      message: "실패",
       error: err.message
     });
   }
@@ -337,19 +340,58 @@ router.get('/releases/:poutbndCode', async (req, res) => {
     const result = await orderService.findReleaseDetails(poutbndCode);
     res.json({
       result_code: "SUCCESS",
-      message: "출고 상세 조회 성공",
+      message: "성공",
       data: result
     });
   } catch (err) {
     console.error("출고 상세 조회 실패:", err);
     res.status(500).json({
       result_code: "FAIL",
-      message: "출고 상세 조회 실패",
+      message: "실패",
       error: err.message
     });
   }
 });
 
+// 출고요청코드 기준 출고 상세 조회
+router.get('/releases/recode/:outReqCode', async (req, res) => {
+  try {
+    const { outReqCode } = req.params;
+    const result = await orderService.getReleaseByOutReqCode(outReqCode);
+
+    res.json({
+      result_code: "SUCCESS",
+      message: "성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고요청 상세 조회 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "실패",
+      error: err.message
+    });
+  }
+});
+
+// 출고정보 팝업용 요약 목록 조회
+router.get('/releases/popup', async (req, res) => {
+  try {
+    const result = await orderService.findReleasePopList();
+    res.json({
+      result_code: "SUCCESS",
+      message: "출고 팝업 목록 조회 성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고 팝업 목록 조회 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "출고 팝업 목록 조회 실패",
+      error: err.message
+    });
+  }
+});
 
 
 // 해당 javascript 파일의 마지막 코드, 모듈화

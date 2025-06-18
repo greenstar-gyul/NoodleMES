@@ -99,16 +99,18 @@ router.get('/mat', async (req, res) => {
 });
 
 // 등록
-router.post('/', async (req, res) => {
+router.post('/insert', async (req, res) => {
   const { mpr, details } = req.body;
 
   const regMpr = {
     mprData: mpr,
     detailData: details,
   }
+  console.log('mpr 출력 테스트 : ' + mpr);
+  console.log('details 출력 테스트 : ' + details);
 
   try {
-    const result = await mprService.insertMpr(regMpr);
+    const result = await mprService.insertMprAll(regMpr);
 
     res.json({
       result_code: "SUCCESS",
@@ -121,7 +123,7 @@ router.post('/', async (req, res) => {
       res.status(500).json({
         result_code: "FAIL",
         message: "실패",
-        error: err.message
+        err: err.message
       });
   }
 });

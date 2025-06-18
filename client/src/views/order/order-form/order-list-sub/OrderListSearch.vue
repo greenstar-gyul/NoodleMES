@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useOrderListStore } from '@/stores/OrderListStore';
+import { useOrderListStore } from '@/stores/orderListStore';
 import SearchText from '@/components/search-bar/SearchText.vue';
 import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 import SearchDropdownValue from '../../../../components/search-bar/SearchDropdownValue.vue';

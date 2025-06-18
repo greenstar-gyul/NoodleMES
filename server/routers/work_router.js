@@ -80,4 +80,39 @@ router.post('/search', async (req, res) => {
   }
 });
 
+// 작업 진행 상세 단건 조회
+router.get('/detail/one', async (req, res) => {
+  const { wko_code, eq_code } = req.query;
+
+  console.log('📦 쿼리 파라미터:', req.query);  // 여기가 비어있으면 문제
+
+  if (!wko_code || !eq_code) {
+    return res.status(400).send('wko_code, eq_code는 필수입니다.');
+  }
+
+  try {
+    const result = await workService.findWorkDetailOne(wko_code, eq_code);
+    res.send(result);
+  } catch (err) {
+    console.error('❌ 작업진행 상세 조회 실패:', err);
+    res.status(500).send('DB 오류');
+  }
+});
+
+// 설비 목록 조회 API
+router.get('/equipments', async (req, res) => {
+  const { line_code } = req.query;
+
+  if (!line_code) {
+    return res.status(400).send('line_code는 필수입니다.');
+  }
+
+  try {
+    const data = await workService.findEquipmentsByLine(line_code);
+    res.send(data);
+  } catch (err) {
+    res.status(500).send('DB 조회 오류');
+  }
+});
+
 module.exports = router;

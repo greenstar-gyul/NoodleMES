@@ -48,8 +48,11 @@ const handleMatConfirm = (selectedMat) => {
         currentMatRow.value.mat_code = selectedMat.mat_code; // 자재코드
         currentMatRow.value.mat_name = selectedMat.mat_name; // 자재명
         currentMatRow.value.unit = selectedMat.unit; // 단위
-        currentMatRow.value.client_name = selectedMat.client_name; // 공급업체
+        currentMatRow.value.client_name = selectedMat.client_name; // 공급업체 (화면출력용)
+        currentMatRow.value.mat_sup = selectedMat.sup; // 공급업체 (DB 저장용)
 
+        console.log('sup값 확인');
+        console.log(selectedMat.sup);
         // 직접 입력해야하는 값 초기화
         currentMatRow.value.req_qtt = 0; // 요청수량
         currentMatRow.value.note = ''; // 비고
@@ -64,7 +67,8 @@ const addRow = () => {
         mat_name: '',
         req_qtt: 0,
         unit: '',
-        client_name: '',
+        mat_sup:'', // DB저장용
+        client_name: '', // 화면출력용
         note: '',
     };
 
@@ -107,6 +111,8 @@ onMounted(async () => {
     // 제품 목록
     const mprRes = await axios.get('/api/mpr/mat'); // 제품 전체 목록 불러오기
     matList.value = mprRes.data.data; // 전체 제품 목록 저장
+    // console.log('전체 자재 출력')
+    // console.log(matList);
     } catch (err) {
         console.error('요청자재 리스트 불러오기 실패:', err);
     }
@@ -164,12 +170,13 @@ onMounted(async () => {
             <Column field="client_name" header="공급업체" style="width: 60px" bodyStyle="width: 100px">
                 <template #body="slotMats">
                     <InputText v-model="slotMats.data.client_name" style="width: 100%" readonly />
+                    <InputText type="hidden" v-model="slotMats.data.sup" /> 
                 </template>
             </Column>
 
             <Column field="note" header="비고" style="width: 150px" bodyStyle="width: 150px">
                 <template #body="slotMats">
-                    <InputText v-model="slotMats.data.note" :inputStyle="{ width: '100%' }"/>
+                    <InputText v-model="slotMats.data.note" style="width: 100%"/>
                 </template>
             </Column>
         </DataTable>

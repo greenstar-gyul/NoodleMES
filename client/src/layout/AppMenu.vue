@@ -206,6 +206,10 @@ const model = ref([
                         to: '/equipment/eqiiresmg'
                     },
                     {
+                        label: '설비점검 조치목록',
+                        to: '/equipment/eqiiresmglist'
+                    },
+                    {
                         label: '설비 가동현황',
                         to: '/equipment/eqiilist'
                     },

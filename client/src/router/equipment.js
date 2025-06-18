@@ -5,7 +5,6 @@ export default [
         component: () => import('@/views/equipment/EqInfo.vue')
     },
     {
-        // 🔥 eqii_code 파라미터 추가!
         path: '/equipment/eqiilist/:eqiiCode?',
         name: 'eqiilist',
         component: () => import('@/views/equipment/EqInspecList.vue')
@@ -21,8 +20,13 @@ export default [
         component: () => import('@/views/equipment/EqIIResultList.vue')
     },
     {
-        path: '/equipment/eqiiresmg',
+        path: '/equipment/eqiiresmg/:eq_ma_code?',
         name: 'eqiiresmg',
         component: () => import('@/views/equipment/EqInspecResultMgmt.vue')
     },
+    {
+        path: '/equipment/eqiiresmglist',
+        name: 'eqiiresmglist',
+        component: () => import('@/views/equipment/EqIRMgList.vue')
+    }
 ];

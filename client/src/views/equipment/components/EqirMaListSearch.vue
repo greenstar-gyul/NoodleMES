@@ -1,18 +1,19 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import Button from 'primevue/button';
 import LabeledTextarea from '../../../components/registration-bar/LabeledTextarea.vue';
 import LabeledInput from '../../../components/registration-bar/LabeledInput.vue';
 import axios from 'axios';
-import EquipIIMapping from '../../../service/EquipIIMapping';
-import EqiiSinglePopup from '@/views/equipment/components/EqiiSinglePopup.vue';
+import eqiiresmgMapping from '@/service/EquipIIResMgMapping.js';
+import eqirmgsinglePopup from '@/views/equipment/components/eqirmgsinglePopup.vue';
 import LabeledDatePicker from '../../../components/registration-bar/LabeledDatePicker.vue';
-import LabeledDropdown from '../../../components/common/LabeledDropdown.vue';
+import EqirSinglePopup from './EqirSinglePopup.vue';
 import LabeledSelect from '../../../components/registration-bar/LabeledSelect.vue';
 import moment from 'moment';
 import LabeledDateTimePicker from '../../../components/registration-bar/LabeledDateTimePicker.vue';
 
 const emit = defineEmits(['updateList', 'updatePrdp', 'resetList', 'saveData', 'update:data']);
+const isInternalUpdate = ref(false);
 const props = defineProps({
     data: {
         type: Object,
@@ -26,9 +27,8 @@ const props = defineProps({
 
 const formatDateForDB = (date) => {
     if (!date) return null;
-    return moment(date).format('YYYY-MM-DD HH:mm:ss'); // KST 문자열 확정!
+    return moment(date).format('YYYY-MM-DD HH:mm:ss');
 };
-
 
 const parseDate = (dateString) => {
     if (!dateString) return null;
@@ -38,61 +38,181 @@ const parseDate = (dateString) => {
     return dateString;
 };
 
-// 🔥 computed 제거하고 일반 ref로 변경!
+// computed 제거하고 일반 ref로 변경
 const currentData = ref({
-    eqii_code: '',
-    inst_date: null,
-    chk_exp_date: null,
-    stat: '',
+    eq_ma_code: '',
+    eq_name: '',
+    fail_date: null,
+    fail_cause: '',
+    act_detail: '',
+    act_result: '',
+    start_date: null,
+    end_date: null,
+    re_chk_exp_date: null,
+    eqir_code: '',
+    regdate: null,
     note: '',
-    inst_emp_name: 'EMP-10001'
+    m_emp_name: 'EMP-10001',
+    fix_emp_name: 'EMP-10001'
 });
 
-// 🔥 props 변화 감지해서 currentData 업데이트 (한 번만!)
+// props 변화 감지해서 currentData 업데이트
 watch(() => props.data, (newData) => {
-    if (newData) {
+    if (newData && !isInternalUpdate.value) {
         currentData.value = {
-            eqii_code: newData.eqii_code || '',
-            inst_date: parseDate(newData.inst_date),
-            chk_exp_date: parseDate(newData.chk_exp_date),
-            stat: newData.stat || '',
+            eq_ma_code: newData.eq_ma_code || '',
+            eq_name: newData.eq_name || '',
+            fail_date: parseDate(newData.fail_date),
+            fail_cause: newData.fail_cause || '',
+            act_detail: newData.act_detail || '',
+            act_result: newData.act_result || '',
+            start_date: parseDate(newData.start_date),
+            end_date: parseDate(newData.end_date),
+            re_chk_exp_date: parseDate(newData.re_chk_exp_date),
+            eqir_code: newData.eqir_code || '',
+            regdate: parseDate(newData.regdate),
             note: newData.note || '',
-            inst_emp_name: newData.inst_emp_name || 'EMP-10001'
+            m_emp_name: newData.m_emp_name || '최설비',
+            fix_emp_name: newData.fix_emp_name || '최설비'
         };
     }
 }, { immediate: true, deep: true });
 
-// 🎯 개별 업데이트 함수들
-const updateInstDate = (newDate) => {
-    emit('update:data', {
+// 필드별 업데이트 함수들
+const updateEqName = (newName) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
         ...props.data,
-        inst_date: formatDateForDB(newDate)
+        eq_name: newName
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
     });
 };
 
-const updateChkExpDate = (newDate) => {
-    emit('update:data', {
+const updateFailDate = (newDate) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
         ...props.data,
-        chk_exp_date: formatDateForDB(newDate)
+        fail_date: newDate
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
     });
 };
 
-const updateStat = (newStat) => {
-    emit('update:data', {
+const updateFailCause = (newCause) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
         ...props.data,
-        stat: newStat
+        fail_cause: newCause
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
+const updateActDetail = (newDetail) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        act_detail: newDetail
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
+const updateStartDate = (newDate) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        start_date: newDate
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
+const updateEndDate = (newDate) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        end_date: newDate
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
+const updateReChkExpDate = (newDate) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        re_chk_exp_date: newDate
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
+const updateEqirCode = (newCode) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        eqir_code: newCode
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
+const updateRegDate = (newDate) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        regdate: newDate
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
+const updateActResult = (newResult) => {
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        act_result: newResult
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
     });
 };
 
 const updateNote = (newNote) => {
-    emit('update:data', {
+    isInternalUpdate.value = true;
+    const updatedData = {
         ...props.data,
         note: newNote
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
     });
 };
 
 const deletePlan = async () => {
-    if (!currentData.value.eqii_code) {
+    if (!currentData.value.eq_ma_code) {
         alert('삭제할 지시서가 없습니다.');
         return;
     }
@@ -102,7 +222,7 @@ const deletePlan = async () => {
     }
 
     try {
-        const response = await axios.delete(`/api/eq/eqii/${currentData.value.eqii_code}`);
+        const response = await axios.delete(`/api/eq/eqirmg/${currentData.value.eq_ma_code}`);
 
         if (response.data.success) {
             alert('삭제에 성공했습니다.');
@@ -117,21 +237,22 @@ const deletePlan = async () => {
 };
 
 const statusOptions = [
-    { label: '점검중', value: 'u1' },
-    { label: '점검완료', value: 'u2' },
-    { label: '지시전달', value: 'u3' }
+    { label: '조치중', value: 'g1' },
+    { label: '조치완료', value: 'g2' }
 ];
-
 
 const loadPlansData = async () => {
     try {
-        const response = await axios.get(`/api/eq/eqiiall`);
+        const response = await axios.get(`/api/eq/eqirmg`);
         console.log('Plans data loaded:', response.data);
 
-        eqiis.value = response.data.map(item => ({
+        eqirmgs.value = response.data.map(item => ({
             ...item,
-            inst_date: item.inst_date ? moment(item.inst_date).format('YYYY-MM-DD HH:mm:ss') : null,
-            chk_exp_date: item.chk_exp_date ? moment(item.chk_exp_date).format('YYYY-MM-DD HH:mm:ss') : null
+            fail_date: item.fail_date ? moment(item.fail_date).format('YYYY-MM-DD') : null,
+            start_date: item.start_date ? moment(item.start_date).format('YYYY-MM-DD HH:mm:ss') : null,
+            end_date: item.end_date ? moment(item.end_date).format('YYYY-MM-DD HH:mm:ss') : null,
+            re_chk_exp_date: item.re_chk_exp_date ? moment(item.re_chk_exp_date).format('YYYY-MM-DD') : null,
+            regdate: item.regdate ? moment(item.regdate).format('YYYY-MM-DD HH:mm:ss') : null
         }));
 
     } catch (err) {
@@ -139,42 +260,127 @@ const loadPlansData = async () => {
     }
 };
 
-// 팝업에서 선택 - 한 번만 emit!
 const loadSelectedPlan = async (value) => {
-    console.log('선택된 지시서:', value);
-    if (!value || !value.eqii_code) {
+    if (!value || !value.eq_ma_code) {
         alert('지시서를 선택해주세요.');
         return;
     }
 
-    emit('update:data', {
-        eqii_code: value.eqii_code,
-        inst_date: formatDateForDB(value.inst_date),    // parseDate 필요 없음!
-        chk_exp_date: formatDateForDB(value.chk_exp_date),
-        stat: value.stat || '',
+    // 내부 업데이트임을 표시
+    isInternalUpdate.value = true;
+
+    const newData = {
+        eq_ma_code: value.eq_ma_code,
+        eq_name: value.eq_name,
+        fail_date: formatDateForDB(value.fail_date),
+        fail_cause: value.fail_cause || '',
+        act_detail: value.act_detail || '',
+        act_result: value.act_result || '',
+        start_date: formatDateForDB(value.start_date),
+        end_date: formatDateForDB(value.end_date),
+        re_chk_exp_date: formatDateForDB(value.re_chk_exp_date),
+        eqir_code: value.eqir_code || '',
+        regdate: formatDateForDB(value.regdate),
         note: value.note || '',
-        inst_emp_name: value.inst_emp_name || 'EMP-10001',
-        inst_emp_code: value.inst_emp_code
+        m_emp_name: value.m_emp_name || 'EMP-10001',
+        fix_emp_name: value.fix_emp_name || 'EMP-10001'
+    };
+
+    currentData.value = {
+        ...currentData.value,
+        ...newData,
+        fail_date: parseDate(newData.fail_date),
+        start_date: parseDate(newData.start_date),
+        end_date: parseDate(newData.end_date),
+        re_chk_exp_date: parseDate(newData.re_chk_exp_date),
+        regdate: parseDate(newData.regdate)
+    };
+
+    emit('update:data', newData);
+
+    nextTick(() => {
+        isInternalUpdate.value = false;
     });
 
-    eqiiPopupVisibil.value = false;
+    eqirmgPopupVisibil.value = false;
 };
+
+const loadEqirData = async () => {
+    try {
+        const response = await axios.get('/api/eq/eqirall');
+        console.log('점검결과 데이터 로딩:', response.data);
+
+        // 응답 구조에 맞게 처리
+        if (Array.isArray(response.data)) {
+            eqirss.value = response.data.map(item => ({
+                ...item,
+                chk_start_date: item.chk_start_date ? moment(item.chk_start_date).format('YYYY-MM-DD HH:mm:ss') : null,
+                chk_end_date: item.chk_end_date ? moment(item.chk_end_date).format('YYYY-MM-DD HH:mm:ss') : null
+            }));
+        } else if (response.data && response.data.data) {
+            eqirss.value = response.data.data.map(item => ({
+                ...item,
+                chk_start_date: item.chk_start_date ? moment(item.chk_start_date).format('YYYY-MM-DD HH:mm:ss') : null,
+                chk_end_date: item.chk_end_date ? moment(item.chk_end_date).format('YYYY-MM-DD HH:mm:ss') : null
+            }));
+        }
+
+    } catch (err) {
+        console.error('점검결과 데이터 로딩 에러:', err);
+    }
+};
+
+
+const loadSelectedEqirPlan = async (value) => {
+    if (!value || !value.eqir_code) {
+        alert('점검 결과를 선택해주세요.');
+        return;
+    }
+
+    isInternalUpdate.value = true;
+
+    // eqir_code만 업데이트하면 됨
+    const updatedData = {
+        ...props.data,
+        eqir_code: value.eqir_code,
+        eq_name: value.eq_name || ''
+    };
+
+    currentData.value.eqir_code = value.eqir_code;  
+    currentData.value.eq_name = value.eq_name || '';
+    emit('update:data', updatedData);
+
+    // 다음 틱에서 플래그 해제
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+
+    eqirPopupVisibil.value = false;
+};
+
 
 const openPopup = async () => {
     await loadPlansData();
-    eqiiPopupVisibil.value = true;
+    eqirmgPopupVisibil.value = true;
 }
+
+const openEqirPopup = async () => {
+    await loadEqirData();
+    eqirPopupVisibil.value = true;
+};
 
 const saveMRP = async () => {
     emit('saveData');
 }
 
-const eqiiPopupVisibil = ref(false);
-const eqiis = ref([]);
+const eqirmgPopupVisibil = ref(false);
+const eqirPopupVisibil = ref(false);
+const eqirmgs = ref([]);
+const eqirss = ref([]);
 </script>
 
 <template>
-    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
+    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-12">
         <div class="grid grid-cols-1 gap-4">
             <div class="flex justify-between">
                 <div>
@@ -190,33 +396,58 @@ const eqiis = ref([]);
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="조치 코드" :model-value="currentData.eqii_code" :disabled="true"
+            <LabeledInput label="조치 코드" :model-value="currentData.eq_ma_code" :disabled="true"
                 placeholder="저장 시 자동으로 생성됩니다." />
-            <LabeledInput label="설비명" :model-value="currentData.eqii_code" />
+            <LabeledInput label="설비명" :model-value="currentData.eq_name" :disabled="true"
+                @update:model-value="updateEqName" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledDateTimePicker label="조치시작일시" :model-value="currentData.inst_date"
-                @update:model-value="updateInstDate" />
-            <LabeledDateTimePicker label="조치종료일시" :model-value="currentData.chk_exp_date"
-                @update:model-value="updateChkExpDate" />
+            <LabeledDatePicker label="고장일" :model-value="currentData.fail_date" @update:model-value="updateFailDate" />
+            <LabeledTextarea label="고장원인" :model-value="currentData.fail_cause" @update:model-value="updateFailCause" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledDatePicker label="점검예정일" :model-value="currentData.chk_exp_date"
-                @update:model-value="updateChkExpDate" />
-            <LabeledSelect label="조치결과" :model-value="currentData.stat" @update:model-value="updateStat"
+            <LabeledTextarea label="조치내용" :model-value="currentData.act_detail" @update:model-value="updateActDetail" />
+            <LabeledSelect label="조치결과" :model-value="currentData.act_result" @update:model-value="updateActResult"
                 :options="statusOptions" placeholder="상태를 선택하세요" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledTextarea label="조치내용" :model-value="currentData.emp_name" />
-            <LabeledTextarea label="비고" :model-value="currentData.stat" />
+            <LabeledDateTimePicker label="조치시작일시" :model-value="currentData.start_date"
+                @update:model-value="updateStartDate" />
+            <LabeledDateTimePicker label="조치종료일시" :model-value="currentData.end_date"
+                @update:model-value="updateEndDate" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="담당자" :model-value="currentData.emp_name" :disabled="true" />
+            <LabeledDatePicker label="재점검예정일" :model-value="currentData.re_chk_exp_date"
+                @update:model-value="updateReChkExpDate" />
+            <LabeledDatePicker label="등록일자" :model-value="currentData.regdate" @update:model-value="updateRegDate" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledInput label="담당자" :model-value="currentData.m_emp_name" :disabled="true" />
+            <LabeledInput label="수리요청자" :model-value="currentData.fix_emp_name" :disabled="true" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledInput label="점검결과 코드" :model-value="currentData.eqir_code" @click="openEqirPopup"
+                @update:model-value="updateEqirCode" placeholder="클릭하여 점검결과를 선택하세요" readonly style="cursor: pointer;" />
+            <LabeledTextarea label="비고" :model-value="currentData.note" @update:model-value="updateNote" />
         </div>
     </div>
 
     <!-- 팝업 컴포넌트 -->
-    <EqiiSinglePopup v-model:visible="eqiiPopupVisibil" :items="eqiis" @confirm="loadSelectedPlan"
-        :mapper="EquipIIMapping" :dataKey="'eqii_code'" :placeholder="'지시서 불러오기'">
-    </EqiiSinglePopup>
+    <eqirmgsinglePopup v-model:visible="eqirmgPopupVisibil" :items="eqirmgs" @confirm="loadSelectedPlan"
+        :selectedHeader="['eq_ma_code', 'eq_name', 'fail_date', 'act_detail', 'act_result']" :mapper="eqiiresmgMapping"
+        :visibleFields="['eq_ma_code', 'eq_name', 'fail_date', 'act_detail', 'act_result']" :dataKey="'eq_ma_code'"
+        :placeholder="'조치결과 불러오기'">
+    </eqirmgsinglePopup>
+    <EqirSinglePopup v-model:visible="eqirPopupVisibil" :items="eqirss" @confirm="loadSelectedEqirPlan"
+        :selectedHeader="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']"
+        :mapper="{
+            eqir_code: '점검결과 코드',
+            eq_name: '설비명',
+            chk_start_date: '점검 시작일시',
+            chk_end_date: '점검 종료일시',
+            eqi_stat: '상태'
+        }"
+        :visibleFields="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']" :dataKey="'eqir_code'"
+        :placeholder="'점검결과 선택'">
+    </EqirSinglePopup>
 </template>
