@@ -2,13 +2,13 @@
 const getCurrentMonthPlans =`
 SELECT  prdr.prdr_code,
         work_order_code,
-        comm_name(prdr.process_type) AS "process_type",
         prdr.prod_code,
         p.prod_name,
         prdr.start_date,
         prdr.end_date,
+        TIME_FORMAT(TIMEDIFF(prdr.end_date, prdr.start_date), '%H:%i') AS total_time,
         prdr.production_qtt,
-        prdr.peform_rate
+        prdr.perform_rate
 FROM    prdr_tbl prdr
 LEFT JOIN prod_tbl p ON prdr.prod_code = p.prod_code
 WHERE CONVERT_TZ(prdr.start_date, '+00:00', '+09:00') BETWEEN ? AND ?
@@ -20,13 +20,12 @@ const searchPrdr = `
   SELECT  
     prdr.prdr_code,
     prdr.work_order_code,
-    comm_name(prdr.process_type) AS process_type,
     prdr.prod_code,
     p.prod_name,
     prdr.start_date,
     prdr.end_date,
     prdr.production_qtt,
-    prdr.peform_rate
+    prdr.perform_rate
   FROM    prdr_tbl prdr
   LEFT JOIN prod_tbl p ON prdr.prod_code = p.prod_code
   WHERE 1=1
@@ -39,13 +38,12 @@ const searchPrdr = `
 `;
 const selectPrdrOne = `
 SELECT  p.prdr_code,
-        p.process_type,
         p.start_date,
         p.end_date,
         p.total_time,
         p.note, 
         p.production_qtt, 
-        p.peform_rate, 
+        p.perform_rate, 
         p.work_order_code, 
         p.emp_code, 
         p.prod_code,

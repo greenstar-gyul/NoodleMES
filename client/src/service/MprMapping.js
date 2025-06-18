@@ -24,7 +24,7 @@ export const MRPMapper = {
     start_date: '생산시작일', 
     prdp_code: '생산계획코드',
     emp_code: '작성자',
-    note: '비고',
+    mrp_note: '비고',
 };
 
 
