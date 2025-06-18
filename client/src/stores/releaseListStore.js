@@ -10,6 +10,22 @@ export const useReleaseListStore = defineStore('releaseList', () => {
   // 출고요청 목록 데이터 저장 상태
   const releases = ref([]);
 
+  // 거래처 목록
+  const clients = ref([]);
+
+    // 거래처 목록 조회
+  async function fetchClients() {
+    try {
+      const res = await axios.get('/api/order/clients'); 
+      clients.value = res.data.data.map(client => ({
+        label: client.client_name,
+        value: client.client_name
+      }));
+    } catch (err) {
+      console.error('거래처 조회 실패:', err);
+    }
+  }
+
   // 검색 조건
   const search = ref({
     out_req_code: '',
@@ -78,15 +94,42 @@ export const useReleaseListStore = defineStore('releaseList', () => {
       out_req_date_to: getToday(),
       client_name: null,
       mcode: null,
+      prod_name: '',
+      outbnd_qtt_from: null,
+      outbnd_qtt_to: null
     };
   };
+
+  // 출고 검색 조회
+  const fetchReleasesBySearch = async () => {
+    try {
+      const params = {
+        ...search.value,
+        out_req_date_from: safeFormat(search.value.out_req_date_from),
+        out_req_date_to: safeFormat(search.value.out_req_date_to)
+      };
+
+      const res = await axios.get('/api/order/releaseData/search', { params });
+
+      releases.value = res.data.data.map(release => ({
+        ...release,
+        out_req_date: formatDate(release.out_req_date)
+      }));
+    } catch (err) {
+      console.error('출고조건 조회 실패:', err);
+    }
+  };
+
 
   // 컴포넌트에서 사용할 상태와 함수들을 export
   return {
     releases,
     search,
+    clients,
     fetchReleasesByDate,
     resetSearch,
-    setDefaultDateRange
+    setDefaultDateRange,
+    fetchReleasesBySearch,
+    fetchClients
   };
 });
