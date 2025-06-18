@@ -173,6 +173,20 @@ FROM processes_v
 WHERE wko_code = ? AND eq_code = ?
 `
 
+// prdr_code로 작업지시서 공정 조회
+const selectPrdrDCodeByWkoCode = `
+SELECT prdr_d_code
+FROM prdr_d_tbl
+WHERE prdr_code = ?
+`;
+
+// 작업 진행률 갱신
+const updatePRDRDRate = `
+UPDATE prdr_d_tbl
+SET proc_rate = ?
+WHERE prdr_d_code = ?
+`;
+
 module.exports = {
   selectPRDRCodeForUpdate,
   insertPRDR,
@@ -185,4 +199,6 @@ module.exports = {
   selectLineDetailList,
   insertPRDRD,
   selectPrdrDCodeForDetail,
+  selectPrdrDCodeByWkoCode,
+  updatePRDRDRate,
 }
