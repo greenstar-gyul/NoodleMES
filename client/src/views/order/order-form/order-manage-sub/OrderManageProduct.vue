@@ -68,7 +68,7 @@ const handleProductConfirm = (selectedProduct) => {
         currentProductRow.value.prod_code = selectedProduct.prod_code; // 서버 전송용
 
         // 현재 행의 나머지 필드 초기화
-        currentProductRow.value.prod_amount = 0;
+        currentProductRow.value.ord_amount = 0;
         currentProductRow.value.prod_price = 0;
         currentProductRow.value.delivery_date = '';
         currentProductRow.value.ord_priority = 0;
@@ -84,7 +84,7 @@ const addRow = () => {
         com_value: '',
         spec: '',
         unit: '',
-        prod_amount: 0,
+        ord_amount: 0,
         prod_price: 0,
         delivery_date: '',
         ord_priority: 0,
@@ -134,7 +134,7 @@ const formatNumber = (value) => {
 //총액 자동 계산
 watch(productRows, (rows) => {
   rows.forEach(row => {
-    row.total_price = (row.prod_amount || 0) * (row.prod_price || 0);
+    row.total_price = (row.ord_amount || 0) * (row.prod_price || 0);
   });
 }, { deep: true });
 
@@ -206,9 +206,9 @@ onMounted(async () => {
                 </template>
             </Column>            
 
-            <Column field="prod_amount" header="수량" style="width: 60px" bodyStyle="width: 100px">
+            <Column field="ord_amount" header="수량" style="width: 60px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.prod_amount" :min="0" showButtons  :inputStyle="{ width: '100%' }"/>
+                    <InputNumber v-model="slotProps.data.ord_amount" :min="0" showButtons  :inputStyle="{ width: '100%' }"/>
                 </template>
             </Column>
 
@@ -232,7 +232,7 @@ onMounted(async () => {
 
             <Column field="total_price" header="총액(원)" style="width: 100px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <InputText :value="formatNumber(slotProps.data.prod_amount * slotProps.data.prod_price)" readonly style="width: 100%"/>
+                    <InputText :value="formatNumber(slotProps.data.ord_amount * slotProps.data.prod_price)" readonly style="width: 100%"/>
                 </template>
             </Column>
         </DataTable>

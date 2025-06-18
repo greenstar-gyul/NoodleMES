@@ -273,7 +273,7 @@ const insertFinalRelease = async (release) => {
     const codeRes = await mariadb.queryConn(conn, "selectOutReqCodeForUpdate");
     const out_req_code = codeRes[0].out_req_code;
 
-
+    console.log("🔥 insertOutReq 실행 직전 client_code:", release.client_code);
 
     // 출고기본정보 등록
     await mariadb.queryConn(conn, "insertOutReq", [
@@ -300,6 +300,7 @@ const insertFinalRelease = async (release) => {
 
       const req_qtt = item.req_qtt;
       const outbnd_qtt = item.outbnd_qtt;
+      const ord_amount = item.ord_amount;
 
       let stat = "출고대기";
       if (outbnd_qtt === req_qtt) stat = "출고완료";
@@ -308,9 +309,9 @@ const insertFinalRelease = async (release) => {
       // 출고상세 등록
       await mariadb.queryConn(conn, "insertOutReqDetail", [
         out_req_d_code,
-        req_qtt,
+        item.req_qtt,
         item.com_value_code,
-        req_qtt, // 주문 수량 그대로
+        ord_amount , // 주문 수량 그대로
         out_req_code,
         item.prod_code,
       ]);
@@ -392,22 +393,32 @@ const updateFinalRelease = async (poutbnd_code, releaseDetails) => {
         throw new Error("출고 수량은 주문 수량을 초과할 수 없습니다.");
       }
 
+      
       let stat = "출고대기";
       if (outbnd_qtt === req_qtt) stat = "출고완료";
       else if (outbnd_qtt > 0) stat = "부분출고";
+      
+      const lot_num = await findAvailableLotByProduct(item.prod_code);
+      if (!lot_num) {
+        throw new Error(`제품 ${item.prod_name}의 유효한 LOT 번호가 없습니다.`);
+      };
+
+      const deadline = item.deadline || item.delivery_date || moment().format('YYYY-MM-DD');
 
       const values = [
         req_qtt,
         outbnd_qtt,
-        item.deadline,
+        deadline,
         stat,
         item.outbound_request_code || '',
-        null, // lot_num
+        lot_num,
         item.prod_code,
         item.client_code,
         item.mcode ?? "EMP-10001",
         poutbnd_code
       ];
+
+      console.log("🔥 updateRelease 실행 직전 client_code:", item.client_code);
 
       await mariadb.queryConn(conn, "updateRelease", values);
     }
@@ -496,6 +507,16 @@ const updateReleaseBatch = async (poutbnd_code, releaseDetails) => {
   return await updateFinalRelease(poutbnd_code, releaseDetails); // 이미 정의된 함수 재사용
 };
 
+// 출고서 전체 목록 조회 (출고요청 상세 + 출고 정보 등 포함)
+const findReleaseDataForList = async () => {
+  const result = await mariadb.query("releaseDataForLists")
+    .catch(err => {
+      console.error("출고서 목록 조회 실패:", err);
+      throw err;
+    });
+  return result;
+};
+
 module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
     findAllOrders,
@@ -521,5 +542,6 @@ module.exports ={
     findAvailableLotByProduct,
     getReleaseByOutReqCode,
     findReleasePopList,
-    updateReleaseBatch
+    updateReleaseBatch,
+    findReleaseDataForList
 };

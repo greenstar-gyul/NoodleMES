@@ -23,7 +23,7 @@ const selectOrderDetailList = `
   SELECT od.ord_code
        , od.ord_d_code
        , od.prod_code
-       , od.prod_amount
+       , od.prod_amount AS ord_amount
        , od.prod_price
        , od.delivery_date
        , od.ord_priority
@@ -328,6 +328,7 @@ const selectReleaseDetailList = `
          p.outbound_request_code,
          r.out_req_date,
          r.ord_code,
+         r.note,
          p.lot_num,
          p.prod_code,
          pr.prod_name,
@@ -437,6 +438,33 @@ const selectRProdByOutReqCode = `
 `;
 
 
+// 출고요청 목록 조회 (출고요청상세, 제품, 출고수량, 출고일자, 담당자명, 거래처명, 출고상태명 포함)
+const releaseDataForLists = `
+  SELECT d.out_req_d_code,
+         prod.prod_name,
+         IFNULL(p.outbnd_qtt, 0) AS outbnd_qtt,
+         r.out_req_date,
+         r.mcode,
+         e.emp_name,
+         r.client_code,
+         c.client_name,
+         comm_name(p.stat) AS stat
+    FROM out_req_d_tbl d
+    JOIN out_req_tbl r 
+      ON d.out_req_code = r.out_req_code
+    LEFT JOIN poutbnd_tbl p 
+      ON p.outbound_request_code = d.out_req_code
+     AND p.prod_code = d.prod_code
+    JOIN prod_tbl prod 
+      ON d.prod_code = prod.prod_code
+    JOIN emp_tbl e 
+      ON r.mcode = e.emp_code
+    JOIN client_tbl c 
+      ON r.client_code = c.client_code
+   ORDER BY d.out_req_d_code
+`;
+
+
 
 module.exports = {
   // 조회
@@ -456,6 +484,7 @@ module.exports = {
   sumReleaseQ,
   selectRProdByOutReqCode,
   releaseList,
+  releaseDataForLists,
 
   // 등록
   selectOrdCodeForUpdate,
