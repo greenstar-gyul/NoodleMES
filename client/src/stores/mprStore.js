@@ -9,6 +9,7 @@ import { ref } from 'vue';
 export const useMprStore = defineStore('mprStore', () => {
   const mprRows = ref([]);
   const mrpRows = ref([]);
+  const matRows = ref([]);
   const selectedMpr = ref([]);
   const selectedMrp = ref([]);
 
@@ -23,10 +24,17 @@ export const useMprStore = defineStore('mprStore', () => {
   // 목록을 초기상태로 되돌림
   function resetMprRows() {
     mprRows.value = [];
+    selectedMpr.value = [];
+    // console.log('리셋 확인');
   };
   function resetMrpRows() {
     mrpRows.value = [];
+    selectedMrp.value = [];
   };
+  function resetMatRows() {
+    matRows.value = [];
+  };
+
 
   function setSelectedMpr(list){
     selectedMpr.value = list;
@@ -38,12 +46,14 @@ export const useMprStore = defineStore('mprStore', () => {
   return {
     mprRows,
     mrpRows,
+    matRows,
     selectedMpr,
     selectedMrp,
     setMprRows,
     setMrpRows,
     resetMprRows,
     resetMrpRows,
+    resetMatRows,
     setSelectedMpr,
     setSelectedMrp
   }
