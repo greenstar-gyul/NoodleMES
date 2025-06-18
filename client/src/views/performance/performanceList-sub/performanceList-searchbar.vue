@@ -11,6 +11,7 @@ const emit = defineEmits(['search', 'reset']);
 //  오늘 기준 월의 1일과 말일 계산
 const firstDay = moment().startOf('month').format('YYYY-MM-DD');
 const lastDay = moment().endOf('month').format('YYYY-MM-DD');
+const totalTime = moment().format('HH-MM-DD');
 
 // 검색 조건을 저장할 반응형 객체
 const search = reactive({

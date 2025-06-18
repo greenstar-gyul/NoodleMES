@@ -21,14 +21,6 @@ const model = ref([
                         to: '/standard/bom'
                     },
                     {
-                        label: '거래처 정보',
-                        to: '/auth/error'
-                    },
-                    {
-                        label: '공정 정보',
-                        to: '/auth/access'
-                    },
-                    {
                         label: '라인 정보',
                         to: '/standard/line'
                     },
@@ -102,10 +94,6 @@ const model = ref([
                         label: '생산실적조회',
                         to: '/performance/list'
                     },
-                    {
-                        label: 'Access Denied',
-                        to: '/auth/access'
-                    }
                 ]
             },
             {
@@ -166,11 +154,11 @@ const model = ref([
                     },
                     {
                         label: '자재입고 관리',
-                        to: '/mat/iomanage'
+                        to: '/mat/manage'
                     },
                     {
                         label: '자재입출고 내역조회',
-                        to: '/mat/iolist'
+                        to: '/mat/list'
                     },
                     {
                         label: '자재재고 목록조회',

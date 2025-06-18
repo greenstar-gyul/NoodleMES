@@ -394,6 +394,17 @@ router.get('/releases/popup', async (req, res) => {
 });
 
 
+router.get('/releaseData', async (req, res) => {
+  try {
+    const result = await orderService.findReleaseDataForList();
+    res.json({ result_code: 'SUCCESS', message: '출고서 목록 조회 성공', data: result });
+  } catch (err) {
+    res.json({ result_code: 'FAIL', message: '출고서 목록 조회 실패', error: err.message });
+  }
+});
+
+
+
 // 해당 javascript 파일의 마지막 코드, 모듈화
 // 위에 선언한 기능(변수, 함수 등)들 중 외부로 노출할 대상을 설정 
 // => 다른 파일에서 require()을 통해 가져옴

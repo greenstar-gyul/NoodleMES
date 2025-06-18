@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useMprStore } from '@/stores/mprStore';
+import { useMpoStore } from '@/stores/mpoStore';
 import SearchText from '@/components/search-bar/SearchText.vue';
 import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
@@ -36,12 +36,12 @@ const mrps = {
 };
 
 // pinia
-const mprStore = useMprStore();
+const mpoStore = useMpoStore();
 
 // 상태는 반응형으로 가져오기
-const { mprRows, mrpRows } = storeToRefs(mprStore);
+const { mpoRows } = storeToRefs(mpoStore);
 // 순서대로 목록데이터 저장, 초기화, 선택목록 저장
-const { setMprRows, setMrpRows, resetMprRows, resetMrpRows, resetMatRows } = mprStore;
+const { setMprRows, setMrpRows, resetMprRows, resetMrpRows, resetMatRows } = mpoStore;
 
 /* ===== DATA ===== */ 
 // MPP 팝업

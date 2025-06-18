@@ -30,13 +30,17 @@ export class NoodleClient {
         this.socket.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
+            // console.log('수신된 data Parsing', data);
             
             // 클라이언트 ID 저장
             if (data.type === 'CONNECTION_SUCCESS' && data.clientId) {
               this.clientId = data.clientId;
             }
+
+            // console.log('디버그1', this.onMessage);
             
             if (this.onMessage) this.onMessage(data);
+            // console.log('디버그12');
           } catch (e) {
             if (this.onMessage) this.onMessage({ type: 'RAW', data: event.data });
           }

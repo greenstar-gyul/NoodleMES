@@ -8,6 +8,8 @@ import mrpRouter from './router/mrp';
 import prodRouter from './router/production';
 import eqRouter from './router/equipment';
 import mprRouter from './router/mpr';
+import matRouter from './router/mat';
+import mpoRouter from './router/mpo';
 import qcrRouter from './router/quality';
 import stdRouter from './router/standard';
 import ordRouter from './router/order';
@@ -27,7 +29,13 @@ app.use(router);
 app.use(mrpRouter);
 app.use(prodRouter);
 app.use(eqRouter);
+
+/* 자재 시작 */
 app.use(mprRouter);
+app.use(matRouter);
+app.use(mpoRouter);
+/* 자재 끝 */
+
 app.use(qcrRouter);
 app.use(stdRouter);
 app.use(ordRouter);

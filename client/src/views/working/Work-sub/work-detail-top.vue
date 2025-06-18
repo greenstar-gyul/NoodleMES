@@ -1,5 +1,6 @@
 <script setup>
-import { defineProps } from 'vue';
+import { ref, onUnmounted, onMounted } from 'vue';
+import { useWebSocketStore } from '@/stores/websocket.js';
 import Button from 'primevue/button';
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import LabeledDateTimePicker from '@/components/registration-bar/LabeledDateTimePicker.vue';
@@ -9,6 +10,29 @@ const props = defineProps({
     type: Object,
     required: true
   }
+});
+
+// 🚀 Pinia Store 사용
+const wsStore = useWebSocketStore();
+
+const datas = ref({ prdr_code: '' });
+
+// 작업시작 버튼
+const startProcess = async () => {
+  wsStore.startProcess(datas.value);
+  console.log('sent', `작업 시작 메시지 전송`);
+};
+
+onMounted(() => {
+  // 이미 연결되어 있지 않으면 연결
+  if (!wsStore.isConnected) {
+    wsStore.connect();
+  }
+});
+
+onUnmounted(() => {
+  // 컴포넌트가 언마운트되어도 연결은 유지 (전역)
+  // 필요시에만 wsStore.disconnect();
 });
 </script>
 
@@ -40,7 +64,7 @@ const props = defineProps({
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="투입량" v-model="props.detail.input_qtt" :readonly="true" />
-      <LabeledInput label="목표수량" v-model="props.detail.wko_qtt" :readonly="true" />
+      <LabeledInput label="지시량" v-model="props.detail.wko_qtt" :readonly="true" />
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -51,9 +75,9 @@ const props = defineProps({
       <LabeledInput label="달성률" v-model="props.detail.perform_rate" :readonly="true" />
     </div>
 
-    <div class="flex justify-center gap-3 mt-4">
+    <div class="flex justify-center gap-3 mt-4">  
       <Button label="뒤로가기" severity="secondary" raised />
-      <Button label="작업시작" severity="success"  raised  /> 
+      <Button label="작업시작" severity="success"  raised @click="startProcess()" /> 
       <Button label="작업종료" severity="contrast" raised />
     </div>
 

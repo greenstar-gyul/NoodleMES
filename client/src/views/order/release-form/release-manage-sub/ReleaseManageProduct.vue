@@ -41,12 +41,12 @@ const formatNumber = (value) => {
 // 출고요청수량 변화에 따라 남은수량 계산
 watch(productRows, (rows) => {
   rows.forEach(row => {
-    const ordered = Number(row.prod_amount) || 0;
-    let requested = Number(row.out_req_d_amount) || 0;
+    const ordered = Number(row.ord_amount) || 0;
+    let requested = Number(row.outbnd_qtt) || 0;
 
     // 초과 방지
     if (requested > ordered) {
-      row.out_req_d_amount = ordered;
+      row.outbnd_qtt = ordered;
       requested = ordered;
     }
 

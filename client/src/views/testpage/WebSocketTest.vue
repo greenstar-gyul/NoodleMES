@@ -1,68 +1,3 @@
-<template>
-  <div class="websocket-test">
-    <div class="card">
-      <h2>🔌 웹소켓 테스트</h2>
-
-      <!-- 연결 상태 -->
-      <div class="status-section">
-        <div class="status-indicator">
-          <span class="status-dot" :class="connectionStatus"></span>
-          연결 상태: {{ getStatusText() }}
-        </div>
-        <div class="client-info" v-if="clientId">
-          클라이언트 ID: <strong>{{ clientId }}</strong>
-        </div>
-      </div>
-
-      <!-- 제어 버튼 -->
-      <div class="control-section">
-        <button @click="connect" :disabled="isConnected" class="btn btn-primary">
-          연결
-        </button>
-        <button @click="disconnect" :disabled="!isConnected" class="btn btn-danger">
-          연결 해제
-        </button>
-        <button @click="startHelloTest" :disabled="!isConnected || isTestRunning" class="btn btn-success">
-          5초 테스트 시작
-        </button>
-        <button @click="client.requestStatus()" :disabled="!isConnected" class="btn btn-primary">상태 요청</button>
-        <button @click="client.sendTestMessage()" :disabled="!isConnected" class="btn btn-primary">테스트 메시지</button>
-      </div>
-
-      <!-- 통계 정보 -->
-      <div class="stats-section">
-        <div class="stat-item">
-          <div class="stat-value">{{ messageCount }}</div>
-          <div class="stat-label">받은 메시지</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">{{ testProgress }}</div>
-          <div class="stat-label">테스트 진행</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">{{ connectionTime }}</div>
-          <div class="stat-label">연결 시간</div>
-        </div>
-      </div>
-
-      <!-- 메시지 로그 -->
-      <div class="log-section">
-        <div class="log-header">
-          <h3>메시지 로그</h3>
-          <button @click="clearLog" class="btn btn-small">지우기</button>
-        </div>
-        <div class="log-container" ref="logContainer">
-          <div v-for="(log, index) in logs" :key="index" class="log-item" :class="log.type">
-            <span class="log-time">{{ log.time }}</span>
-            <span class="log-type">[{{ log.type.toUpperCase() }}]</span>
-            <span class="log-message">{{ log.message }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { NoodleClient } from '@/service/noodle_client.js'; // 경로는 실제 위치에 맞게 조정
@@ -475,3 +410,68 @@ h2 {
   color: #ffffff;
 }
 </style>
+
+<template>
+  <div class="websocket-test">
+    <div class="card">
+      <h2>🔌 웹소켓 테스트</h2>
+
+      <!-- 연결 상태 -->
+      <div class="status-section">
+        <div class="status-indicator">
+          <span class="status-dot" :class="connectionStatus"></span>
+          연결 상태: {{ getStatusText() }}
+        </div>
+        <div class="client-info" v-if="clientId">
+          클라이언트 ID: <strong>{{ clientId }}</strong>
+        </div>
+      </div>
+
+      <!-- 제어 버튼 -->
+      <div class="control-section">
+        <button @click="connect" :disabled="isConnected" class="btn btn-primary">
+          연결
+        </button>
+        <button @click="disconnect" :disabled="!isConnected" class="btn btn-danger">
+          연결 해제
+        </button>
+        <button @click="startHelloTest" :disabled="!isConnected || isTestRunning" class="btn btn-success">
+          5초 테스트 시작
+        </button>
+        <button @click="client.requestStatus()" :disabled="!isConnected" class="btn btn-primary">상태 요청</button>
+        <button @click="client.sendTestMessage()" :disabled="!isConnected" class="btn btn-primary">테스트 메시지</button>
+      </div>
+
+      <!-- 통계 정보 -->
+      <div class="stats-section">
+        <div class="stat-item">
+          <div class="stat-value">{{ messageCount }}</div>
+          <div class="stat-label">받은 메시지</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">{{ testProgress }}</div>
+          <div class="stat-label">테스트 진행</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">{{ connectionTime }}</div>
+          <div class="stat-label">연결 시간</div>
+        </div>
+      </div>
+
+      <!-- 메시지 로그 -->
+      <div class="log-section">
+        <div class="log-header">
+          <h3>메시지 로그</h3>
+          <button @click="clearLog" class="btn btn-small">지우기</button>
+        </div>
+        <div class="log-container" ref="logContainer">
+          <div v-for="(log, index) in logs" :key="index" class="log-item" :class="log.type">
+            <span class="log-time">{{ log.time }}</span>
+            <span class="log-type">[{{ log.type.toUpperCase() }}]</span>
+            <span class="log-message">{{ log.message }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

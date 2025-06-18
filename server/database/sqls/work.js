@@ -54,7 +54,26 @@ ORDER BY w.wko_code;
 //                  LEFT JOIN eq_tbl eq
 //                  		ON eq.eq_code = ld.eq_code
 const selectWKOProcesses = `
-SELECT *
+SELECT  wko_code,
+        emp_code,
+        prod_code,
+        line_code,
+        wko_qtt,
+        line_eq_code,
+        pp_code,
+        eq_code,
+        eq_name,
+        eq_type,
+        po_code,
+        po_name,
+        prdr_code,
+        prdr_d_code,
+        proc_rate,
+        start_date,
+        end_date,
+        input_qtt,
+        def_qtt,
+        make_qtt
 FROM   processes_v
 WHERE  wko_code = ?
 `;
@@ -68,7 +87,7 @@ FOR UPDATE
 
 // PRDR 저장
 const insertPRDR = `
-INSERT INTO prdr_tbl
+INSERT INTO prdr_tbl(prdr_code, start_date, end_date, total_time, note, production_qtt, work_order_code, emp_code, prod_code, perform_rate)
 VALUES(?, NULL, NULL, NULL, ?, ?, ?, ?, ?, NULL)
 `
 
@@ -124,13 +143,48 @@ LEFT JOIN prod_tbl p ON v.prod_code = p.prod_code
 WHERE v.wko_code = ? AND v.eq_code = ?
 `;
 
-// 상세에 맞는 설비 들고오는 쿼리
-const selectEquipmentList= `
-SELECT eq.eq_code, eq.eq_name
-FROM line_d_tbl ld
-JOIN eq_tbl eq ON ld.eq_code = eq.eq_code
-WHERE ld.line_code = ?
-ORDER BY eq.eq_code;
+// 상세에 맞는 현재 사용설비가저오는 쿼리
+const selectWkocodeEqList = `
+SELECT  eq_code,
+        eq_name
+FROM    processes_v
+WHERE   wko_code = ?
+ORDER BY pp_code;
+`;
+
+// 작업지시서 코드로 라인 상세 조회
+const selectLineDetailList = `
+SELECT ld.line_eq_code
+FROM   line_d_tbl ld JOIN wko_tbl w
+					   ON w.line_code = ld.line_code
+WHERE  w.wko_code = ?
+`;
+
+// 작업 진행 상세 저장
+const insertPRDRD = `
+INSERT INTO prdr_d_tbl(prdr_d_code, prdr_code, line_eq_code)
+VALUES(?, ?, ?)
+`
+
+// 작업지시서 코드와 설비 코드로 PRDR-D 코드 조회
+const selectPrdrDCodeForDetail = `
+SELECT prdr_d_code 
+FROM processes_v
+WHERE wko_code = ? AND eq_code = ?
+`
+
+// prdr_code로 작업지시서 공정 조회
+const selectPrdrDCodeByWkoCode = `
+SELECT prdr_d_code
+FROM prdr_d_tbl
+WHERE prdr_code = ?
+`;
+
+// 작업 진행률 갱신
+const updatePRDRDRate = `
+UPDATE prdr_d_tbl
+SET proc_rate = ?
+WHERE prdr_d_code = ?
 `;
 
 module.exports = {
@@ -140,5 +194,11 @@ module.exports = {
   searchWorkingList,
   selectWKOProcesses,
   selectWorkDetailOne,
-  selectEquipmentList
+  selectWkocodeEqList,
+  selectPRDRDCode,
+  selectLineDetailList,
+  insertPRDRD,
+  selectPrdrDCodeForDetail,
+  selectPrdrDCodeByWkoCode,
+  updatePRDRDRate,
 }

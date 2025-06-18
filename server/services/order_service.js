@@ -70,15 +70,13 @@ const findOrdersByCondition = async (conditions) => {
 
   try {
     const result = await mariadb.query("selectOrderListByCondition", values);
-    console.log("🧪 검색 조건 값 확인:", values);
+    console.log("검색 조건 값 확인:", values);
     return result;
   } catch (err) {
     console.error("조건 주문 조회 실패:", err);
     throw err;
   }
 };
-
-
 
 // 거래처 목록 조회
 const findClientList = async () => {
@@ -221,9 +219,10 @@ const insertRelease = async (release) => {
       throw new Error("출고 수량은 요청 수량을 초과할 수 없습니다.");
     }
 
-    let stat = "출고대기";
-    if (outbnd_qtt === req_qtt) stat = "출고완료";
-    else if (outbnd_qtt > 0) stat = "부분출고";
+    // 출고 상태 계산
+    let stat = 'q1'; // 기본값: 출고대기
+    if (outbnd_qtt === req_qtt) stat = 'q3'; // 출고완료
+    else if (outbnd_qtt > 0) stat = 'q2';   // 부분출고
 
     const values = [
       poutbnd_code,
@@ -273,7 +272,7 @@ const insertFinalRelease = async (release) => {
     const codeRes = await mariadb.queryConn(conn, "selectOutReqCodeForUpdate");
     const out_req_code = codeRes[0].out_req_code;
 
-
+    console.log("🔥 insertOutReq 실행 직전 client_code:", release.client_code);
 
     // 출고기본정보 등록
     await mariadb.queryConn(conn, "insertOutReq", [
@@ -300,17 +299,19 @@ const insertFinalRelease = async (release) => {
 
       const req_qtt = item.req_qtt;
       const outbnd_qtt = item.outbnd_qtt;
+      const ord_amount = item.ord_amount;
 
-      let stat = "출고대기";
-      if (outbnd_qtt === req_qtt) stat = "출고완료";
-      else if (outbnd_qtt > 0) stat = "부분출고";
+      // 출고 상태 계산
+      let stat = 'q1'; // 기본값: 출고대기
+      if (outbnd_qtt === req_qtt) stat = 'q3'; // 출고완료
+      else if (outbnd_qtt > 0) stat = 'q2';   // 부분출고
 
       // 출고상세 등록
       await mariadb.queryConn(conn, "insertOutReqDetail", [
         out_req_d_code,
-        req_qtt,
+        item.req_qtt,
         item.com_value_code,
-        req_qtt, // 주문 수량 그대로
+        ord_amount , // 주문 수량 그대로
         out_req_code,
         item.prod_code,
       ]);
@@ -357,9 +358,10 @@ const updateRelease = async (poutbnd_code, release) => {
     throw new Error("출고 수량은 요청 수량을 초과할 수 없습니다.");
   }
 
-  let stat = "출고대기";
-  if (outbnd_qtt === req_qtt) stat = "출고완료";
-  else if (outbnd_qtt > 0) stat = "부분출고";
+  // 출고 상태 계산
+  let stat = 'q1'; // 기본값: 출고대기
+  if (outbnd_qtt === req_qtt) stat = 'q3'; // 출고완료
+  else if (outbnd_qtt > 0) stat = 'q2';   // 부분출고
 
   const values = [
     req_qtt,
@@ -392,22 +394,32 @@ const updateFinalRelease = async (poutbnd_code, releaseDetails) => {
         throw new Error("출고 수량은 주문 수량을 초과할 수 없습니다.");
       }
 
-      let stat = "출고대기";
-      if (outbnd_qtt === req_qtt) stat = "출고완료";
-      else if (outbnd_qtt > 0) stat = "부분출고";
+      // 출고 상태 계산
+      let stat = 'q1'; // 기본값: 출고대기
+      if (outbnd_qtt === req_qtt) stat = 'q3'; // 출고완료
+      else if (outbnd_qtt > 0) stat = 'q2';   // 부분출고
+      
+      const lot_num = await findAvailableLotByProduct(item.prod_code);
+      if (!lot_num) {
+        throw new Error(`제품 ${item.prod_name}의 유효한 LOT 번호가 없습니다.`);
+      };
+
+      const deadline = item.deadline || item.delivery_date || moment().format('YYYY-MM-DD');
 
       const values = [
         req_qtt,
         outbnd_qtt,
-        item.deadline,
+        deadline,
         stat,
         item.outbound_request_code || '',
-        null, // lot_num
+        lot_num,
         item.prod_code,
         item.client_code,
         item.mcode ?? "EMP-10001",
         poutbnd_code
       ];
+
+      console.log("🔥 updateRelease 실행 직전 client_code:", item.client_code);
 
       await mariadb.queryConn(conn, "updateRelease", values);
     }
@@ -496,6 +508,57 @@ const updateReleaseBatch = async (poutbnd_code, releaseDetails) => {
   return await updateFinalRelease(poutbnd_code, releaseDetails); // 이미 정의된 함수 재사용
 };
 
+// 출고서 전체 목록 조회 (출고요청 상세 + 출고 정보 등 포함)
+const findReleaseDataForList = async () => {
+  const result = await mariadb.query("releaseDataForLists")
+    .catch(err => {
+      console.error("출고서 목록 조회 실패:", err);
+      throw err;
+    });
+  return result;
+};
+
+
+// 검색조건에 맞는 주문 조회(수정해야함)
+const findReleaseByCondition = async (conditions) => {
+  const {ord_date_from, ord_date_to, ord_code, ord_name, client_name, ord_stat, prod_qtt_from, prod_qtt_to, delivery_date_from, delivery_date_to} = conditions;
+
+  // 2번씩 값을 넣는 이유는, SQL문에서 같은 조건에 대해 ?가 두 번 사용되기 때문
+  // 예: (? IS NULL OR ord_code LIKE CONCAT('%', ?, '%')) ← ?가 2개!
+  // 각각의 ? 자리에는 동일한 값이 들어가야 하므로, 배열에 같은 값을 두 번 넣음
+  // Node.js의 mariadb.query(sql, values)는 SQL에 등장하는 ?의 순서에 따라 배열 값을 차례대로 매핑하므로
+  // SQL문에 ?가 12개라면, values도 정확히 12개의 값이 있어야 함
+  // => 따라서 ord_date_from, ord_date_to 등은 두 번씩 values에 포함됨
+
+  const clean = (v) => {
+    if (v === '' || v === undefined || v === null) return null;
+    if (typeof v === 'string' && v.trim() === '') return null;
+    return v;
+  };
+
+  const values = [
+    clean(ord_date_from), clean(ord_date_from),
+    clean(ord_date_to), clean(ord_date_to),
+    clean(ord_code), clean(ord_code),
+    clean(ord_name), clean(ord_name),
+    clean(client_name), clean(client_name),
+    clean(ord_stat), clean(ord_stat),
+    clean(prod_qtt_from), clean(prod_qtt_from),
+    clean(prod_qtt_to), clean(prod_qtt_to),
+    clean(delivery_date_from), clean(delivery_date_from),
+    clean(delivery_date_to), clean(delivery_date_to)
+  ];
+
+  try {
+    const result = await mariadb.query("findReleaseDataForList", values);
+    console.log("검색 조건 값 확인:", values);
+    return result;
+  } catch (err) {
+    console.error("출고 조회 실패:", err);
+    throw err;
+  }
+};
+
 module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
     findAllOrders,
@@ -521,5 +584,7 @@ module.exports ={
     findAvailableLotByProduct,
     getReleaseByOutReqCode,
     findReleasePopList,
-    updateReleaseBatch
+    updateReleaseBatch,
+    findReleaseDataForList,
+    findReleaseByCondition
 };

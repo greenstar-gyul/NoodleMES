@@ -117,7 +117,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 const selectMprCodeForUpdate =
 `
 SELECT CONCAT('MPR-', 
-              LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_code, 7) AS UNSIGNED)), 0) + 1, 3, '0')
+              LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_code, 5) AS UNSIGNED)), 0) + 1, 3, '0')
              ) AS mpr_code
 FROM mpr_tbl
 FOR UPDATE
@@ -127,7 +127,7 @@ FOR UPDATE
 const selectMprDCodeForUpdate =
 `
 SELECT CONCAT('MPR-D-', 
-              LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_d_code, 9) AS UNSIGNED)), 0) + 1, 3, '0')
+              LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_d_code, 8) AS UNSIGNED)), 0) + 1, 3, '0')
              ) AS mpr_d_code
 FROM mpr_d_tbl
 FOR UPDATE
