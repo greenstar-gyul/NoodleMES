@@ -59,18 +59,16 @@ const insertQcrTx = async (qcrDataList) => {
 
       // ❗ 여기만 수정함: 자동 생성된 qcr_code를 사용
       await conn.query(qcrSql.insertQcr, [
-        qcr_code, // ✅ 여기!
-        data.inspection_item,
-        data.range_top,
-        data.range_bot,
-        data.com_value,
-        data.unit,
-        data.note,
-        data.check_method,
-        data.regdate_from,
-        data.regdate_to,
-        data.is_used
-      ]);
+  qcr_code,
+  data.inspection_item,
+  data.range_top,
+  data.range_bot,
+  data.unit,
+  data.note,
+  data.check_method,
+  data.regdate,   // IFNULL 처리를 쿼리문에서 함
+  data.com_value
+]);
     // }
 
     await conn.commit();
@@ -78,7 +76,7 @@ const insertQcrTx = async (qcrDataList) => {
 
   } catch (err) {
     await conn.rollback();
-    console.error(':x: 품질 기준 등록 실패:', err);
+    console.error('❌ 품질 기준 등록 실패:', err);
     throw err;
   } finally {
     conn.release();
