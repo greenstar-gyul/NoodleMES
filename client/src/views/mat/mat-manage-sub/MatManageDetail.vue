@@ -137,39 +137,30 @@ onMounted(async () => {
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="조치 코드" :model-value="currentData.eq_ma_code" :disabled="true"
+            <LabeledInput label="자재입고 코드" :model-value="currentData.eq_ma_code" :disabled="true"
                 placeholder="저장 시 자동으로 생성됩니다." />
-            <LabeledInput label="설비명" :model-value="currentData.eq_name" :disabled="true"
+            <LabeledInput label="검사지시코드(검색)" :model-value="currentData.eq_name" :disabled="true"
                 @update:model-value="updateEqName" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledDatePicker label="고장일" :model-value="currentData.fail_date" @update:model-value="updateFailDate" />
-            <LabeledTextarea label="고장원인" :model-value="currentData.fail_cause" @update:model-value="updateFailCause" />
+            <LabeledTextarea label="주문수량" :model-value="currentData.fail_date" @update:model-value="updateFailDate" />
+            <LabeledTextarea label="입고수량" :model-value="currentData.fail_cause" @update:model-value="updateFailCause" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledTextarea label="조치내용" :model-value="currentData.act_detail" @update:model-value="updateActDetail" />
-            <LabeledSelect label="조치결과" :model-value="currentData.act_result" @update:model-value="updateActResult"
+            <LabeledTextarea label="단위" :model-value="currentData.act_detail" @update:model-value="updateActDetail" />
+            <LabeledDateTimePicker label="입고일자" :model-value="currentData.act_result" @update:model-value="updateActResult"
                 :options="statusOptions" placeholder="상태를 선택하세요" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledDateTimePicker label="조치시작일시" :model-value="currentData.start_date"
+            <LabeledTextarea label="공급업체" :model-value="currentData.start_date"
                 @update:model-value="updateStartDate" />
-            <LabeledDateTimePicker label="조치종료일시" :model-value="currentData.end_date"
+            <LabeledTextarea label="담당자(로그인)" :model-value="currentData.end_date"
                 @update:model-value="updateEndDate" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledDatePicker label="재점검예정일" :model-value="currentData.re_chk_exp_date"
+            <LabeledDatePicker label="LOT번호" :model-value="currentData.re_chk_exp_date"
                 @update:model-value="updateReChkExpDate" />
-            <LabeledDatePicker label="등록일자" :model-value="currentData.regdate" @update:model-value="updateRegDate" />
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="담당자" :model-value="currentData.m_emp_name" :disabled="true" />
-            <LabeledInput label="수리요청자" :model-value="currentData.fix_emp_name" :disabled="true" />
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="점검결과 코드" :model-value="currentData.eqir_code" @click="openEqirPopup"
-                @update:model-value="updateEqirCode" placeholder="클릭하여 점검결과를 선택하세요" readonly style="cursor: pointer;" />
-            <LabeledTextarea label="비고" :model-value="currentData.note" @update:model-value="updateNote" />
+            <LabeledDatePicker label="비고" :model-value="currentData.regdate" @update:model-value="updateRegDate" />
         </div>
     </div>
 
