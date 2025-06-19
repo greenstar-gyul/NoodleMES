@@ -3,7 +3,7 @@ const getCurrentMonthPlans =`
 SELECT  prdr.prdr_code,
         work_order_code,
         prdr.prod_code,
-        p.prod_name,
+        p.prod_name,  
         prdr.start_date,
         prdr.end_date,
         TIME_FORMAT(TIMEDIFF(prdr.end_date, prdr.start_date), '%H:%i') AS total_time,
@@ -67,10 +67,19 @@ JOIN eq_tbl eq ON ld.eq_code = eq.eq_code
 WHERE p.prdr_code = ?
 `;
 
+const simpleSelectPrdr = `
+SELECT p.prdr_code
+       ,d.prod_name
+       ,p.end_date
+       ,p.production_qtt
+FROM prdr_tbl p
+JOIN prod_tbl d ON p.prod_code = d.prod_code
+`;
 
 module.exports = {
   getCurrentMonthPlans,
   searchPrdr,
   selectPrdrOne,
-  selectEquipmentByPrdr
+  selectEquipmentByPrdr,
+  simpleSelectPrdr
 }

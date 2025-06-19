@@ -19,8 +19,8 @@ const datas = ref({ prdr_code: '' });
 
 // 작업시작 버튼
 const startProcess = async () => {
-  wsStore.startProcess(datas.value);
-  console.log('sent', `작업 시작 메시지 전송`);
+  const result = await wsStore.startProcess(datas.value);
+  console.log('sent', `작업 시작 메시지 전송`, result, wsStore.clientId);
 };
 
 onMounted(() => {

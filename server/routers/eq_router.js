@@ -176,7 +176,7 @@ router.get('/eqii/search', async (req, res) => {
             end_date: req.query.end_date || null
         };
 
-        console.log('🔍 검색 조건:', searchParams);
+        console.log('검색 조건:', searchParams);
 
         const eqiiList = await eqService.searchEqii(searchParams);
 
@@ -187,7 +187,7 @@ router.get('/eqii/search', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('🚨 검색 오류:', error);
+        console.error('검색 오류:', error);
         res.status(500).json({
             success: false,
             error: error.message,
@@ -286,10 +286,11 @@ router.get('/eqirmg/search', async (req, res) => {
             eq_ma_code: req.query.eq_ma_code || null,
             eq_name: req.query.eq_name || null,
             act_result: req.query.act_result || null,
-            m_emp_name: req.query.m_emp_name || null,
-            fix_emp_name: req.query.fix_emp_name || null,
+            fail_cause: req.query.fail_cause || null,
             start_date: req.query.start_date || null,
-            end_date: req.query.end_date || null
+            end_date: req.query.end_date || null,
+            m_emp_name: req.query.m_emp_name || null,
+            fix_emp_name: req.query.fix_emp_name || null
         };
 
         console.log('🔍 설비 유지보수 검색 조건:', searchParams);
@@ -303,7 +304,7 @@ router.get('/eqirmg/search', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('🚨 설비 유지보수 검색 오류:', error);
+        console.error('설비 유지보수 검색 오류:', error);
         res.status(500).json({
             success: false,
             error: error.message,
@@ -316,10 +317,10 @@ router.get('/eqirmg/search', async (req, res) => {
 router.get('/eqirmg/:code', async (req, res) => {
     try {
         const eqmaCode = req.params.code;
-        console.log('🔍 요청된 코드:', eqmaCode);
+        console.log('요청된 코드:', eqmaCode);
         
         const eqmaData = await eqService.findEqirMgListByCode(eqmaCode);
-        console.log('🔍 조회된 데이터:', eqmaData);
+        console.log('조회된 데이터:', eqmaData);
         
         if (eqmaData) {
             res.json({ success: true, data: eqmaData });
@@ -327,7 +328,7 @@ router.get('/eqirmg/:code', async (req, res) => {
             res.json({ success: false, message: '데이터를 찾을 수 없습니다.' });
         }
     } catch (error) {
-        console.log('🚨 조회 오류:', error);
+        console.log('조회 오류:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });

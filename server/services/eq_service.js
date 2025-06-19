@@ -507,11 +507,12 @@ const searchEqMa = async (params) => {
   const bindParams = [
     params.eq_ma_code, params.eq_ma_code,
     params.eq_name, params.eq_name,
-    params.act_result, params.act_result,  
-    params.m_emp_name, params.m_emp_name,
-    params.fix_emp_name, params.fix_emp_name,
+    params.act_result, params.act_result,
+    params.fail_cause, params.fail_cause,
     params.start_date, params.start_date,
-    params.end_date, params.end_date
+    params.end_date, params.end_date,
+    params.m_emp_name, params.m_emp_name,
+    params.fix_emp_name, params.fix_emp_name
   ].map(param => param ?? null);
 
   try {

@@ -6,6 +6,9 @@ import moment from 'moment';
 import workListSearchBar from './Work-sub/work-list-searchBar.vue';
 import workListTable from './Work-sub/work-list-table.vue';
 import workMapping from '@/service/WorkMapping.js';
+import { useWebSocketStore } from '../../stores/websocket';
+
+const wsStore = useWebSocketStore();
 
 console.log('🚀 컴포넌트 마운트됨');
 
@@ -46,6 +49,7 @@ const formatDateFields = (list) => {
 
 onMounted(() => {
   loadTableData();
+  console.log(wsStore.getStatusText );
 });
 
 // 검색 초기화

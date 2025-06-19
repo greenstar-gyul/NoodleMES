@@ -13,6 +13,7 @@ import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
 import QualityResultsTbl from './QualityResultsTbl.vue';
 
+
 /* ===== DATA ===== */
 // 팝업
 const  qioVisible = ref(false);
@@ -82,6 +83,23 @@ const handleConfirm = (qio) => {
     // 🚀 기본정보 수정 불가 처리
     isReadonly.value = true;
 };
+
+// 검사 지시서 불러오기
+const fetchOrders = async () => {
+  const res = await fetch('/api/qcr/all-orders');
+  const data = await res.json();
+  ordersRef.value = data;
+};
+
+// 검사 결과 불러오기
+const fetchResults = async () => {
+  const res = await fetch('/api/qc/all-results');
+  const data = await res.json();
+  resultsQir.value = data;
+};
+
+
+
 
 // EditableTable 업데이트 핸들러
 const handleUpdate = (updatedData) => {

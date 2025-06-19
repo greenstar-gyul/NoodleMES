@@ -50,6 +50,9 @@ const wkoRouter = require('./routers/wko_router.js');
 const prdrRouter = require('./routers/prdr_router.js');
 const procRouter = require('./routers/proc_router.js');
 const workRouter = require('./routers/work_router.js');
+const qrcRouter = require('./routers/qcr_router.js');
+const qcrRouter = require('./routers/qcr_router.js');
+const qltRouter = require('./routers/qlt_router.js');
 
 // 기본 라우팅
 app.get('/', (req, res) => {
@@ -70,6 +73,9 @@ app.use('/wko', wkoRouter);
 app.use('/prdr', prdrRouter);
 app.use('/proc', procRouter);
 app.use('/work', workRouter);
+app.use('/qrc', qrcRouter);
+app.use('/qlt', qltRouter);
+
 
 // 서버 종료 시 웹소켓 정리
 process.on('SIGTERM', () => {

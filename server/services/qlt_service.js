@@ -14,10 +14,28 @@ const findAll = async () => {
   // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
   // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
   let list = await mariadb.query("selectAll")
-                          .catch(err => console.log(err));
+    .catch(err => console.log(err));
   return list;
 };
 
+// qio_tbl 조회
+const getQioList = async () => {
+  let list = await mariadb.query("getQioList")
+    .catch(err => console.log(err));
+  return list;
+};
+
+const searchQioListByCode = async (qioCode) => {
+  let list = await mariadb.query("searchQioListByCode", [qioCode])
+    .catch(err => console.log(err));
+  return list;
+};
+
+const searchPrdrListByQioCode = async (qioCode) => {
+  let list = await mariadb.query("selectPrdrByQioCode", [qioCode])
+    .catch(err => console.log(err));
+  return list;
+};
 
 // standard  기준정보 등록
 const insertQlt = async (data) => {
@@ -83,9 +101,22 @@ const insertQcrTx = async (qcrDataList) => {
   }
 };
 
+<<<<<<< HEAD
 module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
     findAll,
     insertQlt,
     insertQcrTx
 }
+=======
+module.exports = {
+  // 해당 객체에 등록해야지 외부로 노출
+  findAll,
+  insertQlt,
+  insertQcrTx,
+  getQioList,
+  searchQioListByCode,
+  searchPrdrListByQioCode
+}
+
+>>>>>>> c34fc129eff3a6790b3bb302aa83bfc2bda68da6

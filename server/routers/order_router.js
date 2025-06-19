@@ -380,28 +380,50 @@ router.get('/releases/popup', async (req, res) => {
     const result = await orderService.findReleasePopList();
     res.json({
       result_code: "SUCCESS",
-      message: "출고 팝업 목록 조회 성공",
+      message: "성공",
       data: result
     });
   } catch (err) {
     console.error("출고 팝업 목록 조회 실패:", err);
     res.status(500).json({
       result_code: "FAIL",
-      message: "출고 팝업 목록 조회 실패",
+      message: "실패",
       error: err.message
     });
   }
 });
 
 
+// 출고 목록 조회
 router.get('/releaseData', async (req, res) => {
   try {
     const result = await orderService.findReleaseDataForList();
-    res.json({ result_code: 'SUCCESS', message: '출고서 목록 조회 성공', data: result });
+    res.json({ result_code: 'SUCCESS', message: '성공', data: result });
   } catch (err) {
-    res.json({ result_code: 'FAIL', message: '출고서 목록 조회 실패', error: err.message });
+    res.json({ result_code: 'FAIL', message: '실패', error: err.message });
   }
 });
+
+
+// 출고 목록 검색 조건 조회
+router.get('/releaseData/search', async (req, res) => {
+  try {
+    const result = await orderService.findReleasesByCondition(req.query);
+    res.json({
+      result_code: "SUCCESS",
+      message: "성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고 조건 검색 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "실패",
+      error: err.message
+    });
+  }
+});
+
 
 
 
