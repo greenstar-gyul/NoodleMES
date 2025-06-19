@@ -192,7 +192,7 @@ class NoodleServer {
     if (data.prdr_code == null || data.prdr_code === '') {
       await this.insertPrdr(data);
       console.log(`✅ PRDR 코드 ${data.prdr_code} 저장 완료`);
-      
+
       this.requestStartWork(data.wko_code, data.line_code, data.prdr_code);
     }
     // PRDR 코드가 있다면 작업 재개
@@ -233,8 +233,8 @@ class NoodleServer {
         throw new Error(`PRDR 코드 ${prdrCode} 저장 실패`);
       }
 
-      // 자재 재고 상태 파악
-      const materialList = await this.checkMatStock(conn, prdrCode);
+      // // 자재 재고 상태 파악
+      // const materialList = await this.checkMatStock(conn, prdrCode);
 
       // 라인 공정 코드 목록 조회
       const lineEQCodeList = await mariadb.queryConn(conn, 'selectLineDetailList', [data.wko_code ?? 'WKO-20250605-001']);
@@ -261,17 +261,17 @@ class NoodleServer {
       const prdrDCodeRes = await mariadb.queryConn(conn, 'selectPrdrDCodeForDetail', [data.wko_code ?? 'WKO-20250606-001', data.eq_code ?? 'EQ-MIX-0001']);
       const prdrDCode = prdrDCodeRes[0].prdr_d_code;
       console.log('PRDR-D 코드 조회 결과:', prdrDCode);
-      
-      // 자재 출고 처리
-      await this.releaseMaterials(conn, prdrCode, data.emp_code ?? 'EMP-10001', materialList);
 
-      // await conn.commit(); // 트랜잭션 커밋
+      // 자재 출고 처리
+      // await this.releaseMaterials(conn, prdrCode, data.emp_code ?? 'EMP-10001', materialList);
+
+      await conn.commit(); // 트랜잭션 커밋
       console.log('✅ PRDR 저장 트랜잭션 성공:', prdrCode, prdrDCode);
 
       data.prdr_code = prdrCode;
       data.prdr_d_code = prdrDCode;
 
-      await conn.rollback(); // 트랜잭션 커밋은 하지 않고 롤백 (테스트용)
+      // await conn.rollback(); // 트랜잭션 커밋은 하지 않고 롤백 (테스트용)
 
       return { prdrCode, prdrDCode, result };
     }
@@ -296,7 +296,7 @@ class NoodleServer {
       console.error('❌ 자재 목록이 비어있습니다. 생산을 진행할 수 없습니다.');
       throw new Error('자재 목록이 비어있습니다. 생산을 진행할 수 없습니다.');
     }
-    
+
     // 자재 재고가 부족한 자재의 이름들을 저장하는 배열
     const insufficientMaterials = [];
 
@@ -310,7 +310,7 @@ class NoodleServer {
         console.log(`✅ 자재 ${material.mat_code}의 재고가 충분합니다. 현재: ${material.cur_qtt}, 필요: ${material.req_qtt}`);
       }
     }
-    
+
     // 재고가 부족한 자재가 있다면 에러 처리
     if (insufficientMaterials.length > 0) {
       console.error(`❌ 다음 자재의 재고가 부족합니다: ${insufficientMaterials.join(', ')}`);
@@ -393,7 +393,7 @@ class NoodleServer {
   }
 
   // 작업 완료 시
-  onWorkCompleted(wkoCode, lineCode) {
+  onWorkCompleted(wkoCode, lineCode, prdrCode) {
     // 라인 상태를 IDLE로 변경
     this.lineStatus.set(lineCode, 'IDLE');
 
@@ -404,9 +404,53 @@ class NoodleServer {
       timestamp: Date.now()
     });
 
+    this.updateProcess(prdrCode, 'b3'); // 생산 완료 상태로 업데이트
+
     // 대기열에 다음 작업이 있으면 시작
     this.processLineQueue(lineCode);
   }
+
+  async updateProcess(prdrCode, prodStat) {
+    console.log(`PRDR 코드 ${prdrCode} 상태 업데이트: ${prodStat}`);
+    console.log(`PRDR 코드 ${prdrCode} 상태 업데이트: ${prodStat}`);
+    console.log(`PRDR 코드 ${prdrCode} 상태 업데이트: ${prodStat}`);
+    console.log(`PRDR 코드 ${prdrCode} 상태 업데이트: ${prodStat}`);
+
+    // DB에서 해당 PRDR 코드의 공정 완료 상태 업데이트
+    // UPDATE prdr_d_tbl SET status = 'COMPLETED' WHERE prdr_code = ?
+    const conn = await mariadb.connectionPool.getConnection();
+    try {
+      await conn.beginTransaction(); // 트랜잭션 시작
+
+      const data = [prodStat, prdrCode];
+      console.log(`PRDR-D 코드 ${prdrCode} 상태 업데이트: ${prodStat}`);
+
+      if (prodStat === 'b3') {
+        const result = await mariadb.queryConn(conn, 'updatePRDRComplete', data);
+        if (result.affectedRows > 0) {
+          console.log(`✅ PRDR-D 코드 ${prdrCode} 상태 업데이트 성공`);
+        } else {
+          console.error(`❌ PRDR-D 코드 ${prdrCode} 상태 업데이트 실패`);
+        }
+      }
+      else {
+        const result = await mariadb.queryConn(conn, 'updatePRDRStart', data);
+        if (result.affectedRows > 0) {
+          console.log(`✅ PRDR-D 코드 ${prdrCode} 상태 업데이트 성공`);
+        } else {
+          console.error(`❌ PRDR-D 코드 ${prdrCode} 상태 업데이트 실패`);
+        }
+      }
+
+      await conn.commit(); // 트랜잭션 커밋
+    } catch (error) {
+      await conn.rollback(); // 트랜잭션 롤백
+      console.error(`❌ PRDR-D 코드 ${prdrCode} 상태 업데이트 중 오류:`, error);
+    } finally {
+      await conn.release(); // 컨넥션 반납
+    }
+  }
+
 
   // 라인별 대기열 처리
   processLineQueue(lineCode) {
@@ -451,6 +495,9 @@ class NoodleServer {
       // 1. 해당 작업의 공정 목록 조회 (DB 호출)
       const processes = await this.getProcessList(prdrCode);
 
+      // 1-1. 작업 진행 상태 변경
+      this.updateProcess(prdrCode, 'b2');
+
       // 2. 각 공정을 순차적으로 시작
       for (let i = 0; i < processes.length; i++) {
         const process = processes[i];
@@ -471,7 +518,7 @@ class NoodleServer {
       }
 
       // 4. 모든 공정 완료
-      this.onWorkCompleted(wkoCode, lineCode);
+      this.onWorkCompleted(wkoCode, lineCode, prdrCode);
 
     } catch (error) {
       console.error('작업 처리 중 오류:', error);
@@ -494,13 +541,13 @@ class NoodleServer {
           progress: progress,
           timestamp: Date.now()
         });
-        
+
         // 진행률 50%, 100%일 때 DB 업데이트
         if (progress >= 100) {
           clearInterval(interval);
 
           this.updateProcessProgress(process.prdr_d_code, progress);
-          
+
           // 공정 완료 알림
           this.broadcast({
             type: 'PROCESS_COMPLETED',
@@ -526,7 +573,7 @@ class NoodleServer {
     }
     return result;
   }
-  
+
   async updateProcessProgress(prdrDCode, progress) {
     // DB의 진행률 업데이트
     // UPDATE prdr_d_tbl SET proc_rate = ? WHERE prdr_d_code = ?
@@ -549,7 +596,7 @@ class NoodleServer {
       conn.release(); // 컨넥션 반납
     }
   }
-  
+
   onWorkError(wkoCode, lineCode, error) {
     // 에러 처리 로직
     this.lineStatus.set(lineCode, 'ERROR');

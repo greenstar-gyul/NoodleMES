@@ -121,75 +121,65 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="space-y-4 mt-7">
-    <div class="card flex flex-col gap-4">
-        <!-- 헤더 -->
-        <div class="flex justify-between">
-            <div>
-                <div class="font-semibold text-2xl">요청자재</div>
-            </div>
-            <div class="flex justify-end gap-2">
-                <Button label="선택 삭제" icon="pi pi-trash" severity="danger" @click="deleteSelected" />
-                <Button label="행 추가" icon="pi pi-plus" @click="addRow" />
+    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-12">
+        <div class="grid grid-cols-1 gap-4">
+            <div class="flex justify-between">
+                <div>
+                    <div class="font-semibold text-2xl"><b>조치 결과 정보</b></div>
+                </div>
+                <div class="flex items-center gap-2 flex-nowrap">
+                    <Button label="삭제" severity="danger" class="min-w-fit" @click="deletePlan" />
+                    <Button label="초기화" severity="contrast" class="min-w-fit" v-on:click="emit('resetList')" />
+                    <Button label="저장" severity="info" class="min-w-fit" v-on:click="saveMRP" />
+                    <Button label="조치결과 불러오기" severity="success" class="min-w-fit whitespace-nowrap"
+                        @click="openPopup" />
+                </div>
             </div>
         </div>
-
-        <!-- 제품 테이블 -->
-        <DataTable v-model:selection="selectedMpr" :value="mprRows" showGridlines scrollable scrollHeight="450px" dataKey="chk_id" class="w-full fixed-table">
-            <Column selectionMode="multiple" headerStyle="width: 3rem" />
-
-            <Column field="mat_code" header="자재코드" style="width: 150px" bodyStyle="width: 150px">
-                <template #body="slotMats">
-                    <div class="flex gap-2">
-                        <InputText v-model="slotMats.data.mat_code" style="width: 100%" readonly />
-                        <Button icon="pi pi-search" style="width: 32px; min-width: 32px;" @click="() => openMatPopup(slotMats.data)" />
-                    </div>
-                </template>
-            </Column>
-
-            <Column field="mat_name" header="자재명" style="width: 120px" bodyStyle="width: 120px">
-                <template #body="slotMats">
-                    <InputText v-model="slotMats.data.mat_name" style="width: 100%" readonly />
-                </template>
-            </Column>    
-            
-            <Column field="req_qtt" header="요청수량" style="width: 130px" bodyStyle="width: 130px">
-                <template #body="slotMats">
-                    <InputNumber v-model="slotMats.data.req_qtt"   :min="0" showButtons  :inputStyle="{ width: '100%' }" />
-                    <!-- <Select v-model="slotMats.data.spec" :options="specOptions" optionLabel="label" optionValue="value" placeholder="규격"  style="width: 100%"/> -->
-                </template>
-            </Column>
-
-            <Column field="unit" header="단위" style="width: 100px" bodyStyle="width: 100px">
-                <template #body="slotMats">
-                    <InputText v-model="slotMats.data.unit" style="width: 100%" readonly />
-                    <!-- <Select v-model="slotMats.data.unit" :options="unitOptions" optionLabel="label" optionValue="value" placeholder="단위"  style="width: 100%"/> -->
-                </template>
-            </Column>            
-
-            <Column field="client_name" header="공급업체" style="width: 60px" bodyStyle="width: 100px">
-                <template #body="slotMats">
-                    <InputText v-model="slotMats.data.client_name" style="width: 100%" readonly />
-                    <InputText type="hidden" v-model="slotMats.data.sup" /> 
-                </template>
-            </Column>
-
-            <Column field="note" header="비고" style="width: 150px" bodyStyle="width: 150px">
-                <template #body="slotMats">
-                    <InputText v-model="slotMats.data.note" style="width: 100%"/>
-                </template>
-            </Column>
-        </DataTable>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledInput label="자재입고 코드" :model-value="currentData.eq_ma_code" :disabled="true"
+                placeholder="저장 시 자동으로 생성됩니다." />
+            <LabeledInput label="검사지시코드(검색)" :model-value="currentData.eq_name" :disabled="true"
+                @update:model-value="updateEqName" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledTextarea label="주문수량" :model-value="currentData.fail_date" @update:model-value="updateFailDate" />
+            <LabeledTextarea label="입고수량" :model-value="currentData.fail_cause" @update:model-value="updateFailCause" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledTextarea label="단위" :model-value="currentData.act_detail" @update:model-value="updateActDetail" />
+            <LabeledDateTimePicker label="입고일자" :model-value="currentData.act_result" @update:model-value="updateActResult"
+                :options="statusOptions" placeholder="상태를 선택하세요" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledTextarea label="공급업체" :model-value="currentData.start_date"
+                @update:model-value="updateStartDate" />
+            <LabeledTextarea label="담당자(로그인)" :model-value="currentData.end_date"
+                @update:model-value="updateEndDate" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LabeledDatePicker label="LOT번호" :model-value="currentData.re_chk_exp_date"
+                @update:model-value="updateReChkExpDate" />
+            <LabeledDatePicker label="비고" :model-value="currentData.regdate" @update:model-value="updateRegDate" />
+        </div>
     </div>
-  </div>
 
-  <!-- ===== 자재 팝업 ===== -->
-  <SinglePopup
-      v-model:visible="matPopupVisible"
-      :selectedHeader = "['mat_code', 'mat_name','save_inven', 'unit', 'client_name', 'material_type_code']"
-      :items="matList"
-      @confirm="handleMatConfirm"
-      :mapper="mprMapping.MatMapper"
-      :dataKey="'mat_code'"
-  />
+    <!-- 팝업 컴포넌트 -->
+    <eqirmgsinglePopup v-model:visible="eqirmgPopupVisibil" :items="eqirmgs" @confirm="loadSelectedPlan"
+        :selectedHeader="['eq_ma_code', 'eq_name', 'fail_date', 'act_detail', 'act_result']" :mapper="eqiiresmgMapping"
+        :visibleFields="['eq_ma_code', 'eq_name', 'fail_date', 'act_detail', 'act_result']" :dataKey="'eq_ma_code'"
+        :placeholder="'조치결과 불러오기'">
+    </eqirmgsinglePopup>
+    <EqirSinglePopup v-model:visible="eqirPopupVisibil" :items="eqirss" @confirm="loadSelectedEqirPlan"
+        :selectedHeader="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']"
+        :mapper="{
+            eqir_code: '점검결과 코드',
+            eq_name: '설비명',
+            chk_start_date: '점검 시작일시',
+            chk_end_date: '점검 종료일시',
+            eqi_stat: '상태'
+        }"
+        :visibleFields="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']" :dataKey="'eqir_code'"
+        :placeholder="'점검결과 선택'">
+    </EqirSinglePopup>
 </template>
