@@ -3,7 +3,7 @@ const getCurrentMonthPlans =`
 SELECT  prdr.prdr_code,
         work_order_code,
         prdr.prod_code,
-        p.prod_name,
+        p.prod_name,  
         prdr.start_date,
         prdr.end_date,
         TIME_FORMAT(TIMEDIFF(prdr.end_date, prdr.start_date), '%H:%i') AS total_time,

@@ -1,15 +1,25 @@
 <script setup>
 import axios from 'axios';
 import moment from 'moment';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useWebSocketStore } from '../../stores/websocket';
 // console.log(moment('2025.06.16', 'YYYY.MM.DD').format('YYYY년 MM월 DD일'));
+
+const wsStore = useWebSocketStore();
+
+// 웹소켓 연결
+if (!wsStore.isConnected) {
+  wsStore.connect();
+}
 
 const route = useRoute();
 const wkoCode = route.params.wko_code;
 
 const data = ref({});
 const dataKey = ref('id');
+
+const prdrCode = ref('');
 
 console.log(wkoCode);
 
@@ -43,6 +53,23 @@ const loadProcess = async () => {
         data.value = {};
     }
 }
+
+// 웹소켓 메시지 감지해서 진행률 업데이트
+watch(() => wsStore.messages, (messages) => {
+  const latest = messages[messages.length - 1];
+  
+  if (latest?.type === 'PROCESS_UPDATE') {
+    // 해당하는 공정의 진행률 업데이트
+    const processIndex = data.value.findIndex(
+      process => process.prdr_d_code === latest.processId
+    );
+    
+    if (processIndex !== -1) {
+      data.value[processIndex].proc_rate = latest.progress;
+      console.log(`🔄 ${data.value[processIndex].po_name} 진행률: ${latest.progress}%`);
+    }
+  }
+}, { deep: true });
 
 onMounted(() => {
     console.log('🚀 컴포넌트 마운트됨');

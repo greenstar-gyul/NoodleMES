@@ -31,7 +31,11 @@ const model = ref([
                     {
                         label: '설비 점검 항목 정보',
                         to: '/standard/eqspectype'
-                    }
+                    },
+                    {
+                        label: '품질 기준정보',
+                        to: '/standard/qcr'
+                    },
                 ]
             },
             {
