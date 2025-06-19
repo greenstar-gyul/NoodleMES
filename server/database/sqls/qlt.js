@@ -149,9 +149,10 @@ INSERT INTO qio_tbl (
     ,qio_date
     ,insp_date
     ,prdr_code
+    ,po_code
     ,purchase_code
     ,emp_code
-) VALUES (?, ?, ?, ?, ?, (SELECT emp_code FROM emp_tbl WHERE emp_name = ?));
+) VALUES (?, ?, ?, ?, (SELECT po_code FROM po_tbl WHERE po_name = ?), ?, (SELECT emp_code FROM emp_tbl WHERE emp_name = ?));
 `;
 
 const updateQio = `
@@ -246,6 +247,45 @@ const selectQirCodesByQioCode = `
   WHERE qio_code = ?
 `;
 
+const selectQirByQioCode = `
+SELECT 
+    q.qir_code,
+    q.start_date,
+    q.end_date,
+    q.unpass_qtt,
+    q.pass_qtt,
+    q.unpass_rate,
+    q.result,
+    q.note,
+    q.qio_code,
+    e.emp_name AS qir_emp_name,
+    qc.inspection_item
+FROM qir_tbl AS q
+JOIN emp_tbl AS e ON q.qir_emp_code = e.emp_code
+LEFT JOIN qcr_tbl AS qc ON q.qcr_code = qc.qcr_code
+WHERE q.qio_code = ?
+ORDER BY q.qir_code DESC
+`;
+
+// ✅ QIO 목록 조회용 (팝업에서 사용)
+const getQioListForPopup = `
+SELECT 
+    a.qio_code,
+    a.qio_date,
+    a.insp_date,
+    IFNULL(a.prdr_code, '해당없음') AS prdr_code,
+    IFNULL(a.purchase_code, '해당없음') AS purchase_code,
+    b.emp_name,
+    p.po_name,
+    prod.prod_name
+FROM qio_tbl as a
+JOIN emp_tbl as b ON a.emp_code = b.emp_code
+LEFT JOIN po_tbl p ON a.po_code = p.po_code
+LEFT JOIN prdr_tbl pr ON a.prdr_code = pr.prdr_code
+LEFT JOIN prod_tbl prod ON pr.prod_code = prod.prod_code
+ORDER BY a.qio_date DESC, a.qio_code DESC
+`;
+
 module.exports = {
     getQioList: BASE_QUERY + ' ORDER BY qio_code',
     searchQioListByCode: BASE_QUERY + ' WHERE a.qio_code = ?',
@@ -261,6 +301,9 @@ module.exports = {
     insertQio,
     updateQio,
     deleteQio,
+    selectQirByQioCode,
+    selectQirCodeForUpdate,
+    getQioListForPopup,
     selectQcrcodeProd,
     selectQcrCodeMat,
     selectPrdrByQioCode,

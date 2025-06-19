@@ -1,5 +1,5 @@
 <template>
-    <div class="card space-y-6 p-6" style="width: 45%">
+    <div class="card space-y-4 p-6" style="width: 50%">
         <!-- 제목 -->
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
@@ -150,19 +150,17 @@ const isUnused = computed({
 // 폼 초기화 함수
 const resetForm = async () => {
     qirForm.value = {
-        eq_code: '',
-        eq_name: '',
-        eq_model: '',
-        eq_maker: '',
-        capacity: '',
-        stat: '',
-        eq_make_date: null,
-        bring_date: null,
-        take_date: null,
-        chk_cycle: '',
-        eq_pos: '',
-        eq_type: '',
-        is_used: 'f2',
+        qir_code: '',
+        start_date: null,
+        end_date: null,
+        unpass_qtt: '',
+        pass_qtt: '',
+        unpass_rate: '',
+        result: '',
+        note: '',
+        qio_code: '',
+        qir_emp_name: '',
+        inspection_item: ''
     };
 
     await nextTick();
@@ -223,90 +221,152 @@ const resultOptions = [
 
 const formatDateForDB = (date) => {
     if (!date) return null;
-    if (date instanceof Date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+    
+    let dateObj;
+    if (typeof date === 'string') {
+        dateObj = new Date(date);
+    } else if (date instanceof Date) {
+        dateObj = date;
+    } else {
+        return null;
     }
-    return null;
+    
+    if (isNaN(dateObj.getTime())) {
+        console.warn('잘못된 날짜 형식:', date);
+        return null;
+    }
+    
+    // 날짜만! YYYY-MM-DD 형식
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+};
+
+const parseDate = (dateString) => {
+    if (!dateString) return null;
+    
+    try {
+        if (typeof dateString === 'string') {
+            // ISO 형식이나 MySQL 형식 모두 처리
+            return new Date(dateString);
+        } else if (dateString instanceof Date) {
+            return dateString;
+        }
+        return null;
+    } catch (error) {
+        console.warn('날짜 파싱 실패:', dateString, error);
+        return null;
+    }
 };
 
 // 설비 등록 함수
-const saveEquipment = async () => {
+const saveQir = async () => {
     try {
-        console.log('설비 등록:', qirForm.value);
-
-        // 필수 필드 검증
-        if (!qirForm.value.eq_type || !qirForm.value.eq_name) {
-            alert('설비명은 필수입니다.');
+        // 📝 필수 데이터 검증
+        if (!qirForm.value.qio_code) {
+            alert('검사지시코드가 없어! 먼저 검사지시를 저장해줘 😅');
             return;
         }
 
-        const submitData = {
-            ...qirForm.value,
-            capacity: qirForm.value.capacity ? parseInt(qirForm.value.capacity) : null,  // 숫자 변환
-            chk_cycle: qirForm.value.chk_cycle ? parseInt(qirForm.value.chk_cycle) : null,
-            eq_make_date: formatDateForDB(qirForm.value.eq_make_date) || formatDateForDB(new Date()),
-            bring_date: formatDateForDB(qirForm.value.bring_date) || formatDateForDB(new Date()),
-            take_date: formatDateForDB(qirForm.value.take_date) || formatDateForDB(new Date()),
-            is_used: qirForm.value.is_used
+        if (!qirForm.value.inspection_item) {
+            alert('품질기준항목을 입력해줘! 🤔');
+            return;
+        }
+
+        if (!qirForm.value.result) {
+            alert('검사 결과를 선택해줘! ✨');
+            return;
+        }
+
+        if (!qirForm.value.qir_emp_name) {
+            alert('검사자를 입력해줘! 👨‍🔬');
+            return;
+        }
+
+        console.log('💾 QIR 등록 시작...');
+        
+        const qirPayload = {
+            qio_code: qirForm.value.qio_code,
+            start_date: formatDateForDB(qirForm.value.start_date),
+            end_date: formatDateForDB(qirForm.value.end_date),
+            unpass_qtt: parseInt(qirForm.value.unpass_qtt) || 0,
+            pass_qtt: parseInt(qirForm.value.pass_qtt) || 0,
+            unpass_rate: parseFloat(qirForm.value.unpass_rate) || 0,
+            result: qirForm.value.result,
+            note: qirForm.value.note || '',
+            qir_emp_name: qirForm.value.qir_emp_name,
+            inspection_item: qirForm.value.inspection_item
         };
 
+        console.log('📤 등록할 QIR 데이터:', qirPayload);
 
-        const response = await axios.post('/api/eq', submitData);
+        const response = await axios.post('/api/qcr/qir', qirPayload);
 
         if (response.data.success) {
-            console.log('설비 등록 완료');
-            alert('설비가 성공적으로 등록되었습니다.');
+            alert('QIR 등록이 완료되었어! 🎉');
+            
+            // ✅ 폼 초기화를 먼저 하고
             await resetForm();
-            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+            
+            // ✅ 그 다음에 부모에게 데이터 업데이트 알림
+            // 약간의 딜레이를 주어서 UI가 제대로 업데이트되도록 함
+            setTimeout(() => {
+                emit('data-updated');
+            }, 100);
+            
+            console.log('✅ QIR 등록 완료 및 데이터 새로고침 요청');
         } else {
-            console.error('등록 실패:', response.data.error);
-            alert('설비 등록에 실패했습니다.');
+            alert('QIR 등록에 실패했어 ㅠㅠ');
         }
     } catch (error) {
-        console.error('설비 등록 실패:', error);
-        alert('설비 등록 중 오류가 발생했습니다.');
+        console.error('💥 QIR 등록 실패:', error);
+        alert('QIR 등록 중 오류가 발생했어! 😭\n' + (error.response?.data?.message || error.message));
     }
 };
 
+const validateQirData = (data) => {
+    const errors = [];
+    
+    if (!data.qio_code) errors.push('검사지시코드');
+    if (!data.inspection_item) errors.push('품질기준항목');
+    if (!data.result) errors.push('검사결과');
+    if (!data.qir_emp_name) errors.push('검사자');
+    
+    if (errors.length > 0) {
+        alert(`다음 필드를 입력해주세요: ${errors.join(', ')} 😅`);
+        return false;
+    }
+    
+    return true;
+};
+
 // 설비 수정 함수
-const updateEquipment = async () => {
+const updateQir = async () => {
     try {
-        console.log('설비 수정:', qirForm.value);
-
-        // 필수 필드 검증
-        if (!qirForm.value.eq_name) {
-            alert('설비명은 필수입니다.');
-            return;
-        }
-
-        const submitData = {
-            ...qirForm.value,
-            capacity: qirForm.value.capacity ? parseInt(qirForm.value.capacity) : null,  // 숫자 변환
-            chk_cycle: qirForm.value.chk_cycle ? parseInt(qirForm.value.chk_cycle) : null,
-            eq_make_date: formatDateForDB(qirForm.value.eq_make_date) || formatDateForDB(new Date()),
-            bring_date: formatDateForDB(qirForm.value.bring_date) || formatDateForDB(new Date()),
-            take_date: formatDateForDB(qirForm.value.take_date) || formatDateForDB(new Date()),
-            is_used: qirForm.value.is_used
-        };
-
-
-        const response = await axios.put(`/api/eq/${qirForm.value.eq_code}`, submitData);
+        // 검증 로직 동일...
+        
+        const response = await axios.put(`/api/qcr/qir/${qirForm.value.qir_code}`, updatePayload);
 
         if (response.data.success) {
-            console.log('설비 수정 완료');
-            alert('설비가 성공적으로 수정되었습니다.');
+            alert('QIR 수정이 완료되었어! 🎉');
+            
+            // ✅ 폼 초기화를 먼저 하고
             await resetForm();
-            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+            
+            // ✅ 부모에게 데이터 업데이트 알림 (딜레이 적용)
+            setTimeout(() => {
+                emit('data-updated');
+            }, 100);
+            
+            console.log('✅ QIR 수정 완료 및 데이터 새로고침 요청');
         } else {
-            console.error('수정 실패:', response.data.error);
-            alert('설비 수정에 실패했습니다.');
+            alert('QIR 수정에 실패했어 ㅠㅠ');
         }
     } catch (error) {
-        console.error('설비 수정 실패:', error);
-        alert('설비 수정 중 오류가 발생했습니다.');
+        console.error('💥 QIR 수정 실패:', error);
+        alert('QIR 수정 중 오류가 발생했어! 😭');
     }
 };
 

@@ -24,12 +24,27 @@ const props = defineProps({
 
 const formatDateForDB = (date) => {
     if (!date) return null;
-    // ✅ 방법 1: UTC로 처리
-    return moment.utc(date).format('YYYY-MM-DD HH:mm:ss');
     
-    // ✅ 방법 2: 날짜만 추출 (시간 무시)
-    // const dateOnly = new Date(date);
-    // return moment(dateOnly).format('YYYY-MM-DD') + ' 00:00:00';
+    let dateObj;
+    if (typeof date === 'string') {
+        dateObj = new Date(date);
+    } else if (date instanceof Date) {
+        dateObj = date;
+    } else {
+        return null;
+    }
+    
+    if (isNaN(dateObj.getTime())) {
+        console.warn('잘못된 날짜 형식:', date);
+        return null;
+    }
+    
+    // 날짜만! YYYY-MM-DD 형식
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
 };
 
 const parseDate = (dateString) => {
@@ -55,74 +70,59 @@ const currentData = ref({
 const isInternalUpdate = ref(false);
 
 // ✅ watch 수정 - 스마트한 업데이트 감지
-watch(() => props.data, (newData) => {
+watch(() => props.data, (newData, oldData) => {
     if (newData) {
-        console.log('Search - props.data 변경 감지:', newData.qio_code);
-        console.log('Search - isInternalUpdate 상태:', isInternalUpdate.value);
+        console.log('🔄 Search - props.data 변경 감지:', newData.qio_code);
+        
+        // ✅ 실제로 데이터가 바뀌었는지 체크
+        const hasChanged = !oldData || 
+            oldData.qio_code !== newData.qio_code ||
+            oldData.qio_date !== newData.qio_date ||
+            oldData.insp_date !== newData.insp_date ||
+            oldData.emp_name !== newData.emp_name;
 
-        // 내부 업데이트이지만 실제로 다른 데이터면 업데이트
-        const isDifferentData = !currentData.value ||
-            currentData.value.qio_code !== newData.qio_code;
-
-        if (!isInternalUpdate.value || isDifferentData) {
-            console.log('Search - 데이터 업데이트 진행 (다른 데이터 또는 외부 업데이트)');
-
+        if (hasChanged) {
+            console.log('✅ Search - 실제 데이터 변경 확인, 업데이트 진행');
+            
             currentData.value = {
                 qio_code: newData.qio_code || '',
-                qio_date: parseDate(newData.qio_date) || parseDate(newData.insp_date) || new Date(), // ✅ 기본값 설정
+                qio_date: parseDate(newData.qio_date) || new Date(),
                 insp_date: parseDate(newData.insp_date),
                 prdr_code: newData.prdr_code || '',
                 purchase_code: newData.purchase_code || '',
                 emp_name: newData.emp_name || '정품질'
             };
-
-            console.log('Search - currentData 업데이트 완료:', currentData.value.qio_code);
+            
+            console.log('✨ Search - currentData 업데이트 완료!');
         } else {
-            console.log('Search - 내부 업데이트 중이므로 스킵');
+            console.log('⏭️ Search - 동일한 데이터이므로 스킵');
         }
     }
 }, { immediate: true, deep: true });
 
 // ✅ 업데이트 함수들도 플래그 사용
 const updateInstDate = (newDate) => {
-    isInternalUpdate.value = true;
-
+    console.log('📅 검사예정일 업데이트:', newDate);
     emit('update:data', {
         ...props.data,
         insp_date: formatDateForDB(newDate)
     });
-
-    // 플래그 해제
-    setTimeout(() => {
-        isInternalUpdate.value = false;
-    }, 50);
 };
 
 const updateQioDate = (newDate) => {
-    isInternalUpdate.value = true;
-
+    console.log('📅 지시일자 업데이트:', newDate);
     emit('update:data', {
         ...props.data,
         qio_date: formatDateForDB(newDate)
     });
-
-    // 플래그 해제
-    setTimeout(() => {
-        isInternalUpdate.value = false;
-    }, 50);
 };
 
 const updateEmp = (newEmp) => {
-    isInternalUpdate.value = true;
-
+    console.log('👤 지시자 업데이트:', newEmp);
     emit('update:data', {
         ...props.data,
         emp_name: newEmp
     });
-
-    setTimeout(() => {
-        isInternalUpdate.value = false;
-    }, 50);
 };
 
 const deletePlan = async () => {

@@ -148,4 +148,128 @@ router.delete('/qio/save-all/:code', async (req, res) => {
   }
 });
 
+router.post('/qir', async (req, res) => {
+    try {
+        const qirData = req.body;
+        const result = await qltService.insertQir(qirData);
+        res.status(201).json({ success: true, data: result });
+    } catch (error) {
+        console.error('QIR 등록 실패:', error);
+        res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    }
+});
+
+// QIR 개별 수정 API (서버에 추가 필요)
+router.put('/qir/:code', async (req, res) => {
+    try {
+        const qirCode = req.params.code;
+        const qirData = { ...req.body, qir_code: qirCode };
+        const result = await qltService.updateQir(qirData);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        console.error('QIR 수정 실패:', error);
+        res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+    }
+});
+
+// ✅ 특정 QIO 코드로 QIR 목록 조회 (가장 중요!)
+router.get('/qir/by-qio/:qioCode', async (req, res) => {
+  try {
+    const qioCode = req.params.qioCode;
+    console.log('🔍 QIO별 QIR 조회 요청:', qioCode);
+    
+    const qirList = await qltService.getQirListByQioCode(qioCode);
+    
+    res.status(200).json({ 
+      success: true, 
+      data: qirList,
+      message: `${qioCode}에 대한 QIR ${qirList.length}건 조회 완료`
+    });
+  } catch (error) {
+    console.error('❌ QIO별 QIR 조회 실패:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'QIR 조회 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
+});
+
+// ✅ QIO 목록 조회 (팝업용)
+router.get('/qio/list', async (req, res) => {
+  try {
+    console.log('🔍 QIO 팝업 목록 조회 요청');
+    
+    const qioList = await qltService.getQioListForPopup();
+    
+    res.status(200).json({ 
+      success: true, 
+      data: qioList,
+      message: `QIO ${qioList.length}건 조회 완료`
+    });
+  } catch (error) {
+    console.error('❌ QIO 팝업 목록 조회 실패:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'QIO 목록 조회 중 오류가 발생했습니다.',
+      error: error.message 
+    });
+  }
+});
+
+// ✅ QIR 등록 시 QIO 코드 유효성 검증 강화 (기존 router.post('/qir') 수정)
+router.post('/qir', async (req, res) => {
+    try {
+        const qirData = req.body;
+        
+        console.log('💾 QIR 등록 요청:', qirData);
+        
+        // ✅ 필수 값 검증
+        if (!qirData.qio_code) {
+            return res.status(400).json({
+                success: false,
+                message: '검사지시코드(QIO)가 필요합니다.'
+            });
+        }
+
+        if (!qirData.inspection_item) {
+            return res.status(400).json({
+                success: false,
+                message: '품질기준항목이 필요합니다.'
+            });
+        }
+
+        if (!qirData.result) {
+            return res.status(400).json({
+                success: false,
+                message: '검사결과가 필요합니다.'
+            });
+        }
+
+        // ✅ QIO 코드 존재 여부 확인
+        const qioExists = await qltService.searchQioListByCode(qirData.qio_code);
+        if (!qioExists || qioExists.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: '존재하지 않는 검사지시코드입니다.'
+            });
+        }
+
+        const result = await qltService.insertQir(qirData);
+        
+        res.status(201).json({ 
+            success: true, 
+            data: result,
+            message: 'QIR 등록이 완료되었습니다.'
+        });
+    } catch (error) {
+        console.error('❌ QIR 등록 실패:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'QIR 등록 중 오류가 발생했습니다.',
+            error: error.message 
+        });
+    }
+});
+
 module.exports = router;

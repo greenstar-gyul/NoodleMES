@@ -32,6 +32,31 @@ const props = defineProps({
 const emit = defineEmits(['selection-change', 'updated', 'delete', 'export']);
 const selectedWDEeiqchk = ref([]);
 const dynamicColumns = ref([]);
+
+const formatDateForDB = (date) => {
+    if (!date) return null;
+    
+    let dateObj;
+    if (typeof date === 'string') {
+        dateObj = new Date(date);
+    } else if (date instanceof Date) {
+        dateObj = date;
+    } else {
+        return null;
+    }
+    
+    if (isNaN(dateObj.getTime())) {
+        console.warn('잘못된 날짜 형식:', date);
+        return null;
+    }
+    
+    // 날짜만! YYYY-MM-DD 형식
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+};
 // 데이터가 바뀔 때마다 열 추출
 watch(
     () => props.data,
@@ -115,7 +140,7 @@ const exportToExcel = () => {
             showGridlines
             scrollable
             scrollHeight="400px"
-            tableStyle="min-width: 50rem"
+            tableStyle="min-width: 40rem"
             selectionMode="multiple"
             @row-select="onRowSelect"
             @row-unselect="onRowUnselect"

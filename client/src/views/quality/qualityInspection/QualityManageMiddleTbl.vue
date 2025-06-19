@@ -24,7 +24,27 @@ const props = defineProps({
 
 const formatDateForDB = (date) => {
     if (!date) return null;
-    return moment(date).format('YYYY-MM-DD HH:mm:ss');
+    
+    let dateObj;
+    if (typeof date === 'string') {
+        dateObj = new Date(date);
+    } else if (date instanceof Date) {
+        dateObj = date;
+    } else {
+        return null;
+    }
+    
+    if (isNaN(dateObj.getTime())) {
+        console.warn('잘못된 날짜 형식:', date);
+        return null;
+    }
+    
+    // 날짜만! YYYY-MM-DD 형식
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
 };
 
 const parseDate = (dateString) => {
@@ -225,7 +245,7 @@ const qios = ref([]);
 </script>
 
 <template>
-    <div class="mt-6 p-6 bg-gray-50 shadow-md rounded-md space-y-6">
+    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <div class="grid grid-cols-1 gap-4">
             <div class="flex justify-between">
                 <div>
