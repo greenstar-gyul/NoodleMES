@@ -43,6 +43,196 @@ const insertQlt = async (data) => {
                           .catch(err => console.log(err));
   return list;
 }
+// 품질검사 등록
+const insertQio = async (qioData) => {
+  const conn = await mariadb.connectionPool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const qioCodeRes = await mariadb.queryConn(conn, "selectQioCodeForUpdate");
+    console.log('SQL 결과:', qioCodeRes);
+    const generatedCode = qioCodeRes[0].next_qio_code;
+    const qioValues = [
+      generatedCode,
+      qioData.qio_date,
+      qioData.insp_date,
+      qioData.prdr_code,
+      qioData.purchase_code,
+      qioData.emp_name
+    ];
+    const qioResult = await mariadb.queryConn(conn, "insertQio", qioValues);
+    await conn.commit();
+    return { success: true, qio_code: generatedCode };
+  } catch (err) {
+    await conn.rollback();
+    console.log(err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
+// QIR insert
+const insertQir = async (qirData) => {
+  const conn = await mariadb.connectionPool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const qirCodeRes = await mariadb.queryConn(conn, "selectQirCodeForUpdate");
+    console.log('SQL 결과:', qirCodeRes);
+    const generatedCode = qirCodeRes[0].next_qir_code;
+    
+    const qirValues = [
+      generatedCode,
+      qirData.start_date,
+      qirData.end_date,
+      qirData.unpass_qtt,
+      qirData.pass_qtt,
+      qirData.unpass_rate,
+      qirData.result,
+      qirData.note,
+      qirData.qio_code,
+      qirData.qir_emp_name,
+      qirData.inspection_item
+    ];
+    
+    const qirResult = await mariadb.queryConn(conn, insertQir, qirValues);
+    await conn.commit();
+    return { success: true, qir_code: generatedCode };
+  } catch (err) {
+    await conn.rollback();
+    console.log(err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
+const saveQioWithResults = async (qioData, qirList) => {
+  const conn = await mariadb.connectionPool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    let generatedQioCode = qioData.qio_code;
+    let qioResult;
+
+    if (!generatedQioCode || generatedQioCode === '') {
+      const qioCodeRes = await mariadb.queryConn(conn, "selectQioCodeForUpdate");
+      generatedQioCode = qioCodeRes[0].next_qio_code;
+
+      const qioValues = [
+        generatedQioCode,
+        qioData.qio_date,
+        qioData.insp_date,
+        qioData.prdr_code,
+        qioData.purchase_code,
+        qioData.emp_name
+      ];
+
+      qioResult = await mariadb.queryConn(conn, "insertQio", qioValues);
+    } else {
+      const qioValues = [
+        qioData.qio_date,
+        qioData.insp_date,
+        qioData.prdr_code,
+        qioData.purchase_code,
+        qioData.emp_name,
+        generatedQioCode
+      ];
+      qioResult = await mariadb.queryConn(conn, "updateQio", qioValues);
+    }
+
+    // 기존 QIR 조회
+    let existingQirs = [];
+    if (qioData.qio_code) {
+      existingQirs = await mariadb.queryConn(conn, "selectQirCodesByQioCode", [generatedQioCode]);
+    }
+
+    const currentQirCodes = qirList.filter(item => item.qir_code && item.qir_code !== '').map(item => item.qir_code);
+    const deletedQirCodes = existingQirs.map(item => item.qir_code).filter(code => !currentQirCodes.includes(code));
+
+    for (const deletedCode of deletedQirCodes) {
+      await mariadb.queryConn(conn, "deleteQir", [deletedCode]);
+    }
+
+    const qirResults = [];
+    for (const qirData of qirList) {
+      if (qirData.qir_code && qirData.qir_code !== '') {
+        const qirValues = [
+          qirData.start_date,
+          qirData.end_date,
+          qirData.unpass_qtt,
+          qirData.pass_qtt,
+          qirData.unpass_rate,
+          qirData.result,
+          qirData.note,
+          generatedQioCode,
+          qirData.qir_emp_name,
+          qirData.inspection_item,
+          qirData.qir_code
+        ];
+        const qirResult = await mariadb.queryConn(conn, "updateQir", qirValues);
+        qirResults.push(qirResult);
+      } else {
+        const qirCodeRes = await mariadb.queryConn(conn, "selectQirCodeForUpdate");
+        const generatedQirCode = qirCodeRes[0].next_qir_code;
+
+        const qirValues = [
+          generatedQirCode,
+          qirData.start_date,
+          qirData.end_date,
+          qirData.unpass_qtt,
+          qirData.pass_qtt,
+          qirData.unpass_rate,
+          qirData.result,
+          qirData.note,
+          generatedQioCode,
+          qirData.qir_emp_name,
+          qirData.inspection_item
+        ];
+        const qirResult = await mariadb.queryConn(conn, "insertQir", qirValues);
+        qirResults.push(qirResult);
+      }
+    }
+
+    await conn.commit();
+    return {
+      result_code: "SUCCESS",
+      qio_code: generatedQioCode,
+      qio_result: qioResult,
+      qir_results: qirResults,
+      deleted_count: deletedQirCodes.length
+    };
+  } catch (err) {
+    await conn.rollback();
+    console.error(err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+const deleteQioWithResults = async (qioCode) => {
+  const conn = await mariadb.connectionPool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const existingQirs = await mariadb.queryConn(conn, "selectQirCodesByQioCode", [qioCode]);
+    for (const item of existingQirs) {
+      await mariadb.queryConn(conn, "deleteQir", [item.qir_code]);
+    }
+
+    const result = await mariadb.queryConn(conn, "deleteQio", [qioCode]);
+
+    await conn.commit();
+    return result;
+  } catch (err) {
+    await conn.rollback();
+    console.error('❌ QIO 일괄 삭제 실패:', err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
 
 const insertQcrTx = async (qcrDataList) => {
   const conn = await mariadb.connectionPool.getConnection();
@@ -103,13 +293,25 @@ const insertQcrTx = async (qcrDataList) => {
   }
 };
 
+const getQirList = async () => {
+  let list = await mariadb.query("selectQir")
+    .catch(err => console.log(err));
+  return list;
+}
+  
+
 module.exports = {
   // 해당 객체에 등록해야지 외부로 노출
   findAll,
   insertQlt,
   insertQcrTx,
   getQioList,
+  getQirList,
   searchQioListByCode,
-  searchPrdrListByQioCode
+  searchPrdrListByQioCode,
+  insertQio,
+  insertQir,
+  saveQioWithResults,
+  deleteQioWithResults
 }
 

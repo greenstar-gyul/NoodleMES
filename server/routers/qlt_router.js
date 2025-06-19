@@ -3,7 +3,7 @@ const router = express.Router();
 
 // 서비스 함수들 import
 const { findAll, insertQlt, insertQcrTx } = require('../services/qlt_service');
-
+qltService = require('../services/qlt_service');
 
 // 라우팅  = 사용자의 요청(URL+METHOD) + Service + 응답형태(View or Data)
 // 실제 라우팅 등록 영역
@@ -93,5 +93,59 @@ router.get('/qio/prdr/:qioCode', async (req, res) => {
   }
 });
 
+router.post('/qio', async (req, res) => {
+  try {
+    const qioData = req.body;
+    const result = await qltService.insertQio(qioData);
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    console.error('품질 검사 등록 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+router.get('/qir', async (req, res) => {
+  try {
+    const qirList = await qltService.getQirList();
+    res.status(200).json({ success: true, data: qirList });
+  } catch (error) {
+    console.error('품질 검사 결과 조회 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+router.post('/qio/save-all', async (req, res) => {
+  try {
+    const { qioData, detailData } = req.body;
+    const result = await qltService.saveQioWithResults(qioData, detailData);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('품질 검사 일괄 저장 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+router.put('/qio/save-all/:code', async (req, res) => {
+  try {
+    const { qioData, detailData } = req.body;
+    qioData.qio_code = req.params.code;
+    const result = await qltService.saveQioWithResults(qioData, detailData);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('품질 검사 일괄 수정 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+router.delete('/qio/save-all/:code', async (req, res) => {
+  try {
+    const qioCode = req.params.code;
+    const result = await qltService.deleteQioWithResults(qioCode);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('품질 검사 일괄 삭제 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
 
 module.exports = router;
