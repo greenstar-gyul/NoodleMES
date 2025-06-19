@@ -188,6 +188,7 @@ SELECT
 FROM qir_tbl AS q
 JOIN emp_tbl AS e ON q.qir_emp_code = e.emp_code
 JOIN qcr_tbl AS qc ON q.qcr_code = qc.qcr_code
+WHERE q.qir_code = ?
 `;
 
 const insertQir = `
@@ -240,10 +241,25 @@ WHERE qir_code LIKE 'QIR-%'
 FOR UPDATE
 `;
 
-const selectQirCodesByQioCode = `
-  SELECT qir_code 
-  FROM qir_tbl 
-  WHERE qio_code = ?
+const selectSimpleQir = `
+SELECT qir.qir_code,
+        po.po_name,
+        qir.result,
+        qio.qio_date
+FROM qir_tbl AS qir
+JOIN qio_tbl AS qio ON qir.qio_code = qio.qio_code
+JOIN po_tbl AS po ON qio.po_code = po.po_code
+`;
+
+const selectSimpleQirByQioCode = `
+SELECT qir.qir_code,
+        po.po_name,
+        qir.result,
+        qio.qio_date
+FROM qir_tbl AS qir
+JOIN qio_tbl AS qio ON qir.qio_code = qio.qio_code
+JOIN po_tbl AS po ON qio.po_code = po.po_code
+WHERE qir.qio_code = ?
 `;
 
 const selectQirByQioCode = `
@@ -306,7 +322,8 @@ module.exports = {
     selectQcrcodeProd,
     selectQcrCodeMat,
     selectPrdrByQioCode,
-    selectQirCodesByQioCode,
+    selectSimpleQir,
+    selectSimpleQirByQioCode,
     selectQioCodeForUpdate: selectQioCodeForUpdate,
     selectQirCodeForUpdate: selectQirCodeForUpdate,
 }

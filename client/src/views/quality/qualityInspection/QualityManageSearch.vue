@@ -10,7 +10,7 @@ import LabeledDatePicker from '../../../components/registration-bar/LabeledDateP
 import LabeledSelect from '../../../components/registration-bar/LabeledSelect.vue';
 import moment from 'moment';
 
-const emit = defineEmits(['updateList', 'updatePrdp', 'resetList', 'saveData', 'update:data', 'loadPrdrByQio']);
+const emit = defineEmits(['updateList', 'updatePrdp', 'resetList', 'saveData', 'update:data', 'loadPrdrByQio', 'loadQirByQio']);
 const props = defineProps({
     data: {
         type: Object,
@@ -136,7 +136,7 @@ const deletePlan = async () => {
     }
 
     try {
-        const response = await axios.delete(`/api/qcr/qio/${currentData.value.qio_code}`);
+        const response = await axios.delete(`/api/qlt/qio/${currentData.value.qio_code}`);
 
         if (response.data.success) {
             alert('삭제에 성공했습니다.');
@@ -152,7 +152,7 @@ const deletePlan = async () => {
 
 const loadPlansData = async () => {
     try {
-        const response = await axios.get(`/api/qcr/qio`);
+        const response = await axios.get(`/api/qlt/qio`);
         console.log('Plans data loaded:', response.data);
 
         qios.value = response.data.map(item => ({
@@ -196,8 +196,8 @@ const loadSelectedPlan = async (value) => {
 };
 
 const openPopup = async () => {
-    await loadPlansData();
     qioPopupVisibil.value = true;
+    await loadPlansData();
 };
 
 const saveQio = async () => {

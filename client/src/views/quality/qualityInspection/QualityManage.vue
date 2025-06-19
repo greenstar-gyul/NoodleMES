@@ -22,7 +22,8 @@ const qioInfo = ref({
     purchase_code: '',
     emp_name: '정품질'
 });
-
+const qirList = ref([]);
+const fullQirList = ref([]);
 const qioList = ref([]);
 const prdrList = ref({
     prdr_code: '',
@@ -56,7 +57,8 @@ const handleQioCodeChange = async (newCode) => {
     // 병렬 처리
     await Promise.all([
         loadQioInfo(newCode),
-        loadPrdrInfoByQioCode(newCode)
+        loadPrdrInfoByQioCode(newCode),
+        loadQirInfoByQioCode(newCode)
     ]);
 };
 
@@ -96,7 +98,7 @@ onMounted(async () => {
         await loadQioDataByCode(qioCodeFromRoute);
     } else {
         // 빈페이지일 때 QIR 전체 조회
-        await loadAllQirList();
+        await loadSimpleQirList();
     }
 });
 
@@ -255,23 +257,25 @@ const resetData = () => {
     };
     currentQioCode.value = '';
     lastProcessedQioCode.value = '';
+    loadSimpleQirList();
+    selectedQir.value = null;
 };
 
-// ✅ QIR 목록 로딩
+// ✅ QIO 목록 로딩
 const loadQioInfo = async (qioCodeParam) => {
     if (qioCodeParam && qioCodeParam !== '') {
         try {
-            const result = await axios.get(`/api/qcr/qir`);
+            const result = await axios.get(`/api/qlt/qio/${qioCodeParam}`);
 
             if (result.data && result.data.success) {
-                qioList.value = result.data.data || [];
+                qioList.value = Array.isArray(result.data.data) || [];
             } else {
                 qioList.value = result.data || [];
             }
 
-            console.log('QIR 목록 로딩 완료:', qioList.value.length, '건');
+            console.log('QIO 목록 로딩 완료:', qioList.value.length, '건');
         } catch (error) {
-            console.error('QIR 목록 로딩 실패:', error);
+            console.error('QIO 목록 로딩 실패:', error);
             qioList.value = [];
         }
     } else {
@@ -284,7 +288,7 @@ const loadPrdrInfoByQioCode = async (qioCodeParam) => {
     console.log('검사지시에 연결된 생산실적 자동 로딩:', qioCodeParam);
 
     try {
-        const response = await axios.get(`/api/qcr/qio/prdr/${qioCodeParam}`);
+        const response = await axios.get(`/api/qlt/qio/prdr/${qioCodeParam}`);
         console.log('생산실적 API 응답:', response.data);
 
         if (response.data.data && response.data.data.length > 0) {
@@ -314,6 +318,27 @@ const loadPrdrInfoByQioCode = async (qioCodeParam) => {
     }
 };
 
+
+const loadQirInfoByQioCode = async (qioCodeParam) => {
+    console.log('QIR 목록 로딩 시작:', qioCodeParam);
+    if (!qioCodeParam) return;
+
+    try {
+        const response = await axios.get(`/api/qlt/qir/simple/${qioCodeParam}`);
+
+        if (response.data && response.data.success) {
+            qirList.value = response.data.data || [];
+        } else {
+            qirList.value = [];
+        }
+
+        console.log('QIR 목록 로딩 완료:', qirList.value.length, '건');
+    } catch (error) {
+        console.error('QIR 목록 로딩 실패:', error);
+        qirList.value = [];
+    }
+};
+
 // QIR 삭제
 const deleteSelectedQir = (selectedItems) => {
     console.log('QIR 삭제 요청:', selectedItems);
@@ -326,31 +351,69 @@ const exportQirToExcel = (data) => {
     alert('엑셀 다운로드 기능은 아직 구현 중입니다.');
 };
 
-// ✅ 전체 QIR 목록 로딩
-const loadAllQirList = async () => {
+const loadSimpleQirList = async () => {
+    console.log('QIR 목록 간단 조회 시작');
+
     try {
-        const response = await axios.get('/api/qcr/qir');
+        const response = await axios.get('/api/qlt/qir/simple');
 
         if (response.data && response.data.success) {
-            qioList.value = response.data.data || [];
+            qirList.value = response.data.data || [];
         } else {
-            qioList.value = response.data || [];
+            qirList.value = [];
         }
 
-        console.log('QIR 전체 목록 로딩 완료:', qioList.value.length, '건');
+        console.log('QIR 목록 간단 조회 완료:', qirList.value.length, '건');
     } catch (error) {
-        console.error('QIR 전체 목록 로딩 실패:', error);
-        qioList.value = [];
+        console.error('QIR 목록 간단 조회 실패:', error);
+        qirList.value = [];
+    }
+};
+
+const loadQirListByQioCode = async (qioCodeParam) => {
+    console.log('QIR 목록 로딩 시작:', qioCodeParam);
+
+    if (!qioCodeParam) {
+        console.warn('QIO 코드가 제공되지 않았습니다.');
+        return;
+    }
+
+    try {
+        await loadQirInfoByQioCode(qioCodeParam);
+        console.log('QIR 목록 로딩 완료:', qirList.value.length, '건');
+    } catch (error) {
+        console.error('QIR 목록 로딩 실패:', error);
+        qirList.value = [];
     }
 };
 
 // QIR 선택 변경
-const onSelectionChange = (selectedItems) => {
+const onSelectionChange = async (selectedItems) => {
     console.log('선택된 QIR:', selectedItems);
 
     if (selectedItems && selectedItems.length === 1) {
-        selectedQir.value = selectedItems[0];
-        console.log('InputForm으로 전달할 QIR 데이터:', selectedQir.value);
+        const selectedItem = selectedItems[0];
+        
+        // 🎯 선택된 QIR의 상세 정보 로딩
+        try {
+            console.log('QIR 상세 정보 로딩 시작:', selectedItem.qir_code);
+            
+            const response = await axios.get(`/api/qlt/qir/${selectedItem.qir_code}`);
+            
+            if (response.data && response.data.success) {
+                // 📋 상세 정보를 selectedQir에 설정
+                selectedQir.value = response.data.data;
+                console.log('InputForm으로 전달할 QIR 상세 데이터:', selectedQir.value);
+            } else {
+                // 실패 시 기본 선택 데이터라도 전달
+                selectedQir.value = selectedItem;
+                console.warn('QIR 상세 정보 로딩 실패, 기본 데이터 사용');
+            }
+        } catch (error) {
+            console.error('QIR 상세 정보 로딩 오류:', error);
+            // 에러 시에도 기본 선택 데이터는 전달
+            selectedQir.value = selectedItem;
+        }
     } else {
         selectedQir.value = null;
     }
@@ -363,7 +426,7 @@ const onDataUpdated = async () => {
     if (currentQioCode.value) {
         await loadQioInfo(currentQioCode.value);
     } else {
-        await loadAllQirList();
+        await loadQirListByQioCode();
     }
 
     selectedQir.value = null;
@@ -409,7 +472,7 @@ const updateqioList = async (newList) => {
 <template>
     <div>
         <div class="flex flex-col lg:flex-row gap-6 mt-4">
-            <QualityManageSearch :data="qioInfo" @loadPrdrByQio="loadPrdrInfoByQioCode" @update:data="updateqioInfo"
+            <QualityManageSearch :data="qioInfo" @loadPrdrByQio="loadPrdrInfoByQioCode" @loadQirByQio="loadQirListByQioCode" @update:data="updateqioInfo"
                 @reset-list="resetData" @save-data="saveData">
             </QualityManageSearch>
             <QualityManageMiddleTbl :data="prdrList" @update:data="updatePrdrList" @reset-list="resetData"
@@ -419,21 +482,16 @@ const updateqioList = async (newList) => {
 
         <div class="flex flex-col lg:flex-row gap-6 mt-6">
             <div class="space-y-6" style="width: 44%">
-                <QualityManageBottomTbl :data="qioList" :dataKey="'qir_code'" :title="'품질검사결과 목록'" :columns="[
+                <QualityManageBottomTbl :data="qirList" :dataKey="'qir_code'" :title="'품질검사결과 목록'" :columns="[
                     'qir_code',
-                    'qio_code',
-                    'inspection_item',
+                    'po_name',
                     'result',
-                    'unpass_qtt',
-                    'pass_qtt'
+                    'qio_date',
                 ]" :mapper="{
-                    qir_code: '검사결과코드',
-                    qio_code: '검사지시코드',
-                    inspection_item: '품질기준항목',
-                    result: '결과',
-                    unpass_qtt: '불량수량',
-                    pass_qtt: '합격수량',
-                    qir_emp_name: '검사자'
+                    qir_code: '검사코드',
+                    po_name: '발주명',
+                    result: '검사결과',
+                    qio_date: '지시일자'
                 }" @selection-change="onSelectionChange" @delete="deleteSelectedQir" @export="exportQirToExcel" />
             </div>
             <QualityManageInputForm :selectedData="selectedQir" @data-updated="onDataUpdated" />
