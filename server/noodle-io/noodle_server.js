@@ -531,6 +531,9 @@ class NoodleServer {
     return new Promise((resolve) => {
       let progress = 0;
 
+      // 작업 시작 시 공정 시작 일자 등록
+      this.updateProcessProgress(process.prdr_d_code, progress); 
+
       const interval = setInterval(() => {
         progress += 10; // 10%씩 증가
 
@@ -542,11 +545,13 @@ class NoodleServer {
           timestamp: Date.now()
         });
 
+        this.updateProcessProgress(process.prdr_d_code, progress);
+        
         // 진행률 50%, 100%일 때 DB 업데이트
         if (progress >= 100) {
           clearInterval(interval);
-
-          this.updateProcessProgress(process.prdr_d_code, progress);
+          
+          // this.updateProcessProgress(process.prdr_d_code, progress);
 
           // 공정 완료 알림
           this.broadcast({
@@ -557,9 +562,9 @@ class NoodleServer {
 
           resolve();
         }
-        else if (progress == 50) {
-          this.updateProcessProgress(process.prdr_d_code, progress);
-        }
+        // else if (progress == 50) {
+        //   this.updateProcessProgress(process.prdr_d_code, progress);
+        // }
 
       }, 1000); // 1초마다 10%씩 증가
     });
@@ -574,14 +579,24 @@ class NoodleServer {
     return result;
   }
 
+  
+  // DB의 진행률 업데이트
   async updateProcessProgress(prdrDCode, progress) {
-    // DB의 진행률 업데이트
     // UPDATE prdr_d_tbl SET proc_rate = ? WHERE prdr_d_code = ?
     const conn = await mariadb.connectionPool.getConnection();
     try {
       await conn.beginTransaction(); // 트랜잭션 시작
 
-      const result = await mariadb.queryConn(conn, 'updatePRDRDRate', [progress, prdrDCode]);
+      let result;
+      if (progress >= 100) {
+        result = await mariadb.queryConn(conn, 'updatePRDRDComplete', [progress, prdrDCode]);
+      }
+      else if (progress === 0) {
+        result = await mariadb.queryConn(conn, 'updatePRDRDStart', [progress, prdrDCode]);
+      }
+      else {
+        result = await mariadb.queryConn(conn, 'updatePRDRDRate', [progress, prdrDCode]);
+      }
       if (result.affectedRows > 0) {
         console.log(`✅ 공정 ${prdrDCode} 진행률 업데이트 성공: ${progress}%`);
       } else {

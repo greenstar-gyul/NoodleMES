@@ -9,13 +9,17 @@ const props = defineProps({
   detail: {
     type: Object,
     required: true
+  },
+  wkoCode: {
+    type: String,
+    required: true
   }
 });
 
 // 🚀 Pinia Store 사용
 const wsStore = useWebSocketStore();
 
-const datas = ref({ prdr_code: '' });
+const datas = ref({ prdr_code: '', wko_code: props.wkoCode });
 
 // 작업시작 버튼
 const startProcess = async () => {
@@ -54,12 +58,12 @@ onUnmounted(() => {
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="라인코드" v-model="props.detail.line_code" :readonly="true" />
-      <LabeledDateTimePicker label="시작시간" v-model="props.detail.start_date" :readonly="true" />
+      <!-- <LabeledDateTimePicker label="시작시간" v-model="props.detail.start_date" :readonly="true" /> -->
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledDateTimePicker label="종료시간" v-model="props.detail.end_date" :readonly="true" />
-      <LabeledDateTimePicker label="소요시간" v-model="props.detail.total_time" :readonly="true" />
+      <!-- <LabeledDateTimePicker label="종료시간" v-model="props.detail.end_date" :readonly="true" /> -->
+      <!-- <LabeledDateTimePicker label="소요시간" v-model="props.detail.total_time" :readonly="true" /> -->
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
