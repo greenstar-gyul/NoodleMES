@@ -103,9 +103,8 @@ INSERT INTO qcr_tbl (
     note,
     check_method,
     regdate,
-    com_value,
-    is_used
-) VALUES (?, ?, ?, ?, ?, ?, ?, IFNULL(?, curdate()), ?, ?);
+    com_value
+) VALUES (?, ?, ?, ?, ?, ?, ?, IFNULL(?, curdate()), ?);
 `;
 
 // 제품검사 품질기준코드

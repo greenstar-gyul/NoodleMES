@@ -26,7 +26,7 @@ const props = defineProps({
         type: Array,
         default: [],
     },
-    eqii: { // 생산 계획 코드
+    eqii: { // 품질 계획 코드
         type: String,
         default: ''
     }
@@ -42,7 +42,7 @@ const mapper = ref({});
 const popupEqirs = ref([]);
 
 // 🌟 품질 점검 결과 불러오기
-const loadEqir = async () => {
+const loadqir = async () => {
     console.log('props.eqii', props.eqii);
     if (props.eqii == null || props.eqii == '') {
         alert('검사계획을 먼저 불러오세요.');
@@ -75,16 +75,16 @@ const loadEqir = async () => {
 // 🌟 품질기준항목 불러오기 팝업
 const openPopup = async () => {
     if (props.eqii == null || props.eqii == '') {
-        alert('생산계획을 먼저 불러오세요.');
+        alert('계획을 먼저 불러오세요.');
         return;
     }
-    await loadEqirList();
+    await loadqirList();
     dialogVisible.value = true;
 };
 
-const loadEqirList = async () => {
+const loadqirList = async () => {
     if (props.eqii == null || props.eqii == '') {
-        alert('생산계획을 먼저 불러오세요.');
+        alert('품질계획지시서를 먼저 불러오세요.');
         return;
     }
 
@@ -171,7 +171,7 @@ watch(
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="품질 점검 결과 불러오기" severity="info" class="min-w-fit whitespace-nowrap"
-                        @click="loadEqir" />
+                        @click="loadqir" />
                     <Button label="품질기준항목 추가" severity="success" class="min-w-fit whitespace-nowrap"
                         @click="openPopup" />
                     <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" 
