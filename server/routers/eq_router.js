@@ -85,7 +85,7 @@ router.get('/eqiiall', async (req, res) => {
         console.log(error);
         res.status(500).send({ error: '조회 실패' });
     }
-})
+});
 
 router.get('/eqii/statuses/:code', async (req, res) => {
     try {

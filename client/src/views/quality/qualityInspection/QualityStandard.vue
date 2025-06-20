@@ -52,7 +52,6 @@ import QualitySTDForm from './QualitySTDForm.vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
-
 import QualityMapping from '@/service/QualityMapping';
 
 // 검색조건 데이터 (v-model)

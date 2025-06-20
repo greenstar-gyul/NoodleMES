@@ -73,7 +73,6 @@
 import { ref, watch, computed, defineProps, defineEmits, nextTick } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
-import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import LabeledDatePicker from '../../../components/common/LabeledDatePicker.vue';
 import axios from 'axios';
