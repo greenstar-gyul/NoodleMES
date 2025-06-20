@@ -1,11 +1,14 @@
-export const minMapping = {
-  mat_code: '자재코드',
-  mat_name: '자재명', 
-  mat_type: '자재유형',
-  req_qtt: '소요수량',
-  unit: '단위',
-  loss_rate: '손실율',
+export const MinMapper = {
+    mpr_code: '구매요청코드',
+    reqdate: '요청일자',
+    deadline: '납기일자', 
+    mrp_code: 'MRP계획번호',
+    mcode: '요청자',
+    mat_sup: '공급업체',
+    note: '비고',
 };
 
-
-export default minMapping;
+export default {
+    MinMapper,
+};
+    
