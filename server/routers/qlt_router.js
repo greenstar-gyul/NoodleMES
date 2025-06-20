@@ -3,7 +3,7 @@ const router = express.Router();
 
 // 서비스 함수들 import
 const { findAll, insertQlt, insertQcrTx } = require('../services/qlt_service');
-
+qltService = require('../services/qlt_service');
 
 // 라우팅  = 사용자의 요청(URL+METHOD) + Service + 응답형태(View or Data)
 // 실제 라우팅 등록 영역
@@ -51,8 +51,6 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
   }
 });
-
-
 // 해당 javascript 파일의 마지막 코드, 모듈화
 // 위에 선언한 기능(변수, 함수 등)들 중 외부로 노출할 대상을 설정 
 // => 다른 파일에서 require()을 통해 가져옴
@@ -93,5 +91,214 @@ router.get('/qio/prdr/:qioCode', async (req, res) => {
   }
 });
 
+router.post('/qio', async (req, res) => {
+  try {
+    const qioData = req.body;
+    const result = await qltService.insertQio(qioData);
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    console.error('품질 검사 등록 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
 
+
+// selectSimpleQir에 대한 라우터
+router.get('/qir/simple', async (req, res) => {
+  try {
+    const qirList = await qltService.selectSimpleQir();
+    res.status(200).json({ success: true, data: qirList });
+  } catch (error) {
+    console.error('품질 검사 결과 간단 조회 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+//selectSimpleQirByQioCode에 대한 라우터
+router.get('/qir/simple/:qioCode', async (req, res) => {
+  try {
+    const qioCode = req.params.qioCode;
+    const qirList = await qltService.selectSimpleQirByQioCode(qioCode);
+    res.status(200).json({ success: true, data: qirList });
+  } catch (error) {
+    console.error('품질 검사 결과 간단 조회 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// glt_service.js 의 getQirInfo에 대한 라우터
+router.get('/qir/:code', async (req, res) => {
+  try {
+    const qirCode = req.params.code;
+    const qirInfo = await qltService.getQirInfo(qirCode);
+    if (qirInfo) {
+      res.status(200).json({ success: true, data: qirInfo });
+    } else {
+      res.status(404).json({
+        success: false, message: '품질 검사 결과을 찾을 수 없습니다.'
+      });
+    }
+  } catch (error) {
+    console.error('품질 검사 결과 조회 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+router.post('/qio/save-all', async (req, res) => {
+  try {
+    const { qioData, detailData } = req.body;
+    const result = await qltService.saveQioWithResults(qioData, detailData);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('품질 검사 일괄 저장 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+router.put('/qio/save-all/:code', async (req, res) => {
+  try {
+    const { qioData, detailData } = req.body;
+    qioData.qio_code = req.params.code;
+    const result = await qltService.saveQioWithResults(qioData, detailData);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('품질 검사 일괄 수정 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+router.delete('/qio/save-all/:code', async (req, res) => {
+  try {
+    const qioCode = req.params.code;
+    const result = await qltService.deleteQioWithResults(qioCode);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('품질 검사 일괄 삭제 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+router.post('/qir', async (req, res) => {
+  try {
+    const qirData = req.body;
+    const result = await qltService.insertQir(qirData);
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    console.error('QIR 등록 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// QIR 개별 수정 API (서버에 추가 필요)
+router.put('/qir/:code', async (req, res) => {
+  try {
+    const qirCode = req.params.code;
+    const qirData = { ...req.body, qir_code: qirCode };
+    const result = await qltService.updateQir(qirData);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error('QIR 수정 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// ✅ 특정 QIO 코드로 QIR 목록 조회 (가장 중요!)
+router.get('/qir/by-qio/:qioCode', async (req, res) => {
+  try {
+    const qioCode = req.params.qioCode;
+    console.log('🔍 QIO별 QIR 조회 요청:', qioCode);
+
+    const qirList = await qltService.getQirListByQioCode(qioCode);
+
+    res.status(200).json({
+      success: true,
+      data: qirList,
+      message: `${qioCode}에 대한 QIR ${qirList.length}건 조회 완료`
+    });
+  } catch (error) {
+    console.error('❌ QIO별 QIR 조회 실패:', error);
+    res.status(500).json({
+      success: false,
+      message: 'QIR 조회 중 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+});
+
+// ✅ QIO 목록 조회 (팝업용)
+router.get('/qio/list', async (req, res) => {
+  try {
+    console.log('🔍 QIO 팝업 목록 조회 요청');
+
+    const qioList = await qltService.getQioListForPopup();
+
+    res.status(200).json({
+      success: true,
+      data: qioList,
+      message: `QIO ${qioList.length}건 조회 완료`
+    });
+  } catch (error) {
+    console.error('❌ QIO 팝업 목록 조회 실패:', error);
+    res.status(500).json({
+      success: false,
+      message: 'QIO 목록 조회 중 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+});
+
+// ✅ QIR 등록 시 QIO 코드 유효성 검증 강화 (기존 router.post('/qir') 수정)
+router.post('/qir', async (req, res) => {
+  try {
+    const qirData = req.body;
+
+    console.log('💾 QIR 등록 요청:', qirData);
+
+    // ✅ 필수 값 검증
+    if (!qirData.qio_code) {
+      return res.status(400).json({
+        success: false,
+        message: '검사지시코드(QIO)가 필요합니다.'
+      });
+    }
+
+    if (!qirData.inspection_item) {
+      return res.status(400).json({
+        success: false,
+        message: '품질기준항목이 필요합니다.'
+      });
+    }
+
+    if (!qirData.result) {
+      return res.status(400).json({
+        success: false,
+        message: '검사결과가 필요합니다.'
+      });
+    }
+
+    // ✅ QIO 코드 존재 여부 확인
+    const qioExists = await qltService.searchQioListByCode(qirData.qio_code);
+    if (!qioExists || qioExists.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: '존재하지 않는 검사지시코드입니다.'
+      });
+    }
+
+    const result = await qltService.insertQir(qirData);
+
+    res.status(201).json({
+      success: true,
+      data: result,
+      message: 'QIR 등록이 완료되었습니다.'
+    });
+  } catch (error) {
+    console.error('❌ QIR 등록 실패:', error);
+    res.status(500).json({
+      success: false,
+      message: 'QIR 등록 중 오류가 발생했습니다.',
+      error: error.message
+    });
+  }
+});
 module.exports = router;

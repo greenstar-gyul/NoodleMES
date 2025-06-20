@@ -7,6 +7,7 @@ const props = defineProps({
   items: {
     type: Array,
     required: true,
+    default: () => []
   },
   dataKey: {
     type: String,

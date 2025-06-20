@@ -1,161 +1,121 @@
 <template>
-    <!-- Search-bar에 있는 컴포넌트 활용하기. 참고자료) 기준정보-BOM -->
-    <!-- 🔍 검색바 영역 -->
-    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
-        <!-- 검색 조건 영역 -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-            <!-- 주문번호 -->
-            <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">품질기준코드</label>
-                <InputText v-model="search.qcr_code" class="flex-1" />
-            </div>
-
-            <!-- 주문명 -->
-            <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">공정코드</label>
-                <InputText v-model="search.po_code" class="flex-1" />
-            </div>
-
-            <!-- 검사항목명 -->
-            <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">검사항목</label>
-                <InputText v-model="search.inspection_item" class="flex-1" />
-            </div>
-
-            <!-- 판정방식 / 라디오버튼 -->
-            <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">판정방식</label>
-                <Dropdown v-model="search.check_method" :options="orderStatusOptions" optionLabel="label" optionValue="value" placeholder="" class="flex-1" />
-            </div>
-        </div>
-
-        <!-- 조회/초기화 버튼 영역 -->
-        <div class="flex justify-center gap-3 mt-4">
-            <Button label="초기화" severity="contrast" @click="resetSearch" />
-            <Button label="조회" severity="info" @click="fetchOrders" />
-        </div>
+  <!-- 검색 바 -->
+  <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+      <div class="flex items-center gap-3 w-full">
+        <label class="font-semibold w-24">품질기준코드</label>
+        <InputText v-model="search.qcr_code" class="flex-1" />
+      </div>
+      <div class="flex items-center gap-3 w-full">
+        <label class="font-semibold w-24">공정코드</label>
+        <InputText v-model="search.po_code" class="flex-1" />
+      </div>
+      <div class="flex items-center gap-3 w-full">
+        <label class="font-semibold w-24">검사항목</label>
+        <InputText v-model="search.inspection_item" class="flex-1" />
+      </div>
+      <div class="flex items-center gap-3 w-full">
+        <label class="font-semibold w-24">판정방식</label>
+        <Dropdown v-model="search.check_method" :options="orderStatusOptions" optionLabel="label" optionValue="value" class="flex-1" />
+      </div>
     </div>
-    <!-- 📋 검색 조회 테이블 영역 -->
-    <div class="flex flex-col lg:flex-row gap-6 mt-6">
-        <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
-        <div class="space-y-6" style="width: 55%">
-            <!-- 검색결과 테이블 -->
-            <WDETable style="margin-bottom:0px; height : 100%" ref="eqTableRef" :data="qualitys" :dataKey="'qcr_code'"
-                :columns="tableColumns" :mapper="QualityMapping" title="기준 목록" @selection-change="onSelectionChange"
-                @delete="handleDelete" />
-            </div>
-            <!-- 우측: 품질 등록 영역 (45%) -->
-            <QualitySTDForm :selectedData="selectedEquipment" @data-updated="onDataUpdated" />
-        </div>
+    <div class="flex justify-center gap-3 mt-4">
+      <Button label="초기화" severity="contrast" @click="resetSearch" />
+      <Button label="조회" severity="info" @click="fetchOrders" />
+    </div>
+  </div>
+
+  <!-- 테이블 + 등록 폼 -->
+  <div class="flex flex-col lg:flex-row gap-6 mt-6">
+    <div class="space-y-6" style="width: 55%">
+      <WDETable
+        style="margin-bottom:0px; height : 100%"
+        ref="eqTableRef"
+        :data="qualitys"
+        :dataKey="'qcr_code'"
+        :columns="tableColumns"
+        :mapper="QualityMapping"
+        title="기준 목록"
+        @selection-change="onSelectionChange"
+        @delete="handleDelete"
+      />
+    </div>
+    <QualitySTDForm :selectedData="selectedEquipment" @data-updated="onDataUpdated" />
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';  // axios로 API 호출
 import WDETable from './WDETable.vue';
 import QualitySTDForm from './QualitySTDForm.vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
-import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
 
 import QualityMapping from '@/service/QualityMapping';
-import MultiplePopup from '@/components/popup/MultiplePopup.vue';
-import SinglePopup from '@/components/popup/SinglePopup.vue';
 
-
-// 검색조건 데이터 (v-model로 바인딩됨)
+// 검색조건 데이터 (v-model)
 const search = ref({
-    qcr_code: '',
-    po_code: '',
-    inspection_item: null,
-    check_method: ''
+  qcr_code: '',
+  po_code: '',
+  inspection_item: null,
+  check_method: ''
 });
 
-// 팝업창 Open/Close 변수
-const dialogVisible = ref(false);
-
-// 변수 이름 명확히 하면 좋을듯..
-// 주문상태 옵션 (예시 데이터)
+// 주문상태 옵션
 const orderStatusOptions = [
-    { label: '수동', value: 'a1' },
-    { label: '자동', value: 'a2' }
+  { label: '수동', value: 'a1' },
+  { label: '자동', value: 'a2' }
 ];
 
-// 조회 버튼 기능 (API 호출 자리)
-const fetchOrders = () => {
-    console.log('조회 실행:', search.value);
-    // TODO: 실제 API 호출로 데이터 갱신
+// 테이블 데이터
+const qualitys = ref([]);
+
+// 선택된 항목
+const selectedEquipment = ref(null);
+
+// API에서 목록 조회 함수
+const fetchOrders = async () => {
+  try {
+    // 예시: search 조건을 쿼리 파라미터로 넘길 수도 있음
+    const params = {
+      qcr_code: search.value.qcr_code,
+      po_code: search.value.po_code,
+      inspection_item: search.value.inspection_item,
+      check_method: search.value.check_method,
+    };
+
+    const res = await axios.get('/api/qcr/all', { params });
+    qualitys.value = res.data || [];
+  } catch (error) {
+    console.error('목록 조회 실패:', error);
+  }
 };
 
 // 초기화 버튼 기능
 const resetSearch = () => {
-    search.value = {
-        qcr_code: '',
-        prod_name: '',
-        inspection_item: null,
-        check_method: ''
-    };
+  search.value = {
+    qcr_code: '',
+    po_code: '',
+    inspection_item: null,
+    check_method: ''
+  };
+  qualitys.value = [];
 };
 
-// 테이블에 보여줄 목록 데이터 (예시 데이터)
-const qualitys = ref([
-    {
-        qcr_code: '품질기준코드1',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-    {
-        qcr_code: '품질기준코드2',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-    {
-        qcr_code: '품질기준코드3',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드4',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드5',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드6',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드7',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-        {
-        qcr_code: '품질기준코드8',
-        po_code: '공정코드',
-        inspection_item: '검사항목',
-        check_method: '수동'
-    },
-]);
+// 테이블 선택 시
+const onSelectionChange = (selected) => {
+  selectedEquipment.value = selected;
+};
 
+// 등록 폼에서 등록 성공하면 이 이벤트가 날아옴
+const onDataUpdated = () => {
+  fetchOrders();  // 등록 후 목록 다시 불러오기
+};
 
-const openPopup = () => {
-    dialogVisible.value = true;
-}
-
+// 페이지 로드 시 목록 자동 조회
+onMounted(() => {
+  fetchOrders();
+});
 </script>
-
-<style scoped>
-/* 필요시 커스텀 스타일 여기에 추가 */
-</style>
