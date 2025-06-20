@@ -49,7 +49,7 @@ watch(() => wsStore.messages, (messages) => {
 <template>
   <div>
     <div v-if="workDetail">
-      <workDetailTop :detail="workDetail" />
+      <workDetailTop :detail="workDetail" :wkoCode="wko_code"/>
       <workDetailBottom :detail="workDetail" />
     </div>
     <div v-else class="text-center text-gray-500 py-10">

@@ -154,7 +154,7 @@ onMounted(() => {
 
             <Column field="start_date" header="종료일시" style="width: 12%">
                 <template #body="slotProps">
-                    <span class="text-gray-600">{{ slotProps.data.start_date }}</span>
+                    <span class="text-gray-600">{{ slotProps.data.end_date }}</span>
                 </template>
             </Column>
 
