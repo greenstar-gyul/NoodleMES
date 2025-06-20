@@ -5,14 +5,14 @@ const { convertObjToAry } = require('../utils/converts.js');
 
 // 실제 제공할 서비스 등록 영역
 
-// 자재구매요청 (MPR) 전체조회
-const findAllMpr = async () => {
+// 자재입고목록 (min) 전체조회
+const findAllMin = async () => {
   // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
   // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
-  let list = await mariadb.query("selectAllMprList")
+  let list = await mariadb.query("selectAllMatInList")
                           .catch(err => console.log(err));
   return list;
-};
+}; // end of findAllMin
 
 // 검색 결과 조회
 const findSearchMpr = async (values) => {  
@@ -133,7 +133,7 @@ const deleteMpr = async (mprCode) => {
 
 module.exports ={
     /* 조회 */ 
-    findAllMpr,
+    findAllMin,
     findSearchMpr,
     findMprDetails,
     findAllMRP,

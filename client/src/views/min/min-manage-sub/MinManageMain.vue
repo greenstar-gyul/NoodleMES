@@ -39,17 +39,17 @@ const { resetMinRows, setMinRows } = minStore;
 // 삭제
 const handleDelete = async () => {
   if (!mprs.mpr_code.value) {
-      alert('mpr 정보가 없습니다. 다시 확인해주세요');
+      alert('min 정보가 없습니다. 다시 확인해주세요');
       return;
   }
 
-  const confirmed = confirm('정말로 mpr 정보를 삭제하시겠습니까?');
+  const confirmed = confirm('정말로 min 정보를 삭제하시겠습니까?');
   if (!confirmed) return;
 
   try {
-    await axios.delete(`/api/mpr/${mprs.mprCode.value}`);
+    await axios.delete(`/api/min/${mprs.mprCode.value}`);
     handleReset(); // 초기화 함수 호출
-    alert('mpr 정보가 삭제되었습니다.');
+    alert('min 정보가 삭제되었습니다.');
   } catch (error) {
     console.error('삭제 실패:', error);
     alert('삭제 중 오류가 발생했습니다.');
@@ -111,8 +111,13 @@ const handleMinbndConfirm = async (selectedMin) => {
 
 
 
-onMounted(() => {
-
+onMounted(async () => {
+  try {
+    const MinRes = await axios.get('/api/min/all');
+    console.log(MinRes)
+  } catch(err){
+    console.error('데이터 로딩 실패:', err);
+  }
 });
 </script>
 
