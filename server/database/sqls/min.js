@@ -48,7 +48,7 @@ SELECT min.minbnd_code
       ,min.mat_sup
       ,cli.client_name AS 'sup_name'
       ,emp.emp_code
-      ,emp.emp_name as 'emp_name'
+      ,emp.emp_name
 FROM   minbnd_tbl min
 LEFT OUTER JOIN mat_tbl mat
 	ON mat.mat_code = min.mat_code
