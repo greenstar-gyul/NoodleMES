@@ -58,22 +58,37 @@ app.get('/', (req, res) => {
   res.send('Welcome!!');
 })
 // 라우터 모듈 등록
-app.use('/dept', deptRouter);
-app.use('/prdp', prdpRouter);
-app.use('/mrp', mrpRouter);
-app.use('/eq', eqRouter);
-app.use('/eqichk', eqichkRouter);
-app.use('/order', orderRouter);
-app.use('/mpr', mprRouter);
-app.use('/qcr', qcrRouter);
-app.use('/bom',bomRouter);
-app.use('/line',lineRouter);
-app.use('/wko', wkoRouter);
-app.use('/prdr', prdrRouter);
-app.use('/proc', procRouter);
-app.use('/work', workRouter);
-app.use('/qrc', qrcRouter);
-app.use('/qlt', qltRouter);
+app.use('/api/dept', deptRouter);
+app.use('/api/prdp', prdpRouter);
+app.use('/api/mrp', mrpRouter);
+app.use('/api/eq', eqRouter);
+app.use('/api/eqichk', eqichkRouter);
+app.use('/api/order', orderRouter);
+app.use('/api/mpr', mprRouter);
+app.use('/api/qcr', qcrRouter);
+app.use('/api/bom',bomRouter);
+app.use('/api/line',lineRouter);
+app.use('/api/wko', wkoRouter);
+app.use('/api/prdr', prdrRouter);
+app.use('/api/proc', procRouter);
+app.use('/api/work', workRouter);
+app.use('/api/qrc', qrcRouter);
+app.use('/api/qlt', qltRouter);
+
+
+// vue.js build 이후
+const path = require('path');
+const publicPath = path.join(__dirname, 'public');
+app.use(express.static(publicPath));
+
+app.get("/", function (req, res, next) {
+  res.sendFile(path.join(__dirname, "./public", "index.html"));
+});
+
+
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, "./public", "index.html"));
+});
 
 
 // 서버 종료 시 웹소켓 정리
