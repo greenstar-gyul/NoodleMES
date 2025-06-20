@@ -43,7 +43,6 @@ const eqRouter = require('./routers/eq_router.js');
 const eqichkRouter = require('./routers/eqichk_router.js');
 const orderRouter = require('./routers/order_router.js');
 const mprRouter = require('./routers/mpr_router.js');
-const qcrRouter = require('./routers/qlt_router.js');
 const bomRouter = require('./routers/bom_router.js');
 const lineRouter = require('./routers/line_router.js');
 const wkoRouter = require('./routers/wko_router.js');
