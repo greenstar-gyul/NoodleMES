@@ -46,7 +46,14 @@ const mrpRouter = require('./routers/mrp_router.js');
 const eqRouter = require('./routers/eq_router.js');
 const eqichkRouter = require('./routers/eqichk_router.js');
 const orderRouter = require('./routers/order_router.js');
+
+/* 자재 시작 */
 const mprRouter = require('./routers/mpr_router.js');
+const mpoRouter = require('./routers/mpo_router.js');
+const minRouter = require('./routers/min_router.js');
+/* 자재 끝 */
+
+const qcrRouter = require('./routers/qlt_router.js');
 const bomRouter = require('./routers/bom_router.js');
 const lineRouter = require('./routers/line_router.js');
 const wkoRouter = require('./routers/wko_router.js');
@@ -91,7 +98,13 @@ app.use(contextPath + '/mrp', mrpRouter);
 app.use(contextPath + '/eq', eqRouter);
 app.use(contextPath + '/eqichk', eqichkRouter);
 app.use(contextPath + '/order', orderRouter);
+
+/* 자재 시작 */
 app.use(contextPath + '/mpr', mprRouter);
+app.use(contextPath + '/mpo', mpoRouter);
+app.use(contextPath + '/min', minRouter);
+/* 자재 끝 */
+
 app.use(contextPath + '/qcr', qcrRouter);
 app.use(contextPath + '/bom',bomRouter);
 app.use(contextPath + '/line',lineRouter);

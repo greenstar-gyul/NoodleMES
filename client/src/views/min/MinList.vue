@@ -4,13 +4,13 @@
 
 <script setup>
 import axios from 'axios';
-import MatListSearch from './mat-list-sub/MatListSearch.vue';
-import MatListTable from './mat-list-sub/MatListTable.vue';
+import MinListSearch from './min-list-sub/MinListSearch.vue';
+import MinListTable from './min-list-sub/MinListTable.vue';
 import { onMounted, ref } from 'vue';
-import MatMapper from '@/service/MatMapping.js';
+import MinMapper from '@/service/MinMapping.js';
 
 // 데이터 및 옵션
-const matdata = ref([]); // 화면에 표시할 원본 데이터
+const mindata = ref([]); // 화면에 표시할 원본 데이터
 const originalData = ref([]);   // 초기값으로 사용할 원본 데이터 (matdata와 굳이 나눌 필요가 없나?) 
 const searchRef = ref(null); // 초기화 기능에 사용
 
@@ -55,8 +55,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <MatListSearch @searchOption="handleSearch" @resetSearch="resetSearch"  ref="searchRef" />
-  <MatListTable :matdata="matdata" :mapper="MatMapper" @initData="initData" />
+  <MinListSearch @searchOption="handleSearch" @resetSearch="resetSearch"  ref="searchRef" />
+  <MinListTable :matdata="matdata" :mapper="MinMapper" @initData="initData" />
  
   <!-- 조건 미일치 메시지 -->
   <div v-if="matdata.length === 0" class="text-center text-gray-500 mt-4">
