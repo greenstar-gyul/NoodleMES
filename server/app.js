@@ -2,7 +2,7 @@
 require('dotenv').config({ path: './database/configs/dbConfig.env' });
 require('dotenv').config({ path: './envs/devSetting.env' });
 
-// build : 빌드, dev : 개발 모드
+// build : 빌드, dev : 개발 모드 // env파일을 이용해서 전환
 const DEV_MODE = process.env.DEV_MODE === 'dev' ? true : false; // 개발 모드 여부
 
 const PORT = 3721;
