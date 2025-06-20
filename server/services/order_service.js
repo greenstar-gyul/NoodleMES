@@ -147,7 +147,7 @@ const insertOrderTx = async (data) => {
     const ordCodeRes = await mariadb.queryConn(conn, "selectOrdCodeForUpdate"); // 트랜잭션 발생 및 잠그기
     const ordCode = ordCodeRes[0].ord_code; //결과 배열의 첫 번째 행에서 ord_code 컬럼의 값 가져오기
     const insertColumns = ['ord_code', 'ord_name', 'ord_date', 'ord_stat', 'note', 'mcode', 'client_code',];
-    const detailColumns = ['ord_d_code', 'unit', 'spec', 'prod_amount', 'prod_price', 'delivery_date', 'ord_priority', 'total_price', 'ord_code', 'prod_code'];
+    const detailColumns = ['ord_d_code', 'unit', 'spec', 'ord_amount', 'prod_price', 'delivery_date', 'ord_priority', 'total_price', 'ord_code', 'prod_code'];
     // 주문 저장
     data.orderData.ord_code = ordCode;
     const result = await mariadb.queryConn(conn, "insertOrder", convertObjToAry(data.orderData, insertColumns)); // 메인 등록: 주문서
@@ -199,6 +199,9 @@ const deleteOrderTx = async (ordCode) => {
     conn.release();
   }
 };
+
+
+
 
 
 

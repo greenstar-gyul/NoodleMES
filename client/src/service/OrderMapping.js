@@ -14,7 +14,7 @@ export const orderMapping = {
     mcode:'등록자 코드',
     client_code:'거래처 코드',
 
-    prod_amount: '수량',
+    ord_amount: '수량',
     ord_stat: '상태',
 };
 
