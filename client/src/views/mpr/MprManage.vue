@@ -18,7 +18,6 @@ const reqDate = ref({});   // 요청일자
 const deadLine = ref({});   // 납기일자
 const mrpCode = ref({});   // MRP 계획번호
 const mCode = ref({ value: "EMP-10001" });   // 요청자 (로그인 정보로 받아와야함, 현재 임시 사용)
-
 </script>
 
 <template>

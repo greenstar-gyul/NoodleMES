@@ -2,7 +2,7 @@
 // import axios from 'axios';
 import { onMounted, defineProps, defineEmits } from 'vue';
 import mprMapping from '@/service/MprMapping.js';
-import TableWithExcel from '../../../components/form/TableWithExcel.vue';
+import TableWithExcel from '@/components/form/TableWithExcel.vue';
 
 // 상위에서 전달받은 데이터
 defineProps({
