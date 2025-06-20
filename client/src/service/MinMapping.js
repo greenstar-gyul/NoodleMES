@@ -1,4 +1,4 @@
-export const matMapping = {
+export const minMapping = {
   mat_code: '자재코드',
   mat_name: '자재명', 
   mat_type: '자재유형',
@@ -8,4 +8,4 @@ export const matMapping = {
 };
 
 
-export default matMapping;
+export default minMapping;

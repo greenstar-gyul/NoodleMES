@@ -4,37 +4,39 @@
 
 <script setup>
 import axios from 'axios';
-import MatManageMain from './mat-manage-sub/MatManageMain.vue';
-import MatManageDetail from './mat-manage-sub/MatManageDetail.vue';
+import MinManageMain from './min-manage-sub/MinManageMain.vue';
 import { onMounted, ref } from 'vue';
-import MatMapper from '@/service/MatMapping.js';
+import MinMapper from '@/service/MinMapping.js';
 
 
 // 데이터 및 옵션
 const mInBndCode = ref({}); // 자재입고코드
 const matCode = ref({}); // 자재코드
+const matType = ref({}); // 자재유형(외래키)
+const ordQtt = ref({}); // 주문수량
 const inbndQtt = ref({}); // 입고수량
+const unit = ref({}); // 단위(외래키)
 const inbndDate = ref({}); // 입고일자
-const ordQtt = ref({}); // 주문 수량
+const matSup = ref({}); // 공급업체
+const mCode = ref({ value: "EMP-10001" });   // 담당자 (로그인 정보로 받아와야함, 현재 임시 사용)
 const qioCode = ref({}); // 검사지시코드
 const lotNum = ref({}); // LOT 번호
-const matSup = ref({}); // 공급 업체
-const mCode = ref({ value: "EMP-10001" });   // 담당자 (로그인 정보로 받아와야함, 현재 임시 사용)
 
 </script>
 
 <template>
-  <MatManageMain 
+  <MinManageMain 
     :mInBndCode="mInBndCode"
     :matCode="matCode"
-    :inbndQtt="inbndQtt"
-    :inbndDate="inbndDate"
+    :matType="matType"
     :ordQtt="ordQtt"
-    :qioCode="qioCode"
-    :lotNum="lotNum"
+    :inbndQtt="inbndQtt"
+    :unit="unit"
+    :inbndDate="inbndDate"
     :matSup="matSup"
     :mCode="mCode"
+    :qioCode="qioCode"
+    :lotNum="lotNum"
   />
-  <MatManageDetail/>
 </template>
 
