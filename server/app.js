@@ -53,16 +53,14 @@ const mpoRouter = require('./routers/mpo_router.js');
 const minRouter = require('./routers/min_router.js');
 /* 자재 끝 */
 
-const qcrRouter = require('./routers/qlt_router.js');
+const qltRouter = require('./routers/qlt_router.js');
 const bomRouter = require('./routers/bom_router.js');
 const lineRouter = require('./routers/line_router.js');
 const wkoRouter = require('./routers/wko_router.js');
 const prdrRouter = require('./routers/prdr_router.js');
 const procRouter = require('./routers/proc_router.js');
 const workRouter = require('./routers/work_router.js');
-const qrcRouter = require('./routers/qcr_router.js');
 const qcrRouter = require('./routers/qcr_router.js');
-const qltRouter = require('./routers/qlt_router.js');
 
 let contextPath = '';
 
@@ -112,7 +110,6 @@ app.use(contextPath + '/wko', wkoRouter);
 app.use(contextPath + '/prdr', prdrRouter);
 app.use(contextPath + '/proc', procRouter);
 app.use(contextPath + '/work', workRouter);
-app.use(contextPath + '/qrc', qrcRouter);
 app.use(contextPath + '/qlt', qltRouter);
 
 // 서버 종료 시 웹소켓 정리
