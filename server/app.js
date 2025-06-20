@@ -1,5 +1,9 @@
 // env 파일을 읽어들이는 코드 => 가능한 가장 첫번쨰 줄에 작성
 require('dotenv').config({ path: './database/configs/dbConfig.env' });
+require('dotenv').config({ path: './envs/devSetting.env' });
+
+// build : 빌드, dev : 개발 모드
+const DEV_MODE = process.env.DEV_MODE === 'dev' ? true : false; // 개발 모드 여부
 
 const PORT = 3721;
 
@@ -53,44 +57,50 @@ const qrcRouter = require('./routers/qcr_router.js');
 const qcrRouter = require('./routers/qcr_router.js');
 const qltRouter = require('./routers/qlt_router.js');
 
+let contextPath = '';
+
 // 기본 라우팅
-/*
-app.get('/', (req, res) => {
+if (DEV_MODE) {
+  console.log(`🚀 개발 모드로 실행 중...`);
+  app.get('/', (req, res) => {
   res.send('Welcome!!');
-})*/
+  });
+
+}
+else {
+  contextPath = '/api';
+  
+  // vue.js build 이후
+  const path = require('path');
+  const publicPath = path.join(__dirname, 'public');
+  app.use(express.static(publicPath));
+
+  app.get("/", function (req, res, next) {
+    res.sendFile(path.join(__dirname, "./public", "index.html"));
+  });
+
+  app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, "./public", "index.html"));
+  });
+}
+
 // 라우터 모듈 등록
-app.use('/api/dept', deptRouter);
-app.use('/api/prdp', prdpRouter);
-app.use('/api/mrp', mrpRouter);
-app.use('/api/eq', eqRouter);
-app.use('/api/eqichk', eqichkRouter);
-app.use('/api/order', orderRouter);
-app.use('/api/mpr', mprRouter);
-app.use('/api/qcr', qcrRouter);
-app.use('/api/bom',bomRouter);
-app.use('/api/line',lineRouter);
-app.use('/api/wko', wkoRouter);
-app.use('/api/prdr', prdrRouter);
-app.use('/api/proc', procRouter);
-app.use('/api/work', workRouter);
-app.use('/api/qrc', qrcRouter);
-app.use('/api/qlt', qltRouter);
-
-
-// vue.js build 이후
-const path = require('path');
-const publicPath = path.join(__dirname, 'public');
-app.use(express.static(publicPath));
-
-app.get("/", function (req, res, next) {
-  res.sendFile(path.join(__dirname, "./public", "index.html"));
-});
-
-
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, "./public", "index.html"));
-});
-
+app.use(contextPath + '/dept', deptRouter);
+app.use(contextPath + '/prdp', prdpRouter);
+app.use(contextPath + '/mrp', mrpRouter);
+app.use(contextPath + '/eq', eqRouter);
+app.use(contextPath + '/eqichk', eqichkRouter);
+app.use(contextPath + '/order', orderRouter);
+app.use(contextPath + '/mpr', mprRouter);
+app.use(contextPath + '/qcr', qcrRouter);
+app.use(contextPath + '/bom',bomRouter);
+app.use(contextPath + '/line',lineRouter);
+app.use(contextPath + '/wko', wkoRouter);
+app.use(contextPath + '/prdr', prdrRouter);
+app.use(contextPath + '/proc', procRouter);
+app.use(contextPath + '/work', workRouter);
+app.use(contextPath + '/qrc', qrcRouter);
+app.use(contextPath + '/qlt', qltRouter);
 
 // 서버 종료 시 웹소켓 정리
 process.on('SIGTERM', () => {
