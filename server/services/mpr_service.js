@@ -131,6 +131,13 @@ const deleteMpr = async (mprCode) => {
 };
 // end of deleteMpr
 
+//slectSimpleMprList 에 대한 서비스
+const selectSimpleMprList = async () => {
+  const result = await mariadb.query("selectSimpleMprList")
+    .catch(err => console.log(err));
+  return result;
+};
+
 module.exports ={
     /* 조회 */ 
     findAllMpr,
@@ -146,4 +153,5 @@ module.exports ={
     
     /* 삭제 */
     deleteMpr,
+    selectSimpleMprList
 };

@@ -77,20 +77,19 @@ ORDER BY prdp_date;
 // `;
 
 const selectPrdrByQioCode = `
-SELECT p.prdr_code
-       ,q.qio_code
-       ,o.po_name
-       ,p.end_date
-       ,mp.purchase_code
-       ,prod.prod_name
-       ,p.production_qtt
+SELECT q.qio_code,
+       IFNULL(p.prdr_code, q.prdr_code) AS prdr_code,
+       IFNULL(o.po_name, '해당없음') AS po_name,
+       p.end_date,
+       q.purchase_code,  -- 🎯 QIO에서 직접 가져오기 (mpo_tbl JOIN 제거)
+       IFNULL(prod.prod_name, '해당없음') AS prod_name,
+       IFNULL(p.production_qtt, 0) AS production_qtt
 FROM qio_tbl q
-JOIN prdr_tbl p ON q.prdr_code = p.prdr_code
-JOIN po_tbl o ON q.po_code = o.po_code
-JOIN prod_tbl prod ON p.prod_code = prod.prod_code
-JOIN mpo_tbl mp ON q.purchase_code = mp.purchase_code
+LEFT JOIN prdr_tbl p ON q.prdr_code = p.prdr_code
+LEFT JOIN po_tbl o ON q.po_code = o.po_code  
+LEFT JOIN prod_tbl prod ON p.prod_code = prod.prod_code
 WHERE q.qio_code = ?
-`
+`;
 
 // 기준정보 등록
 const insertQcr = `
@@ -154,12 +153,14 @@ INSERT INTO qio_tbl (
 ) VALUES (?, ?, ?, ?, (SELECT po_code FROM po_tbl WHERE po_name = ?), ?, (SELECT emp_code FROM emp_tbl WHERE emp_name = ?));
 `;
 
+
 const updateQio = `
 UPDATE qio_tbl
 SET 
     qio_date = ?,
     insp_date = ?,
     prdr_code = ?,
+    po_code = (SELECT po_code FROM po_tbl WHERE po_name = ?),
     purchase_code = ?,
     emp_code = (SELECT emp_code FROM emp_tbl WHERE emp_name = ?)
 WHERE 
@@ -235,7 +236,7 @@ const selectQirCodeForUpdate = `
 SELECT CONCAT(
     'QIR-',
     LPAD(IFNULL(MAX(CAST(SUBSTRING(qir_code, 5) AS UNSIGNED)), 0) + 1, 3, '0')
-)
+) AS next_qir_code
 FROM qir_tbl
 WHERE qir_code LIKE 'QIR-%'
 FOR UPDATE
@@ -249,6 +250,12 @@ SELECT qir.qir_code,
 FROM qir_tbl AS qir
 JOIN qio_tbl AS qio ON qir.qio_code = qio.qio_code
 JOIN po_tbl AS po ON qio.po_code = po.po_code
+`;
+
+const selectQirCodesByQioCode = `
+SELECT qir_code
+FROM qir_tbl
+WHERE qio_code = ?
 `;
 
 const selectSimpleQirByQioCode = `
@@ -324,6 +331,8 @@ module.exports = {
     selectPrdrByQioCode,
     selectSimpleQir,
     selectSimpleQirByQioCode,
+    selectQirCodesByQioCode,
+    selectQir,
     selectQioCodeForUpdate: selectQioCodeForUpdate,
     selectQirCodeForUpdate: selectQirCodeForUpdate,
 }

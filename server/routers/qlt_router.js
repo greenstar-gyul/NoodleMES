@@ -167,7 +167,7 @@ router.put('/qio/save-all/:code', async (req, res) => {
   }
 });
 
-router.delete('/qio/save-all/:code', async (req, res) => {
+router.delete('/qio/:code', async (req, res) => {
   try {
     const qioCode = req.params.code;
     const result = await qltService.deleteQioWithResults(qioCode);
