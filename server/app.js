@@ -5,6 +5,9 @@ require('dotenv').config({ path: './envs/devSetting.env' });
 // build : 빌드, dev : 개발 모드 // env파일을 이용해서 전환
 const DEV_MODE = process.env.DEV_MODE === 'dev' ? true : false; // 개발 모드 여부
 
+// 개발 모드일 때 context path에 api 패스 추가
+const contextPath = DEV_MODE ? '' : '/api';
+
 const PORT = 3721;
 
 const express = require('express');
@@ -62,33 +65,6 @@ const procRouter = require('./routers/proc_router.js');
 const workRouter = require('./routers/work_router.js');
 const qcrRouter = require('./routers/qcr_router.js');
 
-let contextPath = '';
-
-// 기본 라우팅
-if (DEV_MODE) {
-  console.log(`🚀 개발 모드로 실행 중...`);
-  app.get('/', (req, res) => {
-  res.send('Welcome!!');
-  });
-
-}
-else {
-  contextPath = '/api';
-  
-  // vue.js build 이후
-  const path = require('path');
-  const publicPath = path.join(__dirname, 'public');
-  app.use(express.static(publicPath));
-
-  app.get("/", function (req, res, next) {
-    res.sendFile(path.join(__dirname, "./public", "index.html"));
-  });
-
-  app.use((req, res) => {
-    res.status(404).sendFile(path.join(__dirname, "./public", "index.html"));
-  });
-}
-
 // 라우터 모듈 등록
 app.use(contextPath + '/dept', deptRouter);
 app.use(contextPath + '/prdp', prdpRouter);
@@ -111,6 +87,30 @@ app.use(contextPath + '/prdr', prdrRouter);
 app.use(contextPath + '/proc', procRouter);
 app.use(contextPath + '/work', workRouter);
 app.use(contextPath + '/qlt', qltRouter);
+
+// 기본 라우팅
+if (DEV_MODE) {
+  console.log(`🚀 개발 모드로 실행 중...`);
+  app.get('/', (req, res) => {
+  res.send('Welcome!!');
+  });
+
+}
+else {
+  
+  // vue.js build 이후
+  const path = require('path');
+  const publicPath = path.join(__dirname, 'public');
+  app.use(express.static(publicPath));
+
+  app.get("/", function (req, res, next) {
+    res.sendFile(path.join(__dirname, "./public", "index.html"));
+  });
+
+  app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, "./public", "index.html"));
+  });
+}
 
 // 서버 종료 시 웹소켓 정리
 process.on('SIGTERM', () => {

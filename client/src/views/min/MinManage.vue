@@ -3,6 +3,7 @@
 -->
 
 <script setup>
+/*
 import axios from 'axios';
 import MinManageMain from './min-manage-sub/MinManageMain.vue';
 import { onMounted, ref } from 'vue';
@@ -23,11 +24,11 @@ const mCode = ref({ value: "EMP-10001" });   // 담당자 (로그인 정보로 �
 const mName = ref({ value: "김영업"}); // 담당자 이름 (화면 출력용)
 const qioCode = ref({}); // 검사지시코드
 const lotNum = ref({}); // LOT 번호
-
+*/
 </script>
 
 <template>
-  <MinManageMain 
+  <!-- <MinManageMain 
     :mInBndCode="mInBndCode"
     :matCode="matCode"
     :matType="matType"
@@ -41,6 +42,6 @@ const lotNum = ref({}); // LOT 번호
     :mName="mName"
     :qioCode="qioCode"
     :lotNum="lotNum"
-  />
+  /> -->
 </template>
 

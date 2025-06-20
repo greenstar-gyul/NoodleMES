@@ -3,11 +3,12 @@
 -->
 
 <script setup>
-// import axios from 'axios';
-// import MinListSearch from './min-list-sub/MinListSearch.vue';
-// import MinListTable from './min-list-sub/MinListTable.vue';
-// import { onMounted, ref } from 'vue';
-// import MinMapper from '@/service/MinMapping.js';
+/*
+import axios from 'axios';
+import MinListSearch from './min-list-sub/MinListSearch.vue';
+import MinListTable from './min-list-sub/MinListTable.vue';
+import { onMounted, ref } from 'vue';
+import MinMapper from '@/service/MinMapping.js';
 
 // // 데이터 및 옵션
 // const mindata = ref([]); // 화면에 표시할 원본 데이터
@@ -48,19 +49,19 @@
 //   matdata.value = [...originalData.value];
 // };
 
-// onMounted(() => {
-//   initData();
-// })
-
+onMounted(() => {
+  initData();
+})
+*/
 </script>
 
 <template>
-  <MinListSearch @searchOption="handleSearch" @resetSearch="resetSearch"  ref="searchRef" />
-  <MinListTable :matdata="matdata" :mapper="MinMapper" @initData="initData" />
+  <!-- <MinListSearch @searchOption="handleSearch" @resetSearch="resetSearch"  ref="searchRef" />
+  <MinListTable :matdata="matdata" :mapper="MinMapper" @initData="initData" /> -->
  
   <!-- 조건 미일치 메시지 -->
-  <div v-if="matdata.length === 0" class="text-center text-gray-500 mt-4">
+  <!-- <div v-if="matdata.length === 0" class="text-center text-gray-500 mt-4">
     조건에 맞는 데이터가 없습니다.
-  </div>
+  </div> -->
 </template>
 
