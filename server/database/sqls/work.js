@@ -311,7 +311,7 @@ UPDATE prdr_tbl
 SET    stat = ?,
        end_date = NOW(),
        total_time = end_date - start_date,
-       proc_rate = 100
+       perform_rate = 100.00
 WHERE  prdr_code = ?
 `;
 

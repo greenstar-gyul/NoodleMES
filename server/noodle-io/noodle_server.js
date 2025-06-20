@@ -16,6 +16,7 @@ class NoodleServer {
     this.clientCounter = 0;
     this.lineStatus = new Map();      // 라인별 상태 관리
     this.lineQueues = new Map();      // 라인별 대기열
+    this.processes = new Map();       // 공정별 상태 관리
   }
 
   // 웹소켓 서버 생성 (HTTP 서버와 연결)
@@ -404,6 +405,8 @@ class NoodleServer {
       timestamp: Date.now()
     });
 
+    console.log(`라인 ${lineCode}에서 PRDR 코드 ${prdrCode}의 작업이 완료되었습니다.`);
+
     await this.updateProcess(prdrCode, 'b3'); // 생산 완료 상태로 업데이트
 
     // 대기열에 다음 작업이 있으면 시작
@@ -514,23 +517,46 @@ class NoodleServer {
       this.updateProcess(prdrCode, 'b2');
 
       // 2. 각 공정을 순차적으로 시작
-      for (let i = 0; i < processes.length; i++) {
-        const process = processes[i];
+      const promises = processes.map((process, index) => {
+        return new Promise(resolve => {
+          setTimeout(async () => {
+            this.broadcast({
+              type: 'PROCESS_STARTED',
+              processId: process.prdr_d_code,
+              processName: process.po_name,
+              wkoCode,
+              lineCode,
+              process: process
+            });
 
-        // 공정 시작 알림
-        this.broadcast({
-          type: 'PROCESS_STARTED',
-          processId: process.prdr_d_code,
-          processName: process.po_name,
-          wkoCode,
-          lineCode
+            await this.simulateProcess(process); // 이 함수는 async여야 함
+            resolve();
+          }, index * 1000); // 각 공정을 1초씩 차이 나게 시작
         });
+      });
 
-        // 3. 공정 진행 시뮬레이션
-        this.simulateProcess(process);
+      await Promise.all(promises); // 모든 simulateProcess 완료 대기
 
-        await this.sleep(1000); // 1초 대기 (시뮬레이션 간격)
-      }
+      // // 2. 각 공정을 순차적으로 시작
+      // for (let i = 0; i < processes.length; i++) {
+      //   const process = processes[i];
+
+      //   // 공정 시작 알림
+      //   this.broadcast({
+      //     type: 'PROCESS_STARTED',
+      //     processId: process.prdr_d_code,
+      //     processName: process.po_name,
+      //     wkoCode,
+      //     lineCode,
+      //     process: process
+      //   });
+
+      //   // 3. 공정 진행 시뮬레이션
+      //   this.simulateProcess(process);
+
+      //   await this.sleep(1000); // 1초 대기 (시뮬레이션 간격)
+      // }
+
 
       // 4. 모든 공정 완료
       await this.onWorkCompleted(wkoCode, lineCode, prdrCode);
@@ -612,6 +638,7 @@ class NoodleServer {
       else {
         result = await mariadb.queryConn(conn, 'updatePRDRDRate', [progress, prdrDCode]);
       }
+
       if (result.affectedRows > 0) {
         console.log(`✅ 공정 ${prdrDCode} 진행률 업데이트 성공: ${progress}%`);
       } else {
