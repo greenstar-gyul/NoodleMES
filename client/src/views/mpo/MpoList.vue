@@ -6,8 +6,8 @@ made by KMS
 
 <script setup>
 import axios from 'axios';
-import MprListSearch from './mpr-list-sub/MprListSearch.vue';
-import MprListTable from './mpr-list-sub/MprListTable.vue';
+import MprListSearch from './mpo-list-sub/MpoListSearch.vue';
+import MprListTable from './mpo-list-sub/MpoListTable.vue';
 import { onMounted, ref } from 'vue';
 import MprMapper from '@/service/MprMapping.js';
 

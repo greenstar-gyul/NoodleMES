@@ -6,8 +6,8 @@ made by KMS
 
 <script setup>
 import axios from 'axios';
-import MprManageMain from './mpr-manage-sub/MprManageMain.vue';
-import MprManageDetail from './mpr-manage-sub/MprManageDetail.vue';
+import MprManageMain from './mpo-manage-sub/MpoManageMain.vue';
+import MprManageDetail from './mpo-manage-sub/MpoManageDetail.vue';
 import { onMounted, ref } from 'vue';
 import MprMapper from '@/service/MprMapping.js';
 

@@ -5,7 +5,7 @@ import LabeledTextarea from '../../../components/registration-bar/LabeledTextare
 import LabeledInput from '../../../components/registration-bar/LabeledInput.vue';
 import axios from 'axios';
 import eqiiresmgMapping from '@/service/EquipIIResMgMapping.js';
-import eqirmgsinglePopup from '@/views/equipment/components/eqirmgsinglePopup.vue';
+import eqirmgsinglePopup from '@/views/equipment/components/EqirmgSinglePopup.vue';
 import LabeledDatePicker from '../../../components/registration-bar/LabeledDatePicker.vue';
 import EqirSinglePopup from './EqirSinglePopup.vue';
 import LabeledSelect from '../../../components/registration-bar/LabeledSelect.vue';

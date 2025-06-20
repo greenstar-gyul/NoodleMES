@@ -53,36 +53,60 @@ ORDER BY w.wko_code;
 //                  		ON po.po_code = ppd.po_code
 //                  LEFT JOIN eq_tbl eq
 //                  		ON eq.eq_code = ld.eq_code
+// const selectWKOProcesses = `
+// SELECT w.wko_code,
+//        w.emp_code,
+//        w.prod_code,
+//        w.line_code,
+//        w.wko_qtt,
+//        ld.line_eq_code,
+//        ld.pp_code,
+//        eq.eq_code,
+//        eq.eq_name,
+//        ppd.eq_type,
+//        po.po_code,
+//        po.po_name,
+//        ppd.no,
+//        NULL AS prdr_code,          -- 아직 생성 전
+//        NULL AS prdr_d_code,        -- 아직 생성 전
+//        0 AS proc_rate,             -- 기본값 0
+//        NULL AS start_date,
+//        NULL AS end_date,
+//        NULL AS input_qtt,
+//        NULL AS def_qtt,
+//        NULL AS make_qtt
+// FROM   wko_tbl w 
+//        LEFT JOIN line_tbl l ON w.line_code = l.line_code
+//        LEFT JOIN line_d_tbl ld ON l.line_code = ld.line_code
+//        LEFT JOIN prod_proc_d_tbl ppd ON ld.pp_code = ppd.pp_code
+//        LEFT JOIN po_tbl po ON po.po_code = ppd.po_code
+//        LEFT JOIN eq_tbl eq ON eq.eq_code = ld.eq_code
+// WHERE w.wko_code = ?
+// ORDER BY ppd.no
 const selectWKOProcesses = `
-SELECT w.wko_code,
-       w.emp_code,
-       w.prod_code,
-       w.line_code,
-       w.wko_qtt,
-       ld.line_eq_code,
-       ld.pp_code,
-       eq.eq_code,
-       eq.eq_name,
-       ppd.eq_type,
-       po.po_code,
-       po.po_name,
-       ppd.no,
-       NULL AS prdr_code,          -- 아직 생성 전
-       NULL AS prdr_d_code,        -- 아직 생성 전
-       0 AS proc_rate,             -- 기본값 0
-       NULL AS start_date,
-       NULL AS end_date,
-       NULL AS input_qtt,
-       NULL AS def_qtt,
-       NULL AS make_qtt
-FROM   wko_tbl w 
-       LEFT JOIN line_tbl l ON w.line_code = l.line_code
-       LEFT JOIN line_d_tbl ld ON l.line_code = ld.line_code
-       LEFT JOIN prod_proc_d_tbl ppd ON ld.pp_code = ppd.pp_code
-       LEFT JOIN po_tbl po ON po.po_code = ppd.po_code
-       LEFT JOIN eq_tbl eq ON eq.eq_code = ld.eq_code
-WHERE w.wko_code = ?
-ORDER BY ppd.no
+SELECT  wko_code,
+        emp_code,
+        prod_code,
+        line_code,
+        wko_qtt,
+        line_eq_code,
+        pp_code,
+        eq_code,
+        eq_name,
+        eq_type,
+        po_code,
+        po_name,
+        prdr_code,
+        prdr_d_code,
+        proc_rate,
+        start_date,
+        end_date,
+        input_qtt,
+        def_qtt,
+        make_qtt
+FROM   processes_v
+WHERE  wko_code = ?
+ORDER BY pp_code
 `;
 
 // PRDR 코드 생성
@@ -195,13 +219,6 @@ FROM prdr_d_tbl
 WHERE prdr_code = ?
 `;
 
-// 작업 진행률 갱신
-const updatePRDRDRate = `
-UPDATE prdr_d_tbl
-SET proc_rate = ?
-WHERE prdr_d_code = ?
-`;
-
 
 // 자재 출고 코드 생성
 const selectMoutbndCode = `
@@ -256,32 +273,32 @@ INSERT INTO moutbnd_tbl(moutbnd_code, mat_unit, outbnd_qtt, moutbnd_date, emp_co
 VALUES (?, ?, ?, curdate(), ?, ?, ?)
 `;
 
-// 🟢 작업 진행 중인 것만 조회 (PRDR 필수)
-const selectWorkingProcesses = `
-SELECT  wko_code,
-        emp_code,
-        prod_code,
-        line_code,
-        wko_qtt,
-        line_eq_code,
-        pp_code,
-        eq_code,
-        eq_name,
-        eq_type,
-        po_code,
-        po_name,
-        prdr_code,
-        prdr_d_code,
-        proc_rate,
-        start_date,
-        end_date,
-        input_qtt,
-        def_qtt,
-        make_qtt
-FROM   processes_working_v
-WHERE  wko_code = ?
-ORDER BY pp_code
-`;
+// // 🟢 작업 진행 중인 것만 조회 (PRDR 필수)
+// const selectWorkingProcesses = `
+// SELECT  wko_code,
+//         emp_code,
+//         prod_code,
+//         line_code,
+//         wko_qtt,
+//         line_eq_code,
+//         pp_code,
+//         eq_code,
+//         eq_name,
+//         eq_type,
+//         po_code,
+//         po_name,
+//         prdr_code,
+//         prdr_d_code,
+//         proc_rate,
+//         start_date,
+//         end_date,
+//         input_qtt,
+//         def_qtt,
+//         make_qtt
+// FROM   processes_working_v
+// WHERE  wko_code = ?
+// ORDER BY pp_code
+// `;
 
 const updatePRDRStart = `
 UPDATE prdr_tbl
@@ -292,8 +309,59 @@ WHERE  prdr_code = ?
 const updatePRDRComplete = `
 UPDATE prdr_tbl
 SET    stat = ?,
-       end_date = NOW()
+       end_date = NOW(),
+       total_time = end_date - start_date,
+       proc_rate = 100
 WHERE  prdr_code = ?
+`;
+
+// 작업 완료 시간 갱신
+const updatePRDRDStart = `
+UPDATE prdr_d_tbl
+SET    proc_rate = ?,
+       start_date = NOW()
+WHERE  prdr_d_code = ?
+`;
+
+// 작업 진행률 갱신
+const updatePRDRDRate = `
+UPDATE prdr_d_tbl
+SET proc_rate = ?
+WHERE prdr_d_code = ?
+`;
+
+// 작업 완료 시간 갱신
+const updatePRDRDComplete = `
+UPDATE prdr_d_tbl
+SET    proc_rate = ?,
+       end_date = NOW(),
+       total_time = end_date - start_date
+WHERE  prdr_d_code = ?
+`;
+
+// 작업 시작 갱신
+const updateWKOStart = `
+UPDATE wko_tbl
+SET    start_date = NOW(),
+       stat = 'v1'
+WHERE  wko_code = (
+  SELECT wko_code
+  FROM   prdr_tbl
+  WHERE  prdr_code = ?
+) AND stat = 'v4'
+`;
+
+// 작업 완료 갱신
+const updateWKOComplete = `
+UPDATE wko_tbl
+SET    end_date = NOW(),
+       stat = 'v2'
+WHERE  wko_code IN (
+  SELECT wko_code
+  FROM   prdr_tbl
+  WHERE  prdr_code = ?
+) AND stat = 'v1'
+
 `;
 
 module.exports = {
@@ -313,7 +381,10 @@ module.exports = {
   selectMoutbndCode,
   selectMaterialListForPRDR,
   insertMoutbnd,
-  selectWorkingProcesses,
   updatePRDRStart,
   updatePRDRComplete,
+  updatePRDRDComplete,
+  updatePRDRDStart,
+  updateWKOStart,
+  updateWKOComplete
 }

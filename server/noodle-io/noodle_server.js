@@ -193,7 +193,7 @@ class NoodleServer {
       await this.insertPrdr(data);
       console.log(`✅ PRDR 코드 ${data.prdr_code} 저장 완료`);
 
-      this.requestStartWork(data.wko_code, data.line_code, data.prdr_code);
+      await this.requestStartWork(data.wko_code, data.line_code, data.prdr_code);
     }
     // PRDR 코드가 있다면 작업 재개
     else {
@@ -351,15 +351,15 @@ class NoodleServer {
   }
 
   // 작업 시작 요청
-  requestStartWork(wkoCode, lineCode, prdrCode) {
+  async requestStartWork(wkoCode, lineCode, prdrCode) {
     const lineState = this.getLineStatus(lineCode);
 
     if (lineState === 'IDLE') {
       // 라인이 비어있으면 즉시 시작
-      this.startWorkOnLine(wkoCode, lineCode, prdrCode);
+      await this.startWorkOnLine(wkoCode, lineCode, prdrCode);
     } else {
       // 라인이 사용 중이면 대기열에 추가
-      this.addToLineQueue(lineCode, { wkoCode, prdrCode });
+      await this.addToLineQueue(lineCode, { wkoCode, prdrCode });
 
       this.broadcast({
         type: 'WORK_QUEUED',
@@ -376,7 +376,7 @@ class NoodleServer {
   }
 
   // 라인에서 작업 시작
-  startWorkOnLine(wkoCode, lineCode, prdrCode) {
+  async startWorkOnLine(wkoCode, lineCode, prdrCode) {
     // 라인 상태를 BUSY로 변경
     this.lineStatus.set(lineCode, 'BUSY');
 
@@ -389,11 +389,11 @@ class NoodleServer {
     });
 
     // 실제 공정 진행 시작...
-    this.processWork(wkoCode, lineCode, prdrCode);
+    await this.processWork(wkoCode, lineCode, prdrCode);
   }
 
   // 작업 완료 시
-  onWorkCompleted(wkoCode, lineCode, prdrCode) {
+  async onWorkCompleted(wkoCode, lineCode, prdrCode) {
     // 라인 상태를 IDLE로 변경
     this.lineStatus.set(lineCode, 'IDLE');
 
@@ -404,10 +404,10 @@ class NoodleServer {
       timestamp: Date.now()
     });
 
-    this.updateProcess(prdrCode, 'b3'); // 생산 완료 상태로 업데이트
+    await this.updateProcess(prdrCode, 'b3'); // 생산 완료 상태로 업데이트
 
     // 대기열에 다음 작업이 있으면 시작
-    this.processLineQueue(lineCode);
+    await this.processLineQueue(lineCode);
   }
 
   async updateProcess(prdrCode, prodStat) {
@@ -432,6 +432,13 @@ class NoodleServer {
         } else {
           console.error(`❌ PRDR-D 코드 ${prdrCode} 상태 업데이트 실패`);
         }
+
+        const wkoResult = await mariadb.queryConn(conn, 'updateWKOComplete', [prdrCode]);
+        if (wkoResult.affectedRows > 0) {
+          console.log(`✅ WKO 코드 ${prdrCode} 상태 업데이트 성공`);
+        } else {
+          console.error(`❌ WKO 코드 ${prdrCode} 상태 업데이트 실패`);
+        }
       }
       else {
         const result = await mariadb.queryConn(conn, 'updatePRDRStart', data);
@@ -440,6 +447,14 @@ class NoodleServer {
         } else {
           console.error(`❌ PRDR-D 코드 ${prdrCode} 상태 업데이트 실패`);
         }
+
+        const wkoResult = await mariadb.queryConn(conn, 'updateWKOStart', [prdrCode]);
+        if (wkoResult.affectedRows > 0) {
+          console.log(`✅ WKO 코드 ${prdrCode} 상태 업데이트 성공`);
+        } else {
+          console.error(`❌ WKO 코드 ${prdrCode} 상태 업데이트 실패`);
+        }
+
       }
 
       await conn.commit(); // 트랜잭션 커밋
@@ -453,7 +468,7 @@ class NoodleServer {
 
 
   // 라인별 대기열 처리
-  processLineQueue(lineCode) {
+  async processLineQueue(lineCode) {
     const queue = this.lineQueues.get(lineCode) || [];
 
     if (queue.length > 0) {
@@ -461,12 +476,12 @@ class NoodleServer {
       this.lineQueues.set(lineCode, queue);
 
       // 다음 작업 시작
-      this.startWorkOnLine(nextWork.wkoCode, lineCode, nextWork.prdrCode);
+      await this.startWorkOnLine(nextWork.wkoCode, lineCode, nextWork.prdrCode);
     }
   }
 
   // 대기열에 추가
-  addToLineQueue(lineCode, workData) {
+  async addToLineQueue(lineCode, workData) {
     if (!this.lineQueues.has(lineCode)) {
       this.lineQueues.set(lineCode, []);
     }
@@ -518,7 +533,7 @@ class NoodleServer {
       }
 
       // 4. 모든 공정 완료
-      this.onWorkCompleted(wkoCode, lineCode, prdrCode);
+      await this.onWorkCompleted(wkoCode, lineCode, prdrCode);
 
     } catch (error) {
       console.error('작업 처리 중 오류:', error);
@@ -531,6 +546,9 @@ class NoodleServer {
     return new Promise((resolve) => {
       let progress = 0;
 
+      // 작업 시작 시 공정 시작 일자 등록
+      this.updateProcessProgress(process.prdr_d_code, progress); 
+
       const interval = setInterval(() => {
         progress += 10; // 10%씩 증가
 
@@ -542,11 +560,13 @@ class NoodleServer {
           timestamp: Date.now()
         });
 
+        this.updateProcessProgress(process.prdr_d_code, progress);
+        
         // 진행률 50%, 100%일 때 DB 업데이트
         if (progress >= 100) {
           clearInterval(interval);
-
-          this.updateProcessProgress(process.prdr_d_code, progress);
+          
+          // this.updateProcessProgress(process.prdr_d_code, progress);
 
           // 공정 완료 알림
           this.broadcast({
@@ -557,9 +577,9 @@ class NoodleServer {
 
           resolve();
         }
-        else if (progress == 50) {
-          this.updateProcessProgress(process.prdr_d_code, progress);
-        }
+        // else if (progress == 50) {
+        //   this.updateProcessProgress(process.prdr_d_code, progress);
+        // }
 
       }, 1000); // 1초마다 10%씩 증가
     });
@@ -574,14 +594,24 @@ class NoodleServer {
     return result;
   }
 
+  
+  // DB의 진행률 업데이트
   async updateProcessProgress(prdrDCode, progress) {
-    // DB의 진행률 업데이트
     // UPDATE prdr_d_tbl SET proc_rate = ? WHERE prdr_d_code = ?
     const conn = await mariadb.connectionPool.getConnection();
     try {
       await conn.beginTransaction(); // 트랜잭션 시작
 
-      const result = await mariadb.queryConn(conn, 'updatePRDRDRate', [progress, prdrDCode]);
+      let result;
+      if (progress >= 100) {
+        result = await mariadb.queryConn(conn, 'updatePRDRDComplete', [progress, prdrDCode]);
+      }
+      else if (progress === 0) {
+        result = await mariadb.queryConn(conn, 'updatePRDRDStart', [progress, prdrDCode]);
+      }
+      else {
+        result = await mariadb.queryConn(conn, 'updatePRDRDRate', [progress, prdrDCode]);
+      }
       if (result.affectedRows > 0) {
         console.log(`✅ 공정 ${prdrDCode} 진행률 업데이트 성공: ${progress}%`);
       } else {
