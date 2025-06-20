@@ -54,9 +54,10 @@ const qcrRouter = require('./routers/qcr_router.js');
 const qltRouter = require('./routers/qlt_router.js');
 
 // 기본 라우팅
+/*
 app.get('/', (req, res) => {
   res.send('Welcome!!');
-})
+})*/
 // 라우터 모듈 등록
 app.use('/api/dept', deptRouter);
 app.use('/api/prdp', prdpRouter);
