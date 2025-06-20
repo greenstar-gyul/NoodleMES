@@ -339,6 +339,31 @@ SET    proc_rate = ?,
 WHERE  prdr_d_code = ?
 `;
 
+// 작업 시작 갱신
+const updateWKOStart = `
+UPDATE wko_tbl
+SET    start_date = NOW(),
+       stat = 'v1'
+WHERE  wko_code = (
+  SELECT wko_code
+  FROM   prdr_tbl
+  WHERE  prdr_code = ?
+) AND stat = 'v4'
+`;
+
+// 작업 완료 갱신
+const updateWKOComplete = `
+UPDATE wko_tbl
+SET    end_date = NOW(),
+       stat = 'v2'
+WHERE  wko_code IN (
+  SELECT wko_code
+  FROM   prdr_tbl
+  WHERE  prdr_code = ?
+) AND stat = 'v1'
+
+`;
+
 module.exports = {
   selectPRDRCodeForUpdate,
   insertPRDR,
@@ -360,4 +385,6 @@ module.exports = {
   updatePRDRComplete,
   updatePRDRDComplete,
   updatePRDRDStart,
+  updateWKOStart,
+  updateWKOComplete
 }
