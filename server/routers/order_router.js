@@ -228,7 +228,6 @@ router.get("/products/search", async (req, res) => {
 
 
 
-
 // 출고 목록 조회
 router.get('/releases', async (req, res) => {
   try {

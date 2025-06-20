@@ -23,7 +23,7 @@ const selectOrderDetailList = `
   SELECT od.ord_code
        , od.ord_d_code
        , od.prod_code
-       , od.prod_amount AS ord_amount
+       , od.ord_amount
        , od.prod_price
        , od.delivery_date
        , od.ord_priority
@@ -47,7 +47,7 @@ const selectOrderListWithDate = `
          o.note,
          c.client_name,
          comm_name(o.ord_stat) AS ord_stat,
-         d.prod_amount,
+         d.ord_amount,
          d.delivery_date
   FROM ord_tbl o
   INNER JOIN ord_d_tbl d ON o.ord_code = d.ord_code
@@ -64,7 +64,7 @@ const selectOrderListByCondition = `
        , o.note
        , c.client_name 
        , comm_name(o.ord_stat) AS ord_stat
-       , d.prod_amount
+       , d.ord_amount
        , d.delivery_date
   FROM ord_tbl o
   INNER JOIN ord_d_tbl d ON o.ord_code = d.ord_code
@@ -78,8 +78,8 @@ const selectOrderListByCondition = `
       SELECT client_code FROM client_tbl WHERE client_name LIKE CONCAT('%', ?, '%')
     ))
     AND (? IS NULL OR o.ord_stat = ?)
-    AND (? IS NULL OR d.prod_amount >= ?)
-    AND (? IS NULL OR d.prod_amount <= ?)
+    AND (? IS NULL OR d.ord_amount >= ?)
+    AND (? IS NULL OR d.ord_amount <= ?)
     AND (? IS NULL OR d.delivery_date >= ?)
     AND (? IS NULL OR d.delivery_date <= ?)
   ORDER BY o.ord_code
@@ -170,7 +170,7 @@ const insertOrderDetail = `
     ord_d_code,
     unit,
     spec,
-    prod_amount,
+    ord_amount,
     prod_price,
     delivery_date,
     ord_priority,

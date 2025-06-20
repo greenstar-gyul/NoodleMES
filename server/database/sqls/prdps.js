@@ -59,7 +59,7 @@ const selectOrdList =
         ord.ord_code,
         ordd.prod_code,
         p.prod_name,
-        ordd.prod_amount,
+        ordd.ord_amount,
         ord.ord_name,
         ord.ord_date
 FROM    ord_d_tbl ordd
