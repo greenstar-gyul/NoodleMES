@@ -226,6 +226,41 @@ router.get("/products/search", async (req, res) => {
   }
 });
 
+// 주문 수정 (기본정보 + 상세정보 수정 포함)
+router.put('/:ordCode', async (req, res) => {
+  const { ordCode } = req.params;
+  const { order, details } = req.body;
+
+  if (!ordCode) {
+    return res.status(400).json({
+      result_code: "FAIL",
+      message: "ordCode가 누락되었습니다.",
+    });
+  }
+
+  try {
+    const updateData = {
+      orderData: { ...order, ord_code: ordCode },
+      detailData: details
+    };
+
+    const result = await orderService.updateOrderTx(updateData);
+
+    res.json({
+      result_code: "SUCCESS",
+      message: "주문 수정 성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("주문 수정 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "주문 수정 실패",
+      error: err.message
+    });
+  }
+});
+
 
 
 // 출고 목록 조회
@@ -423,7 +458,26 @@ router.get('/releaseData/search', async (req, res) => {
   }
 });
 
+// 출고 삭제
+router.delete('/releases/:outReqCode', async (req, res) => {
+  try {
+    const { outReqCode } = req.params;
+    const result = await orderService.deleteReleaseTx(outReqCode);
 
+    res.json({
+      result_code: "SUCCESS",
+      message: "출고 삭제 성공",
+      data: result
+    });
+  } catch (err) {
+    console.error("출고 삭제 실패:", err);
+    res.status(500).json({
+      result_code: "FAIL",
+      message: "출고 삭제 실패",
+      error: err.message
+    });
+  }
+});
 
 
 // 해당 javascript 파일의 마지막 코드, 모듈화

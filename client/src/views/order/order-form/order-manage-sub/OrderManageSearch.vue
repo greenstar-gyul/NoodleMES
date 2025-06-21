@@ -137,8 +137,15 @@ const handleSave = async () => {
   }));
 
   try {
-    await axios.post('/api/order', { order, details });
-    alert('주문이 등록되었습니다.');
+    if (props.ordCode.value) {
+      // 기존 주문이 있는 경우 → 수정 (PUT)
+      await axios.put(`/api/order/${props.ordCode.value}`, { order, details });
+      alert('주문이 수정되었습니다.');
+    } else {
+      // 새로운 주문 → 등록 (POST)
+      await axios.post('/api/order', { order, details });
+      alert('주문이 등록되었습니다.');
+    }
     handleReset();
   } catch (err) {
     console.error('주문 저장 실패:', err);

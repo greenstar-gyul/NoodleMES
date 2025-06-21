@@ -27,6 +27,7 @@ const saveData = async () => {
                 // 공정 목록 새로고침
                 await loadWKO(wkoInfo.value.wko_code);
                 await loadProcessList();
+                resetData();
             } else {
                 alert('등록에 실패했습니다.');
             }
@@ -50,14 +51,13 @@ const resetData = () => {
     processList.value = [];
     wkoInfo.value = {
         wko_code: '',
+        wko_name: '',
         reg_date: '',
         stat: 'v4',
         note: '',
         prdp_code: '',
         prod_code: '',
         prod_name: '',
-        emp_code: '',
-        emp_name: '',
         reg_code: 'EMP-10001',
         reg_name: '김영업',
         wko_qtt: 0,
@@ -115,14 +115,13 @@ const onProdPlanSelected = (prdpCode, prodCode) => {
 const wkoInfo = defineModel('data');
 wkoInfo.value = {
     wko_code: '',
+    wko_name: '',
     reg_date: '',
     stat: 'v4',
     note: '',
     prdp_code: '',
     prod_code: '',
     prod_name: '',
-    emp_code: '',
-    emp_name: '',
     reg_code: 'EMP-10001',
     reg_name: '김영업',
     wko_qtt: 0,

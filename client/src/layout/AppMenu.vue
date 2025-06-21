@@ -86,6 +86,10 @@ const model = ref([
                         label: '작업지시서 관리',
                         to: '/wko/manage'
                     },
+                    {
+                        label: '작업지시서 조회',
+                        to: '/wko/list'
+                    },
                     // {
                     //     label: '작업진행',
                     //     to: '/work/working'

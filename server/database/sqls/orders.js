@@ -180,6 +180,18 @@ const insertOrderDetail = `
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
+// 주문 수정
+const updateOrder = `
+  UPDATE ord_tbl
+     SET ord_name = ?,
+         ord_date = ?,
+         ord_stat = ?,
+         note = ?,
+         mcode = ?,
+         client_code = ?
+   WHERE ord_code = ?
+`;
+
 // 주문 삭제
 const deleteOrder = `
   DELETE FROM ord_tbl WHERE ord_code = ?
@@ -312,7 +324,6 @@ const updateRelease = `
          outbound_request_code = ?,
          lot_num = ?,
          prod_code = ?,
-         client_code = ?,
          mcode = ?
    WHERE poutbnd_code = ?
 `;
@@ -470,7 +481,7 @@ const findReleaseDataForList = `
          r.out_req_date,
          e.emp_name,
          c.client_name,
-         comm_name(p.stat) AS stat -- ✅ 출고상태명 추가
+         comm_name(p.stat) AS stat
     FROM out_req_d_tbl d
     JOIN out_req_tbl r 
       ON d.out_req_code = r.out_req_code
@@ -493,6 +504,21 @@ const findReleaseDataForList = `
      AND (? IS NULL OR c.client_name LIKE CONCAT('%', ?, '%'))
      AND (? IS NULL OR e.emp_name LIKE CONCAT('%', ?, '%'))
    ORDER BY d.out_req_d_code
+`;
+
+// 본출고 삭제 (출고요청코드 기준)
+const deletePoutbndByOutReqCode = `
+  DELETE FROM poutbnd_tbl WHERE outbound_request_code = ?
+`;
+
+// 출고요청상세 삭제
+const deleteOutReqDetail = `
+  DELETE FROM out_req_d_tbl WHERE out_req_code = ?
+`;
+
+// 출고요청 삭제
+const deleteOutReq = `
+  DELETE FROM out_req_tbl WHERE out_req_code = ?
 `;
 
 
@@ -535,7 +561,11 @@ module.exports = {
   // 삭제
   deleteOrder,
   deleteOrderDetail,
+  deletePoutbndByOutReqCode,
+  deleteOutReqDetail,
+  deleteOutReq,
 
   // 수정
+  updateOrder,
   updateRelease
 };

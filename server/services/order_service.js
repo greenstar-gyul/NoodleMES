@@ -181,6 +181,46 @@ const insertOrderTx = async (data) => {
   }
 };
 
+// 주문 수정 (트랜잭션)
+const updateOrderTx = async (data) => {
+  const conn = await mariadb.connectionPool.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // update할 컬럼 정의
+    const updateColumns = ['ord_name', 'ord_date', 'ord_stat', 'note', 'mcode', 'client_code', 'ord_code'];
+    const detailColumns = ['ord_d_code', 'unit', 'spec', 'ord_amount', 'prod_price', 'delivery_date', 'ord_priority', 'total_price', 'ord_code', 'prod_code'];
+
+    // 1. 주문 테이블 수정
+    await mariadb.queryConn(conn, "updateOrder", convertObjToAry(data.orderData, updateColumns));
+
+    // 2. 주문 상세 전부 삭제 후 재등록
+    await mariadb.queryConn(conn, "deleteOrderDetail", [data.orderData.ord_code]);
+
+    for (const detail of data.detailData) {
+      // 기존 ord_d_code가 없으면 새로 생성
+      if (!detail.ord_d_code) {
+        const ordDCodeRes = await mariadb.queryConn(conn, "selectOrdDCodeForUpdate");
+        detail.ord_d_code = ordDCodeRes[0].ord_d_code;
+      }
+
+      detail.ord_code = data.orderData.ord_code;
+
+      await mariadb.queryConn(conn, "insertOrderDetail", convertObjToAry(detail, detailColumns));
+    }
+
+    await conn.commit();
+    return { success: true };
+  } catch (err) {
+    await conn.rollback();
+    console.error("주문 수정 실패:", err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
 // 주문 삭제 (트랜잭션)
 const deleteOrderTx = async (ordCode) => {
   const conn = await mariadb.connectionPool.getConnection();
@@ -384,7 +424,7 @@ const updateRelease = async (poutbnd_code, release) => {
 };
 
 // 출고 수정(하나의 출고 요청에 여러 제품 수정)
-const updateFinalRelease = async (poutbnd_code, releaseDetails) => {
+const updateFinalRelease = async (releaseDetails) => {
   const conn = await mariadb.connectionPool.getConnection();
 
   try {
@@ -419,10 +459,10 @@ const updateFinalRelease = async (poutbnd_code, releaseDetails) => {
         item.prod_code,
         item.client_code,
         item.mcode ?? "EMP-10001",
-        poutbnd_code
+        item.poutbnd_code
       ];
 
-      console.log("🔥 updateRelease 실행 직전 client_code:", item.client_code);
+      console.log(" updateRelease 호출 - 값:", values);
 
       await mariadb.queryConn(conn, "updateRelease", values);
     }
@@ -506,9 +546,8 @@ const findReleasePopList = async () => {
 };
 
 // 출고 배치 업데이트
-// 이미 정의된 updateFinalRelease 함수를 재사용하여 출고 배치 업데이트를 수행
-const updateReleaseBatch = async (poutbnd_code, releaseDetails) => {
-  return await updateFinalRelease(poutbnd_code, releaseDetails); // 이미 정의된 함수 재사용
+const updateReleaseBatch = async (_unusedCode, releaseDetails) => {
+  return await updateFinalRelease(releaseDetails);
 };
 
 // 출고서 전체 목록 조회 (출고요청 상세 + 출고 정보 등 포함)
@@ -559,6 +598,29 @@ const findReleasesByCondition = async (condition) => {
   return result;
 };
 
+// 출고 삭제
+const deleteReleaseTx = async (out_req_code) => {
+  const conn = await mariadb.connectionPool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // 삭제 순서: 본출고 → 상세 → 요청
+    await mariadb.queryConn(conn, "deletePoutbndByOutReqCode", [out_req_code]);
+    await mariadb.queryConn(conn, "deleteOutReqDetail", [out_req_code]);
+    await mariadb.queryConn(conn, "deleteOutReq", [out_req_code]);
+
+    await conn.commit();
+    return { success: true };
+  } catch (err) {
+    await conn.rollback();
+    console.error("출고 전체 삭제 실패:", err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+
 
 module.exports ={
     // 해당 객체에 등록해야지 외부로 노출
@@ -587,5 +649,7 @@ module.exports ={
     findReleasePopList,
     updateReleaseBatch,
     findReleaseDataForList,
-    findReleasesByCondition
+    findReleasesByCondition,
+    updateOrderTx,
+    deleteReleaseTx
 };

@@ -72,8 +72,8 @@ const handleSearch = async (searchParams) => {
   try {
     const response = await axios.post('/api/work/search', cleanParams);
 
-    if (Array.isArray(response.data)) {
-      tableData.value = formatDateFields(response.data);
+    if (response.data.result_code === 'SUCCESS' && Array.isArray(response.data.data)) {
+      tableData.value = formatDateFields(response.data.data);
     } else {
       console.error('📛 예상치 못한 응답:', response.data);
       tableData.value = [];
@@ -98,3 +98,14 @@ const handleRowClick = (row) => {
     조건에 맞는 데이터가 없습니다.
     </div>
 </template>
+
+<style scoped>
+:deep(.p-datatable-tbody > tr:hover) {
+    background-color: #f8fafc;
+    cursor: pointer;
+}
+
+:deep(.p-datatable-tbody > tr.p-highlight) {
+    background-color: #dbeafe;
+}
+</style>
