@@ -4,7 +4,7 @@ export const orderListMapping = {
     ord_date: '주문일자',
     prod_code: '제품코드',
     prod_name: '제품명',
-    prod_amount: '주문수량'
+    ord_amount: '주문수량'
 };
 
 export default orderListMapping;

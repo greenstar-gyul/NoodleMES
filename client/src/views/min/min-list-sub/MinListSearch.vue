@@ -1,52 +1,52 @@
 <script setup>
-import axios from 'axios';
-import { onMounted, ref } from 'vue';
-import Button from 'primevue/button';
-import SearchText from '@/components/search-bar/SearchText.vue';
-import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
+// import axios from 'axios';
+// import { onMounted, ref } from 'vue';
+// import Button from 'primevue/button';
+// import SearchText from '@/components/search-bar/SearchText.vue';
+// import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
 
 
-// 데이터 및 옵션
-// const mprdata = ref(MprData);
+// // 데이터 및 옵션
+// // const mprdata = ref(MprData);
 
-const searchmprdate = ref([])
+// const searchmprdate = ref([])
 
-// 검색 조건 초기값
-const searchOption = ref({
-  mpr_code: '',         // 구매요청코드
-  req_date_from: null,  // 요청일자(시작값)
-  req_date_to: null,    // 요청일자(마지막값)
-  deadline_from: null,  // 납기일자(시작값)
-  deadline_to: null,    // 납기일자(마지막값)
-  mrp_code: '',         // MRP 코드
-  mcode: '',            // 요청자
-});
+// // 검색 조건 초기값
+// const searchOption = ref({
+//   mpr_code: '',         // 구매요청코드
+//   req_date_from: null,  // 요청일자(시작값)
+//   req_date_to: null,    // 요청일자(마지막값)
+//   deadline_from: null,  // 납기일자(시작값)
+//   deadline_to: null,    // 납기일자(마지막값)
+//   mrp_code: '',         // MRP 코드
+//   mcode: '',            // 요청자
+// });
 
-const emit = defineEmits(['searchOption', 'resetSearch']);
-const fetchSearch = () => {
-  emit('searchOption', searchOption.value); // 조건을 상위로 emit
-};
+// const emit = defineEmits(['searchOption', 'resetSearch']);
+// const fetchSearch = () => {
+//   emit('searchOption', searchOption.value); // 조건을 상위로 emit
+// };
 
-// 초기화
-const resetSearchOption  = () => {
-  searchOption.value = {
-    mpr_code: '',
-    req_date_from: null,
-    req_date_to: null,
-    deadline_from: null,
-    deadline_to: null,
-    mrp_code: '',
-    mcode: '',
-  };
-};
+// // 초기화
+// const resetSearchOption  = () => {
+//   searchOption.value = {
+//     mpr_code: '',
+//     req_date_from: null,
+//     req_date_to: null,
+//     deadline_from: null,
+//     deadline_to: null,
+//     mrp_code: '',
+//     mcode: '',
+//   };
+// };
 
-const handleReset = () => {
-  resetSearchOption();               // 검색 조건 초기화
-  emit('resetSearch');              // 부모에게 "초기화했어"라고 알림
-};
+// const handleReset = () => {
+//   resetSearchOption();               // 검색 조건 초기화
+//   emit('resetSearch');              // 부모에게 "초기화했어"라고 알림
+// };
 
-defineExpose({ resetSearchOption }); 
+// defineExpose({ resetSearchOption }); 
 
 </script>
 

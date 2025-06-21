@@ -1,19 +1,19 @@
 <script setup>
-// import axios from 'axios';
-import { onMounted, defineProps, defineEmits } from 'vue';
-import mprMapping from '@/service/MprMapping.js';
-import TableWithExcel from '@/components/form/TableWithExcel.vue';
+// // import axios from 'axios';
+// import { onMounted, defineProps, defineEmits } from 'vue';
+// import mprMapping from '@/service/MprMapping.js';
+// import TableWithExcel from '@/components/form/TableWithExcel.vue';
 
-// 상위에서 전달받은 데이터
-defineProps({
-  mprdata: Array,
-  required: true,
-});
+// // 상위에서 전달받은 데이터
+// defineProps({
+//   mprdata: Array,
+//   required: true,
+// });
 
-const emit = defineEmits(['initData']);
-onMounted(() => {
-  emit('initData');
-});
+// const emit = defineEmits(['initData']);
+// onMounted(() => {
+//   emit('initData');
+// });
 
 </script>
 

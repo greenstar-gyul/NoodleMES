@@ -10,6 +10,9 @@
                     <div v-if="isEditMode" class="text-sm text-blue-600 mt-1">
                         선택된 검사결과: {{ qirForm.qir_code }}
                     </div>
+                    <div v-if="!isEditMode && qirForm.qio_code" class="text-sm text-green-600 mt-1">
+                        검사지시: {{ qirForm.qio_code }} (새 QIR 등록 모드)
+                    </div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button v-if="isEditMode" label="취소" severity="secondary" class="min-w-fit whitespace-nowrap"
@@ -76,7 +79,6 @@
                 <label class="font-semibold text-xl block mb-2">불량률(%)</label>
                 <InputText v-model="qirForm.unpass_rate" type="number" placeholder="자동 계산됨" :disabled="true"
                     class="w-full" />
-                <!-- ↑ disabled로 사용자가 직접 수정 못하게 함 -->
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">검사자</label>
@@ -112,9 +114,9 @@ const props = defineProps({
 });
 
 // Emits 정의 (부모에게 이벤트 전달)
-const emit = defineEmits(['data-updated']);
+const emit = defineEmits(['data-updated', 'add-to-memory', 'update-in-memory']);
 
-// 설비 폼 데이터
+// QIR 폼 데이터
 const qirForm = ref({
     qir_code: '',
     start_date: null,
@@ -129,22 +131,12 @@ const qirForm = ref({
     inspection_item: ''
 });
 
-// 수정 모드 여부 계산
+// 🎯 수정 모드 여부 계산 (QIR 코드가 있고 임시코드가 아니면 수정모드)
 const isEditMode = computed(() => {
-    return props.selectedData !== null && props.selectedData !== undefined;
-});
-
-// checkbox
-const isUnused = computed({
-    get() {
-        // is_used가 'f1'이면 체크박스가 선택됨 (미사용)
-        return qirForm.value.is_used === 'f1';
-    },
-    set(value) {
-        // 체크박스가 선택되면(true) is_used는 'f1' (미사용)
-        // 체크박스가 해제되면(false) is_used는 'f2' (사용)
-        qirForm.value.is_used = value ? 'f1' : 'f2';
-    }
+    return props.selectedData && 
+           props.selectedData.qir_code && 
+           props.selectedData.qir_code !== '' &&
+           !props.selectedData.qir_code.startsWith('QIR-TEMP-');
 });
 
 // 폼 초기화 함수
@@ -164,6 +156,13 @@ const resetForm = async () => {
     };
 
     await nextTick();
+};
+
+// 🎯 QIO 코드 유지하고 폼 초기화
+const resetFormKeepQio = async () => {
+    const qioCode = qirForm.value.qio_code;
+    await resetForm();
+    qirForm.value.qio_code = qioCode;  // QIO 코드만 복원
 };
 
 // 선택된 데이터 변경 감지 (테이블에서 행 선택 시)
@@ -192,20 +191,19 @@ watch(
     { immediate: true }
 );
 
+// 불량률 자동 계산
 watch([() => qirForm.value.unpass_qtt, () => qirForm.value.pass_qtt], ([unpass, pass]) => {
     try {
-        // 입력값 검증 및 변환
-        const unpassNum = Math.max(0, parseInt(unpass) || 0);  // 음수 방지
-        const passNum = Math.max(0, parseInt(pass) || 0);      // 음수 방지
+        const unpassNum = Math.max(0, parseInt(unpass) || 0);
+        const passNum = Math.max(0, parseInt(pass) || 0);
         const total = unpassNum + passNum;
 
         if (total > 0) {
             const rate = (unpassNum / total) * 100;
-            qirForm.value.unpass_rate = rate.toFixed(1);  // 1.0, 2.5 이런식으로
+            qirForm.value.unpass_rate = rate.toFixed(1);
             console.log(`불량률 계산: ${unpassNum}/${total} = ${rate.toFixed(1)}%`);
         } else {
             qirForm.value.unpass_rate = '';
-            console.log('전체 수량이 0이므로 불량률 계산 안함');
         }
     } catch (error) {
         console.error('불량률 계산 실패:', error);
@@ -236,7 +234,6 @@ const formatDateForDB = (date) => {
         return null;
     }
     
-    // 날짜만! YYYY-MM-DD 형식
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -244,27 +241,10 @@ const formatDateForDB = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-const parseDate = (dateString) => {
-    if (!dateString) return null;
-    
-    try {
-        if (typeof dateString === 'string') {
-            // ISO 형식이나 MySQL 형식 모두 처리
-            return new Date(dateString);
-        } else if (dateString instanceof Date) {
-            return dateString;
-        }
-        return null;
-    } catch (error) {
-        console.warn('날짜 파싱 실패:', dateString, error);
-        return null;
-    }
-};
-
-// 설비 등록 함수
+// 🎯 QIR 등록 함수 (메모리 전용)
 const saveQir = async () => {
     try {
-        // 📝 필수 데이터 검증
+        // 필수 데이터 검증
         if (!qirForm.value.qio_code) {
             alert('검사지시코드가 없어! 먼저 검사지시를 저장해줘 😅');
             return;
@@ -285,94 +265,102 @@ const saveQir = async () => {
             return;
         }
 
-        console.log('💾 QIR 등록 시작...');
+        console.log('💾 QIR 메모리 등록 시작...');
         
-        const qirPayload = {
+        // 🎯 새 QIR 코드 생성 (임시)
+        const tempQirCode = `QIR-TEMP-${Date.now()}`;
+        
+        const newQirData = {
+            qir_code: tempQirCode,  // 임시 코드
             qio_code: qirForm.value.qio_code,
-            start_date: formatDateForDB(qirForm.value.start_date),
-            end_date: formatDateForDB(qirForm.value.end_date),
+            start_date: qirForm.value.start_date,
+            end_date: qirForm.value.end_date,
             unpass_qtt: parseInt(qirForm.value.unpass_qtt) || 0,
             pass_qtt: parseInt(qirForm.value.pass_qtt) || 0,
             unpass_rate: parseFloat(qirForm.value.unpass_rate) || 0,
             result: qirForm.value.result,
             note: qirForm.value.note || '',
             qir_emp_name: qirForm.value.qir_emp_name,
-            inspection_item: qirForm.value.inspection_item
+            inspection_item: qirForm.value.inspection_item,
+            po_name: '임시',  // BottomTbl 표시용
+            qio_date: new Date().toISOString().split('T')[0]  // 오늘 날짜
         };
 
-        console.log('📤 등록할 QIR 데이터:', qirPayload);
+        console.log('📤 메모리에 추가할 QIR 데이터:', newQirData);
 
-        const response = await axios.post('/api/qcr/qir', qirPayload);
-
-        if (response.data.success) {
-            alert('QIR 등록이 완료되었어! 🎉');
-            
-            // ✅ 폼 초기화를 먼저 하고
-            await resetForm();
-            
-            // ✅ 그 다음에 부모에게 데이터 업데이트 알림
-            // 약간의 딜레이를 주어서 UI가 제대로 업데이트되도록 함
-            setTimeout(() => {
-                emit('data-updated');
-            }, 100);
-            
-            console.log('✅ QIR 등록 완료 및 데이터 새로고침 요청');
-        } else {
-            alert('QIR 등록에 실패했어 ㅠㅠ');
-        }
+        // 🎯 부모(QualityManage)에게 메모리 추가 요청
+        emit('add-to-memory', newQirData);
+        
+        alert('QIR이 목록에 추가되었어! 저장하려면 "저장" 버튼을 눌러줘! 🎉');
+        
+        // 폼 초기화 (QIO 코드는 유지)
+        await resetFormKeepQio();
+        
     } catch (error) {
-        console.error('💥 QIR 등록 실패:', error);
-        alert('QIR 등록 중 오류가 발생했어! 😭\n' + (error.response?.data?.message || error.message));
+        console.error('💥 QIR 메모리 등록 실패:', error);
+        alert('QIR 등록 중 오류가 발생했어! 😭');
     }
 };
 
-const validateQirData = (data) => {
-    const errors = [];
-    
-    if (!data.qio_code) errors.push('검사지시코드');
-    if (!data.inspection_item) errors.push('품질기준항목');
-    if (!data.result) errors.push('검사결과');
-    if (!data.qir_emp_name) errors.push('검사자');
-    
-    if (errors.length > 0) {
-        alert(`다음 필드를 입력해주세요: ${errors.join(', ')} 😅`);
-        return false;
-    }
-    
-    return true;
-};
-
-// 설비 수정 함수
+// 🎯 QIR 수정 함수 (메모리 전용)
 const updateQir = async () => {
     try {
-        // 검증 로직 동일...
-        
-        const response = await axios.put(`/api/qcr/qir/${qirForm.value.qir_code}`, updatePayload);
-
-        if (response.data.success) {
-            alert('QIR 수정이 완료되었어! 🎉');
-            
-            // ✅ 폼 초기화를 먼저 하고
-            await resetForm();
-            
-            // ✅ 부모에게 데이터 업데이트 알림 (딜레이 적용)
-            setTimeout(() => {
-                emit('data-updated');
-            }, 100);
-            
-            console.log('✅ QIR 수정 완료 및 데이터 새로고침 요청');
-        } else {
-            alert('QIR 수정에 실패했어 ㅠㅠ');
+        // 필수 데이터 검증
+        if (!qirForm.value.qio_code) {
+            alert('검사지시코드가 없어! 😅');
+            return;
         }
+
+        if (!qirForm.value.inspection_item) {
+            alert('품질기준항목을 입력해줘! 🤔');
+            return;
+        }
+
+        if (!qirForm.value.result) {
+            alert('검사 결과를 선택해줘! ✨');
+            return;
+        }
+
+        if (!qirForm.value.qir_emp_name) {
+            alert('검사자를 입력해줘! 👨‍🔬');
+            return;
+        }
+        
+        const updatedQirData = {
+            qir_code: qirForm.value.qir_code,  // 기존 코드 유지
+            qio_code: qirForm.value.qio_code,
+            start_date: qirForm.value.start_date,
+            end_date: qirForm.value.end_date,
+            unpass_qtt: parseInt(qirForm.value.unpass_qtt) || 0,
+            pass_qtt: parseInt(qirForm.value.pass_qtt) || 0,
+            unpass_rate: parseFloat(qirForm.value.unpass_rate) || 0,
+            result: qirForm.value.result,
+            note: qirForm.value.note || '',
+            qir_emp_name: qirForm.value.qir_emp_name,
+            inspection_item: qirForm.value.inspection_item,
+            po_name: '수정됨',  // BottomTbl 표시용
+            qio_date: new Date().toISOString().split('T')[0]  // 오늘 날짜
+        };
+
+        console.log('📤 메모리에서 수정할 QIR 데이터:', updatedQirData);
+
+        // 🎯 부모에게 메모리 수정 요청
+        emit('update-in-memory', updatedQirData);
+        
+        alert('QIR이 목록에서 수정되었어! 저장하려면 "저장" 버튼을 눌러줘! 🎉');
+        
+        // 폼 초기화 (QIO 코드는 유지)
+        await resetFormKeepQio();
+        
     } catch (error) {
-        console.error('💥 QIR 수정 실패:', error);
+        console.error('💥 QIR 메모리 수정 실패:', error);
         alert('QIR 수정 중 오류가 발생했어! 😭');
     }
 };
 
 // 수정 취소 함수
 const cancelEdit = () => {
-    console.log('수정 취소');
+    console.log('수정 취소 - QIO 기본 모드로 복귀');
     emit('data-updated'); // 부모에서 선택 해제하도록 알림
 };
 </script>

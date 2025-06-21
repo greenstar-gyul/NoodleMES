@@ -21,7 +21,7 @@ module.exports = {
   ...depts,
   ...mrp,
 
-  /* 자재 시작*/ 
+/* 자재 시작*/ 
   ...mpr,
   ...min,
   ...mpo,
