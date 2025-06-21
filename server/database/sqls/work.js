@@ -144,7 +144,7 @@ SELECT  w.wko_code,
 FROM    wko_tbl w
 LEFT JOIN prod_tbl p ON w.prod_code = p.prod_code
 WHERE 1 = 1
-  AND w.stat != 'v2'  -- 작업완료 제외
+  AND w.stat <> 'v2'  -- 작업완료 제외
   AND (? IS NULL OR w.wko_code LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR w.wko_name LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR p.prod_name LIKE CONCAT('%', ?, '%'))

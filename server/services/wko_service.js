@@ -55,7 +55,7 @@ const findWKO = async (wkoCode) => {
  * 작업지시서의 공정 목록 조회
  */
 const findWKOProcesses = async (lineCode) => {
-  const list = await mariadb.query("selectWKOProcesses", [lineCode])
+  const list = await mariadb.query("selectWKOProcess", [lineCode])
     .catch(err => console.log(err));
   console.log('아오!!!!!!!!!!!!', list);
   return list;
@@ -65,7 +65,7 @@ const findWKOProcesses = async (lineCode) => {
  * 제품별 생산공정 조회 (참조용)
  */
 const findProdProcesses = async (prodCode) => {
-  const list = await mariadb.query('selectProdProcesses', [prodCode])
+  const list = await mariadb.query('selectProdProcess', [prodCode])
     .catch(err => console.log(err));
   return list;
 };

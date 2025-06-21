@@ -27,6 +27,7 @@ const saveData = async () => {
                 // 공정 목록 새로고침
                 await loadWKO(wkoInfo.value.wko_code);
                 await loadProcessList();
+                resetData();
             } else {
                 alert('등록에 실패했습니다.');
             }
