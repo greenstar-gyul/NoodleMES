@@ -139,8 +139,8 @@ FOR UPDATE
 `;
 
 const insertWKO = `
-INSERT INTO wko_tbl(wko_code, stat, note, prdp_code, prod_code, emp_code, wko_qtt, reg_date, reg_code, line_code)
-VALUES (?, 'v4', ?, ?, ?, ?, ?, CURDATE(), ?, ?)
+INSERT INTO wko_tbl(wko_code, stat, note, prdp_code, prod_code, wko_qtt, reg_date, reg_code, line_code, wko_name)
+VALUES (?, 'v4', ?, ?, ?, ?, CURDATE(), ?, ?, ?)
 `;
 
 // 계획에 따른 제품 목록 조회
@@ -168,7 +168,7 @@ FROM   prod_tbl
 
 const updateWKO = `
 UPDATE wko_tbl 
-SET note = ?, wko_qtt = ?
+SET note = ?, wko_qtt = ?, wko_name = ?
 WHERE wko_code = ?
 `;
 
@@ -181,8 +181,7 @@ WHERE wko_code = ?
 // 여러 조건으로 작업지시서 조회 - datetime 타입 고려
 const selectWKOByOptions =  `
 SELECT wko.wko_code,
-       prdp.prdp_code,
-       prdp.prdp_name,
+       wko.wko_name,
        prod.prod_name,
        comm_name(wko.stat) AS "stat",
        DATE_FORMAT(wko.reg_date, '%Y-%m-%d') AS "reg_date",
@@ -197,8 +196,7 @@ FROM   wko_tbl wko LEFT JOIN prdp_tbl prdp
                      ON wko.line_code = line.line_code
 WHERE 1=1
   AND (? IS NULL OR ? = '' OR wko.wko_code LIKE CONCAT('%', ?, '%'))
-  AND (? IS NULL OR ? = '' OR prdp.prdp_code LIKE CONCAT('%', ?, '%'))
-  AND (? IS NULL OR ? = '' OR prdp.prdp_name LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR ? = '' OR wko.wko_name LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR ? = '' OR prod.prod_name LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR DATE(wko.reg_date) >= ?)
   AND (? IS NULL OR DATE(wko.reg_date) <= ?)
@@ -208,8 +206,7 @@ ORDER BY wko.reg_date DESC, wko.wko_code DESC
 // 최근 1달 작업지시서 조회 (팝업용) - datetime 타입 고려
 const selectWKOMonth = `
 SELECT wko.wko_code,
-       prdp.prdp_code,
-       prdp.prdp_name,
+       wko.wko_name,
        prod.prod_name,
        comm_name(wko.stat) AS "stat",
        DATE_FORMAT(wko.reg_date, '%Y-%m-%d') AS "reg_date",

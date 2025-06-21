@@ -24,8 +24,7 @@ const loading = ref(false);
 // 검색 조건
 const searchParams = ref({
   wko_code: '',
-  prdp_code: '',
-  prdp_name: '',
+  wko_name: '',
   prod_name: '',
   reg_date_from: null,
   reg_date_to: null
@@ -36,11 +35,11 @@ const setDefaultDateRange = () => {
   const today = new Date();
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(today.getMonth() - 1);
-  
+
   // 새로운 Date 객체 생성해서 참조 문제 방지
   searchParams.value.reg_date_from = new Date(oneMonthAgo.getTime());
   searchParams.value.reg_date_to = new Date(today.getTime());
-  
+
   console.log('기본 날짜 설정:', {
     from: searchParams.value.reg_date_from,
     to: searchParams.value.reg_date_to
@@ -85,8 +84,7 @@ const searchWKO = async () => {
 
     const params = {
       wko_code: searchParams.value.wko_code || null,
-      prdp_code: searchParams.value.prdp_code || null,
-      prdp_name: searchParams.value.prdp_name || null,
+      wko_name: searchParams.value.wko_name || null,
       prod_name: searchParams.value.prod_name || null,
       reg_date_from: formatDate(searchParams.value.reg_date_from),
       reg_date_to: formatDate(searchParams.value.reg_date_to),
@@ -96,7 +94,7 @@ const searchWKO = async () => {
 
     const response = await axios.get(`/api/wko/search`, { params });
     wkoList.value = response.data.data || [];
-    
+
     console.log('조회 결과:', wkoList.value.length, '건'); // 디버깅용
   } catch (error) {
     console.error('작업지시서 검색 실패:', error);
@@ -110,8 +108,7 @@ const searchWKO = async () => {
 const resetSearch = () => {
   searchParams.value = {
     wko_code: '',
-    prdp_code: '',
-    prdp_name: '',
+    wko_name: '',
     prod_name: '',
     reg_date_from: null,
     reg_date_to: null
@@ -177,75 +174,32 @@ const onRowDoubleClick = (event) => {
 </script>
 
 <template>
-  <Dialog 
-    :visible="visible" 
-    modal 
-    header="📋 작업지시서 목록" 
-    :style="{ width: '90vw', height: '80vh' }" 
-    :closable="false">
-    
+  <Dialog :visible="visible" modal header="📋 작업지시서 목록" :style="{ width: '90vw', height: '80vh' }" :closable="false">
+
     <!-- 검색 조건 영역 -->
     <div class="p-4 bg-gray-50 rounded mb-4">
       <h4 class="text-lg font-semibold mb-3">🔍 검색 조건</h4>
-      
+
       <!-- 첫 번째 행 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-        <SearchText label="작업지시코드" v-model="searchParams.wko_code"></SearchText>
-        <!-- <div>
-          <label class="block text-sm font-medium mb-1">작업지시서코드</label>
-          <InputText 
-          v-model="searchParams.wko_code"
-          placeholder="WKO-20241215-001"
-          class="w-full" />
-        </div> -->
-        <SearchText label="생산계획코드" v-model="searchParams.prdp_code"></SearchText>
-        <!-- <div>
-          <label class="block text-sm font-medium mb-1">생산계획코드</label>
-          <InputText 
-          v-model="searchParams.prdp_code"
-          placeholder="PRDP-20241215-001"
-          class="w-full" />
-        </div> -->
-        <SearchText label="생산계획명" v-model="searchParams.prdp_name"></SearchText>
-        <!-- <div>
-          <label class="block text-sm font-medium mb-1">생산계획명</label>
-          <InputText 
-          v-model="searchParams.prdp_name"
-          placeholder="생산계획명"
-          class="w-full" />
-        </div> -->
-      </div>
-      
-      <!-- 두 번째 행 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <!-- <SearchText label="작업지시코드" v-model="searchParams.wko_code"></SearchText> -->
+        <SearchText label="작업지시명" v-model="searchParams.wko_name"></SearchText>
         <SearchText label="제품명" v-model="searchParams.prod_name"></SearchText>
-        <!-- <div>
-          <label class="block text-sm font-medium mb-1">제품명</label>
-          <InputText 
-            v-model="searchParams.prod_name"
-            placeholder="제품명"
-            class="w-full" />
-        </div> -->
-        <div class="col-span-2">
-          <SearchDateBetween 
-            label="작업등록일" 
-            v-model:from="searchParams.reg_date_from" 
+      </div>
+
+      <!-- 두 번째 행 -->
+      <!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <div class="col-span-3">
+          <SearchDateBetween label="작업등록일" v-model:from="searchParams.reg_date_from"
             v-model:to="searchParams.reg_date_to">
           </SearchDateBetween>
         </div>
-      </div>
+      </div> -->
       <div class="flex justify-center gap-3 mt-4">
-        <Button 
-          label="검색" 
-          severity="info" 
-          @click="searchWKO"
-          :loading="loading" />
-        <Button 
-          label="초기화" 
-          severity="contrast" 
-          @click="resetSearch" />
+        <Button label="검색" severity="info" @click="searchWKO" :loading="loading" />
+        <Button label="초기화" severity="contrast" @click="resetSearch" />
       </div>
-      
+
       <!-- 날짜 범위 안내 -->
       <!-- <div class="text-xs text-gray-500 mb-2">
         💡 기본적으로 최근 1개월 범위로 설정됩니다. 
@@ -266,71 +220,49 @@ const onRowDoubleClick = (event) => {
     </div>
 
     <!-- 데이터 테이블 -->
-    <DataTable
-      :value="wkoList"
-      v-model:selection="selectedWKO"
-      selectionMode="single"
-      dataKey="wko_code"
-      showGridlines
-      scrollable
-      scrollHeight="400px"
-      :loading="loading"
-      @rowDblclick="onRowDoubleClick"
+    <DataTable :value="wkoList" v-model:selection="selectedWKO" selectionMode="single" dataKey="wko_code" showGridlines
+      scrollable scrollHeight="400px" :loading="loading" @rowDblclick="onRowDoubleClick"
       emptyMessage="조회된 작업지시서가 없습니다.">
-      
-      <Column selectionMode="single" headerStyle="width: 1%" />
-      
-      <Column field="wko_code" header="작업지시서코드" style="width: 10%">
+
+      <!-- <Column selectionMode="single" headerStyle="width: 1%" /> -->
+
+      <Column field="wko_code" header="작업지시서코드" style="width: 15%">
         <template #body="slotProps">
           <span class="font-mono text-blue-600 font-medium">
             {{ slotProps.data.wko_code }}
           </span>
         </template>
       </Column>
-      
-      <Column field="prdp_code" header="생산계획코드" style="width: 10%">
+
+      <Column field="wko_name" header="작업지시명" style="width: 20%">
         <template #body="slotProps">
           <span class="font-mono text-purple-600">
-            {{ slotProps.data.prdp_code ?? '-' }}
+            {{ slotProps.data.wko_name ?? '-' }}
           </span>
         </template>
       </Column>
-      
-      <Column field="prdp_name" header="생산계획명" style="min-width: 10%">
-        <template #body="slotProps">
-          <span class="font-medium">{{ slotProps.data.prdp_name ?? '-' }}</span>
-        </template>
-      </Column>
-      
+
       <Column field="prod_name" header="제품명" style="min-width: 10%">
         <template #body="slotProps">
           {{ slotProps.data.prod_name }}
         </template>
       </Column>
-      
-      <!-- <Column field="prod_type" header="제품타입" style="width: 80px">
-        <template #body="slotProps">
-          <span class="text-sm px-2 py-1 bg-gray-100 rounded">
-            {{ slotProps.data.prod_type }}
-          </span>
-        </template>
-      </Column> -->
-      
+
       <Column field="stat" header="작업상태" style="width: 10%">
         <template #body="slotProps">
-            {{ slotProps.data.stat }}
+          {{ slotProps.data.stat }}
         </template>
       </Column>
-      
+
       <Column field="reg_date" header="작업등록일" style="width: 10%">
         <template #body="slotProps">
           {{ slotProps.data.reg_date }}
         </template>
       </Column>
-      
+
       <Column field="note" header="비고" style="min-width: 20%">
         <template #body="slotProps">
-            {{ slotProps.data.note }}
+          {{ slotProps.data.note }}
         </template>
       </Column>
     </DataTable>
@@ -338,11 +270,7 @@ const onRowDoubleClick = (event) => {
     <!-- 버튼 영역 -->
     <div class="flex justify-center gap-3 mt-4">
       <Button label="취소" severity="contrast" @click="cancel" />
-      <Button 
-        label="선택" 
-        severity="success" 
-        :disabled="!selectedWKO" 
-        @click="confirm" />
+      <Button label="선택" severity="success" :disabled="!selectedWKO" @click="confirm" />
     </div>
   </Dialog>
 </template>
