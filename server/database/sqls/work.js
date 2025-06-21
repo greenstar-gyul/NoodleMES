@@ -163,6 +163,7 @@ SELECT  COALESCE(v.po_name, '미설정') AS po_name,
         v.prod_code,
         p.prod_name,
         v.wko_code,
+        w.wko_name,                  
         v.line_code,
         v.start_date,
         v.end_date,
@@ -180,9 +181,10 @@ SELECT  COALESCE(v.po_name, '미설정') AS po_name,
           THEN (v.make_qtt / v.wko_qtt) * 100 
           ELSE 0 
         END AS "perform_rate"
-FROM   processes_v v  -- ✅ 기존 뷰 사용
+FROM   processes_v v
 LEFT JOIN prod_tbl p ON v.prod_code = p.prod_code
-WHERE v.wko_code = ? AND v.eq_code = ?
+LEFT JOIN wko_tbl w ON v.wko_code = w.wko_code      -- ✅ 여기 조인 추가
+WHERE  v.wko_code = ? AND v.eq_code = ?
 `;
 
 // 상세에 맞는 현재 사용설비가저오는 쿼리
