@@ -72,8 +72,8 @@ const handleSearch = async (searchParams) => {
   try {
     const response = await axios.post('/api/work/search', cleanParams);
 
-    if (Array.isArray(response.data)) {
-      tableData.value = formatDateFields(response.data);
+    if (response.data.result_code === 'SUCCESS' && Array.isArray(response.data.data)) {
+      tableData.value = formatDateFields(response.data.data);
     } else {
       console.error('📛 예상치 못한 응답:', response.data);
       tableData.value = [];

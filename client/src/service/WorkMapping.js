@@ -1,5 +1,6 @@
 export const workMapping = {
     wko_code: '작업지시코드',
+    wko_name: '작업지시명',
     start_date: '시작시간',
     end_date: '종료시간',
     wko_qtt: '지시수량(개)',
