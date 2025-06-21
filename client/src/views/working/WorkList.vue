@@ -98,3 +98,14 @@ const handleRowClick = (row) => {
     조건에 맞는 데이터가 없습니다.
     </div>
 </template>
+
+<style scoped>
+:deep(.p-datatable-tbody > tr:hover) {
+    background-color: #f8fafc;
+    cursor: pointer;
+}
+
+:deep(.p-datatable-tbody > tr.p-highlight) {
+    background-color: #dbeafe;
+}
+</style>

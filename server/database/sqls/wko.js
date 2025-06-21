@@ -87,7 +87,7 @@ WHERE  wko.wko_code = ?
 `;
 
 // 작업지시서의 공정 목록 조회 (prod_code + prdp_code로 라인 조회 → 공정 조회)
-const selectWKOProcesses = `
+const selectWKOProcess = `
 SELECT line.line_code,
        line.line_name,
        comm_name(line.line_type) AS "line_type",
@@ -112,7 +112,7 @@ ORDER BY line.line_code, ppd.no, ld.line_eq_code
 `;
 
 // 제품별 생산공정 조회 (제품 추가 시 참조용)
-const selectProdProcesses = `
+const selectProdProcess = `
 SELECT pp.prod_proc_code,
        pp.prod_code,
        prod.prod_name,
@@ -253,8 +253,8 @@ module.exports = {
     selectWKOList,
     selectPRDPList,
     selectWKO,
-    selectWKOProcesses,
-    selectProdProcesses,
+    selectWKOProcess,
+    selectProdProcess,
     selectWKOCodeForUpdate,
     insertWKO,
     selectProdAll,
