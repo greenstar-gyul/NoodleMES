@@ -69,6 +69,29 @@ watch(() => wsStore.messages, (messages) => {
       console.log(`🔄 ${data.value[processIndex].po_name} 진행률: ${latest.progress}%`);
     }
   }
+  else if (latest?.type === 'PROCESS_COMPLETED') {
+    // 공정 완료 메시지 처리
+    const processIndex = data.value.findIndex(
+      process => process.prdr_d_code === latest.processId
+    );
+    
+    if (processIndex !== -1) {
+      data.value[processIndex].proc_rate = 100; // 완료된 공정은 100%로 설정
+      data.value[processIndex].end_date = moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'); // 완료된 공정은 100%로 설정
+      console.log(`✅ ${data.value[processIndex].po_name} 공정 완료`);
+    }
+  }
+  else if (latest?.type === 'PROCESS_STARTED') {
+    // 공정 시작 메시지 처리
+    const processIndex = data.value.findIndex(
+      process => process.prdr_d_code === latest.processId
+    );
+    
+    if (processIndex !== -1) {
+      data.value[processIndex].start_date = moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'); // 시작일시 업데이트
+      console.log(`▶️ ${data.value[processIndex].po_name} 공정 시작`);
+    }
+  }
 }, { deep: true });
 
 onMounted(() => {
