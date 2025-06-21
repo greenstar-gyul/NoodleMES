@@ -69,16 +69,16 @@ WHERE p.prdr_code = ?
 
 const simpleSelectPrdr = `
 SELECT q.qio_code
-       ,p.prdr_code
+       ,IFNULL(p.prdr_code, '해당 없음') AS prdr_code
        ,po.po_name
        ,d.prod_name
-       ,q.purchase_code
+       ,IFNULL(q.purchase_code, '해당 없음') AS purchase_code
        ,p.end_date
        ,p.production_qtt
 FROM prdr_tbl p
-JOIN qio_tbl q ON p.prdr_code = q.prdr_code
-JOIN po_tbl po ON q.po_code = po.po_code
-JOIN prod_tbl d ON p.prod_code = d.prod_code
+LEFT JOIN qio_tbl q ON p.prdr_code = q.prdr_code
+LEFT JOIN po_tbl po ON q.po_code = po.po_code
+LEFT JOIN prod_tbl d ON p.prod_code = d.prod_code
 `;
 
 module.exports = {

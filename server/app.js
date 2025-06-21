@@ -2,8 +2,11 @@
 require('dotenv').config({ path: './database/configs/dbConfig.env' });
 require('dotenv').config({ path: './envs/devSetting.env' });
 
-// build : 빌드, dev : 개발 모드
+// build : 빌드, dev : 개발 모드 // env파일을 이용해서 전환
 const DEV_MODE = process.env.DEV_MODE === 'dev' ? true : false; // 개발 모드 여부
+
+// 개발 모드일 때 context path에 api 패스 추가
+const contextPath = DEV_MODE ? '' : '/api';
 
 const PORT = 3721;
 
@@ -46,18 +49,44 @@ const mrpRouter = require('./routers/mrp_router.js');
 const eqRouter = require('./routers/eq_router.js');
 const eqichkRouter = require('./routers/eqichk_router.js');
 const orderRouter = require('./routers/order_router.js');
+
+/* 자재 시작 */
 const mprRouter = require('./routers/mpr_router.js');
+const mpoRouter = require('./routers/mpo_router.js');
+const minRouter = require('./routers/min_router.js');
+/* 자재 끝 */
+
+const qltRouter = require('./routers/qlt_router.js');
 const bomRouter = require('./routers/bom_router.js');
 const lineRouter = require('./routers/line_router.js');
 const wkoRouter = require('./routers/wko_router.js');
 const prdrRouter = require('./routers/prdr_router.js');
 const procRouter = require('./routers/proc_router.js');
 const workRouter = require('./routers/work_router.js');
-const qrcRouter = require('./routers/qcr_router.js');
 const qcrRouter = require('./routers/qcr_router.js');
-const qltRouter = require('./routers/qlt_router.js');
 
-let contextPath = '';
+// 라우터 모듈 등록
+app.use(contextPath + '/dept', deptRouter);
+app.use(contextPath + '/prdp', prdpRouter);
+app.use(contextPath + '/mrp', mrpRouter);
+app.use(contextPath + '/eq', eqRouter);
+app.use(contextPath + '/eqichk', eqichkRouter);
+app.use(contextPath + '/order', orderRouter);
+
+/* 자재 시작 */
+app.use(contextPath + '/mpr', mprRouter);
+app.use(contextPath + '/mpo', mpoRouter);
+app.use(contextPath + '/min', minRouter);
+/* 자재 끝 */
+
+app.use(contextPath + '/qcr', qcrRouter);
+app.use(contextPath + '/bom',bomRouter);
+app.use(contextPath + '/line',lineRouter);
+app.use(contextPath + '/wko', wkoRouter);
+app.use(contextPath + '/prdr', prdrRouter);
+app.use(contextPath + '/proc', procRouter);
+app.use(contextPath + '/work', workRouter);
+app.use(contextPath + '/qlt', qltRouter);
 
 // 기본 라우팅
 if (DEV_MODE) {
@@ -68,7 +97,6 @@ if (DEV_MODE) {
 
 }
 else {
-  contextPath = '/api';
   
   // vue.js build 이후
   const path = require('path');
@@ -83,24 +111,6 @@ else {
     res.status(404).sendFile(path.join(__dirname, "./public", "index.html"));
   });
 }
-
-// 라우터 모듈 등록
-app.use(contextPath + '/dept', deptRouter);
-app.use(contextPath + '/prdp', prdpRouter);
-app.use(contextPath + '/mrp', mrpRouter);
-app.use(contextPath + '/eq', eqRouter);
-app.use(contextPath + '/eqichk', eqichkRouter);
-app.use(contextPath + '/order', orderRouter);
-app.use(contextPath + '/mpr', mprRouter);
-app.use(contextPath + '/qcr', qcrRouter);
-app.use(contextPath + '/bom',bomRouter);
-app.use(contextPath + '/line',lineRouter);
-app.use(contextPath + '/wko', wkoRouter);
-app.use(contextPath + '/prdr', prdrRouter);
-app.use(contextPath + '/proc', procRouter);
-app.use(contextPath + '/work', workRouter);
-app.use(contextPath + '/qrc', qrcRouter);
-app.use(contextPath + '/qlt', qltRouter);
 
 // 서버 종료 시 웹소켓 정리
 process.on('SIGTERM', () => {

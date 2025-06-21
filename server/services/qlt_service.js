@@ -35,7 +35,7 @@ const formatDateForDB = (date) => {
     return null;
   }
 
-  // 날짜만! YYYY-MM-DD 형식
+  // YYYY-MM-DD 형식
   const year = dateObj.getFullYear();
   const month = String(dateObj.getMonth() + 1).padStart(2, '0');
   const day = String(dateObj.getDate()).padStart(2, '0');
@@ -135,108 +135,187 @@ const saveQioWithResults = async (qioData, qirList) => {
   const conn = await mariadb.connectionPool.getConnection();
 
   try {
+    console.log('🔍 service.js 시작!');
+    console.log('📥 받은 qioData:', JSON.stringify(qioData, null, 2));
+    console.log('📥 받은 qirList:', JSON.stringify(qirList, null, 2));
+
     await conn.beginTransaction();
+    console.log('✅ 트랜잭션 시작 완료');
 
     let generatedQioCode = qioData.qio_code;
     let qioResult;
 
     if (!generatedQioCode || generatedQioCode === '') {
+      console.log('🆕 QIO 신규 등록 시작');
+
+      // QIO 코드 생성
+      console.log('🔍 QIO 코드 생성 쿼리 실행...');
       const qioCodeRes = await mariadb.queryConn(conn, "selectQioCodeForUpdate");
       generatedQioCode = qioCodeRes[0].next_qio_code;
+      console.log('✅ 생성된 QIO 코드:', generatedQioCode);
 
       const qioValues = [
         generatedQioCode,
-        qioData.qio_date,
-        qioData.insp_date,
-        qioData.prdr_code,
-        qioData.po_name,
-        qioData.purchase_code,
-        qioData.emp_name
+        qioData.qio_date || null,
+        qioData.insp_date || null,
+        qioData.prdr_code || null,
+        qioData.po_name || null,
+        qioData.purchase_code || null,
+        qioData.emp_name || '정품질'
       ];
 
+      console.log('🔍 QIO 신규 등록 파라미터:', qioValues);
+      console.log('🔍 insertQio 쿼리 실행...');
       qioResult = await mariadb.queryConn(conn, "insertQio", qioValues);
+      console.log('✅ QIO 신규 등록 완료:', qioResult);
     } else {
+      console.log('🔄 QIO 기존 수정 시작');
+
       const qioValues = [
-        qioData.qio_date,
-        qioData.insp_date,
-        qioData.prdr_code,
-        qioData.po_name,
-        qioData.purchase_code,
-        qioData.emp_name,
+        qioData.qio_date || null,
+        qioData.insp_date || null,
+        qioData.prdr_code || null,
+        qioData.po_name || null,
+        qioData.purchase_code || null,
+        qioData.emp_name || '정품질',
         generatedQioCode
       ];
+
+      console.log('🔍 QIO 수정 파라미터:', qioValues);
+      console.log('🔍 updateQio 쿼리 실행...');
       qioResult = await mariadb.queryConn(conn, "updateQio", qioValues);
+      console.log('✅ QIO 수정 완료:', qioResult);
     }
 
+    console.log('🔍 기존 QIR 조회 시작...');
     // 기존 QIR 조회
     let existingQirs = [];
     if (qioData.qio_code) {
-      existingQirs = await mariadb.queryConn(conn, "selectQirCodesByQioCode", [generatedQioCode]);
+      try {
+        console.log('🔍 selectQirCodesByQioCode 쿼리 실행 직전'); // 🆕 추가!
+        existingQirs = await mariadb.queryConn(conn, "selectQirCodesByQioCode", [qioData.qio_code]);
+        console.log('✅ 기존 QIR 조회 성공!'); // 🆕 추가!
+        console.log('🔍 조회된 기존 QIR들:', JSON.stringify(existingQirs, null, 2)); // 🆕 추가!
+      } catch (qirSelectError) {
+        console.log('❌ 기존 QIR 조회 실패!'); // 🆕 수정!
+        console.log('❌ 에러 상세:', qirSelectError); // 🆕 추가!
+        console.log('❌ SQL State:', qirSelectError.sqlState); // 🆕 추가!
+        console.log('❌ Error Code:', qirSelectError.code); // 🆕 추가!
+        existingQirs = [];
+      }
+    } else {
+      console.log('⚠️ qioData.qio_code가 없음!'); // 🆕 추가!
     }
 
-    const currentQirCodes = qirList.filter(item => item.qir_code && item.qir_code !== '').map(item => item.qir_code);
-    const deletedQirCodes = existingQirs.map(item => item.qir_code).filter(code => !currentQirCodes.includes(code));
+    // 삭제할 QIR 처리
+    console.log('🗑️ 삭제할 QIR 처리 시작...');
+    const currentQirCodes = qirList
+      .filter(item => item.qir_code && item.qir_code !== '' && !item.qir_code.startsWith('QIR-TEMP-'))
+      .map(item => item.qir_code);
+
+    const deletedQirCodes = existingQirs
+      .map(item => item.qir_code)
+      .filter(code => !currentQirCodes.includes(code));
+
+    console.log('🔍 삭제할 QIR 코드들:', deletedQirCodes);
 
     for (const deletedCode of deletedQirCodes) {
+      console.log('🗑️ QIR 삭제 실행:', deletedCode);
       await mariadb.queryConn(conn, "deleteQir", [deletedCode]);
     }
 
+    // QIR 처리
+    console.log('📝 QIR 처리 시작... 총', qirList.length, '건');
     const qirResults = [];
-    for (const qirData of qirList) {
-      if (qirData.qir_code && qirData.qir_code !== '') {
-        // ✅ 날짜 변환 추가!
+
+    for (let i = 0; i < qirList.length; i++) {
+      const qirData = qirList[i];
+      console.log(`🔍 QIR ${i + 1}/${qirList.length} 처리:`, qirData.qir_code);
+
+      if (qirData.qir_code &&
+        qirData.qir_code !== '' &&
+        qirData.qir_code.match(/^QIR-\d{3}$/)) {
+        console.log('🔄 기존 QIR 수정 시작:', qirData.qir_code);
+
         const qirValues = [
-          formatDateForDB(qirData.start_date),      // 🔥 변환!
-          formatDateForDB(qirData.end_date),        // 🔥 변환!
-          qirData.unpass_qtt,
-          qirData.pass_qtt,
-          qirData.unpass_rate,
-          qirData.result,
-          qirData.note,
+          formatDateForDB(qirData.start_date) || null,
+          formatDateForDB(qirData.end_date) || null,
+          qirData.unpass_qtt || 0,
+          qirData.pass_qtt || 0,
+          qirData.unpass_rate || 0,
+          qirData.result || null,
+          qirData.note || null,
           generatedQioCode,
-          qirData.qir_emp_name,
-          qirData.inspection_item,
+          qirData.qir_emp_name || null,
+          qirData.inspection_item || null,
           qirData.qir_code
         ];
+
+        console.log('🔍 QIR 수정 파라미터:', qirValues);
         const qirResult = await mariadb.queryConn(conn, "updateQir", qirValues);
+        console.log('✅ QIR 수정 완료:', qirResult);
         qirResults.push(qirResult);
       } else {
+        console.log('🆕 새 QIR 등록 시작:', qirData.qir_code);
+
+        // QIR 코드 생성
+        console.log('🔍 QIR 코드 생성 쿼리 실행...');
         const qirCodeRes = await mariadb.queryConn(conn, "selectQirCodeForUpdate");
         const generatedQirCode = qirCodeRes[0].next_qir_code;
+        console.log('✅ 생성된 QIR 코드:', generatedQirCode);
 
-        // ✅ 날짜 변환 추가!
         const qirValues = [
           generatedQirCode,
-          formatDateForDB(qirData.start_date),      // 🔥 변환!
-          formatDateForDB(qirData.end_date),        // 🔥 변환!
-          qirData.unpass_qtt,
-          qirData.pass_qtt,
-          qirData.unpass_rate,
-          qirData.result,
-          qirData.note,
+          formatDateForDB(qirData.start_date) || null,
+          formatDateForDB(qirData.end_date) || null,
+          qirData.unpass_qtt || 0,
+          qirData.pass_qtt || 0,
+          qirData.unpass_rate || 0,
+          qirData.result || null,
+          qirData.note || null,
           generatedQioCode,
-          qirData.qir_emp_name,
-          qirData.inspection_item
+          qirData.qir_emp_name || null,
+          qirData.inspection_item || null
         ];
+
+        console.log('🔍 QIR 신규 등록 파라미터:', qirValues);
+        console.log('🎯 임시코드', qirData.qir_code, '→ 실제코드', generatedQirCode);
+        console.log('🔍 insertQir 쿼리 실행...');
         const qirResult = await mariadb.queryConn(conn, "insertQir", qirValues);
+        console.log('✅ QIR 신규 등록 완료:', qirResult);
         qirResults.push(qirResult);
       }
     }
 
+    console.log('🔍 커밋 실행...');
     await conn.commit();
-    return {
+    console.log('✅ 모든 저장 완료!');
+
+    const result = {
       result_code: "SUCCESS",
       qio_code: generatedQioCode,
       qio_result: qioResult,
       qir_results: qirResults,
       deleted_count: deletedQirCodes.length
     };
+
+    console.log('🎉 최종 결과:', result);
+    return result;
+
   } catch (err) {
+    console.error('🚨 service.js 에러 발생!');
+    console.error('🚨 에러 타입:', err.constructor.name);
+    console.error('🚨 에러 메시지:', err.message);
+    console.error('🚨 에러 스택:', err.stack);
+    console.error('🚨 SQL 상태:', err.sqlState);
+    console.error('🚨 에러 코드:', err.code);
+
     await conn.rollback();
-    console.error(err);
+    console.log('🔄 롤백 완료');
     throw err;
   } finally {
     conn.release();
+    console.log('🔌 커넥션 해제 완료');
   }
 };
 

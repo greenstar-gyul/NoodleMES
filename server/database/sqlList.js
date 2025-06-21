@@ -6,6 +6,8 @@ const eq = require('./sqls/eq.js');
 const eqichk = require('./sqls/eqichk.js');
 const orders = require('./sqls/orders.js');
 const mpr = require('./sqls/mpr.js');
+const min = require('./sqls/min.js');
+const mpo = require('./sqls/mpo.js');
 const qlt = require('./sqls/qlt.js');
 const line = require('./sqls/line.js');
 const wko = require('./sqls/wko.js');
@@ -18,7 +20,13 @@ module.exports = {
   // 펼침연산자(spread operator, ...)을 활용해 객체의 필드를 다른 객체로 쉽게 복사
   ...depts,
   ...mrp,
+
+/* 자재 시작*/ 
   ...mpr,
+  ...min,
+  ...mpo,
+/*자재 끝*/
+
   ...prdps,
   ...eq,
   ...eqichk,

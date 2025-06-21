@@ -8,8 +8,10 @@ import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
 import productMapping from '@/service/ProductMapping.js';
+import clientMapping from '@/service/ClientMapping.js';
 
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
+import LabeledInputIcon from '@/components/registration-bar/LabeledInputIcon.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
 import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
 import DataTable from 'primevue/datatable';
@@ -47,6 +49,9 @@ const { setProductRows, resetProductRows, setSelectedProducts } = prodStore;
 // 주문 팝업
 const orderPopupVisible = ref(false);
 
+// 거래처 팝업
+const clientPopupVisible = ref(false);
+
 // 주문 데이터
 const ordersRef = ref([]);
 
@@ -54,10 +59,10 @@ const ordersRef = ref([]);
 const allClients = ref([]);
 
 //거래처 셀렉트박스
-const clientOptions = ref([]);
+// const clientOptions = ref([]);
 
 //거래처담당자 셀렉트박스
-const managerOptions = ref([]);
+// const managerOptions = ref([]);
 
 
 /* ===== FUNCTIONS ===== */
@@ -123,7 +128,7 @@ const handleSave = async () => {
   const details = productRows.value.map(item => ({
     unit: item.unit,
     spec: item.spec,
-    prod_amount: item.prod_amount,
+    ord_amount: item.ord_amount,
     prod_price: item.prod_price,
     delivery_date:moment(item.delivery_date).format("YYYY-MM-DD"),
     ord_priority: item.ord_priority,
@@ -156,7 +161,7 @@ const handleConfirm = async (selectedOrder) => {
     details.forEach((item, idx) => {
       item.ord_d_code = item.ord_d_code || `row-${idx}`;
       item.delivery_date = moment(item.delivery_date).format('YYYY-MM-DD');
-      item.prod_amount = item.ord_amount;
+      // item.prod_amount = item.ord_amount;
     });
 
     setProductRows(details);
@@ -171,6 +176,11 @@ const handleConfirm = async (selectedOrder) => {
   } catch (err) {
     console.error('주문 상세 조회 실패:', err);
   }
+};
+
+// 거래처정보 팝업 Confirm 핸들러
+const clientConfirm = selectedClient => {
+  props.selectedClient.value = selectedClient.client_code;
 };
 
 // 최초 로딩 시 주문 목록과 거래처 목록 조회
@@ -194,23 +204,11 @@ onMounted(async () => {
 
     // 전체 목록 저장
     allClients.value = clientList;
-
-    // 거래처 셀렉트 박스에 사용될 label + value 구성
-    clientOptions.value = clientList.map(client => ({
-      label: client.client_name,
-      value: client.client_code
-    }));
-
-    // 거래처 담당자 셀렉트 박스도 따로 구성 (담당자 이름만 쓰는 구조면 이렇게)
-    managerOptions.value = clientList.map(client => ({
-      label: client.client_mname,
-      value: client.client_mname
-    }));
-
   } catch (err) {
     console.error('데이터 로딩 실패:', err);
   }
 });
+
 </script>
 
 <template>
@@ -244,12 +242,13 @@ onMounted(async () => {
       <!-- 입력 폼 영역 2 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <LabeledInput label="주문일자" v-model="props.ordDate.value" :disabled="true"/>
-          <LabeledSelect
+          <!-- <LabeledSelect
               label="거래처"
               v-model="props.selectedClient.value"
               :options="clientOptions"
               placeholder="거래처를 선택해주세요"
-          />
+          /> -->
+          <LabeledInputIcon label="거래처" v-model="props.selectedClient.value" placeholder="거래처를 선택해주세요" @click="clientPopupVisible = true"></LabeledInputIcon>
       </div>
 
       <!-- 입력 폼 영역 3 -->
@@ -269,5 +268,14 @@ onMounted(async () => {
       @confirm="handleConfirm"
       :mapper="orderMapping"
       :dataKey="'ord_code'"
+  />
+
+  <!-- ===== 거래처정보 팝업 ===== -->
+  <SinglePopup
+      v-model:visible="clientPopupVisible"
+      :items="allClients"
+      @confirm="clientConfirm"
+      :mapper="clientMapping"
+      :dataKey="'client_code'"
   />
 </template>

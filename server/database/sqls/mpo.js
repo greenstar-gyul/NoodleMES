@@ -10,7 +10,7 @@ made by KMS
 /* ================================== 조회 시작 ================================== */
 // 자재구매요청 (MPR) 전체조회
 const selectAllMprList =
-  `
+`
 SELECT mpr_code
      , reqdate
      , deadline
@@ -19,24 +19,9 @@ SELECT mpr_code
 FROM mpr_tbl
 ORDER BY mpr_code`;
 
-const selectSimpleMprList =
-  `
-SELECT mprd.mpr_d_code
-      , mprd.mpr_code
-      , mat.mat_name
-      , mat.mat_code
-      , mpr.deadline
-      , mprd.req_qtt
-FROM mpr_d_tbl mprd
-LEFT OUTER JOIN mpr_tbl mpr
-    ON mprd.mpr_code = mpr.mpr_code
-LEFT OUTER JOIN mat_tbl mat
-    ON mprd.mat_code = mat.mat_code
-`;
-
 // 자재구매요청 (MPR) 검색
 const selectSearchMprList =
-  `
+`
 SELECT mpr_code
   	 , reqdate
 	   , deadline
@@ -53,7 +38,7 @@ ORDER BY mpr_code
 
 // 자재구매요청상세(MPR Detail) 조회
 const selectMprDList =
-  `
+`
 SELECT mprd.mat_code
       ,mat.mat_name
       ,mprd.req_qtt
@@ -70,8 +55,8 @@ WHERE  mprd.mpr_code = ?
 `;
 
 // 전체 MRP 조회
-const selectMRPList =
-  `
+const selectMRPList = 
+`
 SELECT   mrp_code,
          plan_date,
          start_date,
@@ -83,8 +68,8 @@ ORDER BY mrp_code
 `;
 
 // 자재 전체 조회
-const selectMatList =
-  `
+const selectMatList = 
+`
 SELECT mat.mat_code
       ,mat.mat_name
       ,mat.save_inven
@@ -104,7 +89,7 @@ FROM mat_tbl mat
 
 // 자재구매요청 (MPR) 등록
 const insertMpr =
-  `
+`
 INSERT INTO mpr_tbl (
 mpr_code
 , reqdate
@@ -116,7 +101,7 @@ VALUES (?, ?, ?, ?, ?)
 
 // 자재구매요청상세(MPR Detail) 등록
 const insertMprD =
-  `
+`
 INSERT INTO mpr_d_tbl (
 mpr_d_code
 , mat_code
@@ -130,7 +115,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 
 // 자재구매요청 코드 생성
 const selectMprCodeForUpdate =
-  `
+`
 SELECT CONCAT('MPR-', 
               LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_code, 5) AS UNSIGNED)), 0) + 1, 3, '0')
              ) AS mpr_code
@@ -140,7 +125,7 @@ FOR UPDATE
 
 // 자재구매요청 상세 코드 생성
 const selectMprDCodeForUpdate =
-  `
+`
 SELECT CONCAT('MPR-D-', 
               LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_d_code, 8) AS UNSIGNED)), 0) + 1, 3, '0')
              ) AS mpr_d_code
@@ -152,21 +137,21 @@ FOR UPDATE
 /* ================================== 삭제 시작 ================================== */
 
 // MPR 삭제
-const deleteMpr =
-  `
+const deleteMpr = 
+`
 DELETE FROM mpr_tbl WHERE mpr_code = ?
 `;
 
 // MPR 상세 삭제
-const deleteMprDetail =
-  `
+const deleteMprDetail = 
+`
 DELETE FROM mpr_d_tbl WHERE mpr_code = ?
 `;
 /* ================================== 삭제 끝 ================================== */
 
 
 module.exports = {
-  /* 조회*/
+  /* 조회*/ 
   selectAllMprList,
   selectSearchMprList,
   selectMprDList,
@@ -178,8 +163,7 @@ module.exports = {
   insertMprD,
   selectMprCodeForUpdate,
   selectMprDCodeForUpdate,
-  selectSimpleMprList,
-
+  
   /* 삭제 */
   deleteMpr,
   deleteMprDetail,

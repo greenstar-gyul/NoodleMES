@@ -79,16 +79,16 @@ const handleReset = () => {
     console.log('mpr 기본정보 초기화 완료');
 };
 
-//저장
+//저장 - 등록
 const handleSave = async () => {
   // console.log("등록자 코드 (mCode):", mprs.mCode.value);
   
   if (!mprs.reqDate.value || !mprs.deadLine.value || !mprs.mrpCode.value) {
     alert('요청일자, 납기일자, MRP 계획번호는 필수입니다.');
-    console.log('데이터 테스트');
-    console.log(mprs.reqDate.value);
-    console.log(mprs.deadLine.value);
-    console.log(mprs.mrpCode.value);
+    // console.log('데이터 테스트');
+    // console.log(mprs.reqDate.value);
+    // console.log(mprs.deadLine.value);
+    // console.log(mprs.mrpCode.value);
     return;
   }
   if (mprRows.value.length === 0) {
@@ -164,7 +164,7 @@ const handleDelete = async () => {
 
 // MPR 팝업 Confirm 핸들러
 const handleMprConfirm = async (selectedMpr) => {
-  console.log('선택된 MPR:', selectedMpr);
+  // console.log('선택된 MPR:', selectedMpr);
 
   try {
     // mpr 상세 조회
@@ -188,7 +188,7 @@ const handleMprConfirm = async (selectedMpr) => {
   } catch (err) {
     console.error('mpr 상세 조회 실패:', err);
   }
-};
+}; // end of handleMprConfirm
 
 // MRP 팝업 Confirm 핸들러
 const handleMRPConfirm = async (selectedMRP) => {

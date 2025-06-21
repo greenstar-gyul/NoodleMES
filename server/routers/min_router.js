@@ -3,23 +3,23 @@ const express = require('express');
 const router = express.Router();
 
  // 해당 라우터를 통해 제공할 서비스를 가져옴
-const mprService = require('../services/mpr_service.js');
+const minService = require('../services/min_service.js');
 const { convertObjToAry } = require('../utils/converts.js');
 
 // 라우팅  = 사용자의 요청(URL+METHOD) + Service + 응답형태(View or Data)
 // 실제 라우팅 등록 영역
 
-// 전체조회
+// 전체 자재입고목록조회
 router.get('/all', async (req, res)=>{
     // 해당 엔드포인트(URL+METHOD)로 접속할 경우 제공되는 서비스를 실행
     // -> 서비스가 DB에 접속하므로 비동기 작업, await/async를 활용해서 동기식으로 동작하도록 진행
-    let mprList = await mprService.findAllMpr()
+    let minList = await minService.findAllMin()
                                     .catch(err => console.log(err));
 
     // res(Http Response에 대응되는 변수)의 응답메소드를 호출해 데이터를 반환하거나 통신을 종료함 
     // 주의사항) res(Http Response에 대응되는 변수)의 응답메소드를 호출하지 않으면 통신이 종료되지 않음                   
     // res.send()는 데이터를 반환하는 응답 메소드며 객체로 반환되므로 JSON으로 자동 변환
-    res.send(mprList); 
+    res.send(minList); 
 });
 
 // 검색조회
@@ -31,7 +31,7 @@ router.get('/search', async (req, res)=>{
     const values = convertObjToAry(search, ['mpr_code','req_date_from','req_date_to','deadline_from','deadline_to','mrp_code','mcode'])
 
     // console.log(values);
-    let mprList = await mprService.findSearchMpr(values)
+    let mprList = await minService.findSearchMpr(values)
                                     .catch(err => console.log(err));
 
     // res(Http Response에 대응되는 변수)의 응답메소드를 호출해 데이터를 반환하거나 통신을 종료함 
@@ -44,7 +44,7 @@ router.get('/search', async (req, res)=>{
 router.get('/:mprCode/details', async (req, res) => {
     try {
         const { mprCode } = req.params;
-        const result = await mprService.findMprDetails(mprCode);
+        const result = await minService.findMprDetails(mprCode);
         res.json({
             result_code: "SUCCESS",
             message: "성공",
@@ -63,7 +63,7 @@ router.get('/:mprCode/details', async (req, res) => {
 // 전체 MRP 목록 조회
 router.get('/mrp', async (req, res) => {
     try {
-        const result = await mprService.findAllMRP();
+        const result = await minService.findAllMRP();
         res.json({
             result_code: "SUCCESS",
             message: "성공",
@@ -80,9 +80,9 @@ router.get('/mrp', async (req, res) => {
 });
 
 // 전체 자재 목록 조회
-router.get('/mat', async (req, res) => {
+router.get('/min', async (req, res) => {
     try {
-        const result = await mprService.findAllMat();
+        const result = await minService.findAllMin();
         res.json({
             result_code: "SUCCESS",
             message: "성공",
@@ -110,7 +110,7 @@ router.post('/insert', async (req, res) => {
   console.log('details 출력 테스트 : ' + details);
 
   try {
-    const result = await mprService.insertMprAll(regMpr);
+    const result = await minService.insertMprAll(regMpr);
 
     res.json({
       result_code: "SUCCESS",
@@ -132,7 +132,7 @@ router.post('/insert', async (req, res) => {
 router.delete('/:mprCode', async (req, res) => {
     try {
         const { mprCode } = req.params;
-        const result = await mprService.deleteMpr(mprCode);
+        const result = await minService.deleteMpr(mprCode);
         res.json({
             result_code: "SUCCESS",
             message: "성공",
@@ -148,24 +148,6 @@ router.delete('/:mprCode', async (req, res) => {
     }
 });
 
-//selectSimpleMprList에 대한 라우터
-router.get('/simple', async (req, res) => {
-    try {
-        const result = await mprService.selectSimpleMprList();
-        res.json({
-            result_code: "SUCCESS",
-            message: "성공",
-            data: result
-        });
-    } catch (err) {
-        console.error("MPR 간단 조회 실패:", err);
-        res.status(500).json({
-            result_code: "FAIL",
-            message: "실패",
-            error: err.message
-        });
-    }
-});
 
 // 해당 javascript 파일의 마지막 코드, 모듈화
 // 위에 선언한 기능(변수, 함수 등)들 중 외부로 노출할 대상을 설정 

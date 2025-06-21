@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
  // 해당 라우터를 통해 제공할 서비스를 가져옴
-const mprService = require('../services/mpr_service.js');
+const mprService = require('../services/mpo_service.js');
 const { convertObjToAry } = require('../utils/converts.js');
 
 // 라우팅  = 사용자의 요청(URL+METHOD) + Service + 응답형태(View or Data)
@@ -148,24 +148,6 @@ router.delete('/:mprCode', async (req, res) => {
     }
 });
 
-//selectSimpleMprList에 대한 라우터
-router.get('/simple', async (req, res) => {
-    try {
-        const result = await mprService.selectSimpleMprList();
-        res.json({
-            result_code: "SUCCESS",
-            message: "성공",
-            data: result
-        });
-    } catch (err) {
-        console.error("MPR 간단 조회 실패:", err);
-        res.status(500).json({
-            result_code: "FAIL",
-            message: "실패",
-            error: err.message
-        });
-    }
-});
 
 // 해당 javascript 파일의 마지막 코드, 모듈화
 // 위에 선언한 기능(변수, 함수 등)들 중 외부로 노출할 대상을 설정 
