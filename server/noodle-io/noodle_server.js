@@ -92,7 +92,8 @@ class NoodleServer {
         case 'START_PROCESS':
           // 작업 시작 요청 처리
           const data = recv.message;
-          await this.startProcess(data, clientId);
+          console.log(`📦 [${clientId}] 작업 시작 요청:`, data);
+          await this.startProcess(data);
           this.sendToClient(clientId, {
             type: 'PROCESS_STARTED',
             message: `작업이 시작되었습니다: ${data.prdr_code}`,
@@ -194,7 +195,7 @@ class NoodleServer {
       await this.insertPrdr(data);
       console.log(`✅ PRDR 코드 ${data.prdr_code} 저장 완료`);
 
-      await this.requestStartWork(data.wko_code, data.line_code, data.prdr_code);
+      await this.requestStartWork(data);
     }
     // PRDR 코드가 있다면 작업 재개
     else {
@@ -228,6 +229,13 @@ class NoodleServer {
 
       if (result.affectedRows > 0) {
         console.log(`✅ PRDR 코드 ${prdrCode} 저장 성공`);
+        this.broadcast({
+          type: 'PRDR_CREATED',
+          wkoCode: data.wko_code,
+          lineCode: data.line_code,
+          prdrCode: prdrCode,
+          timestamp: Date.now()
+        });
       }
       else {
         console.error(`❌ PRDR 코드 ${prdrCode} 저장 실패`);
@@ -252,6 +260,14 @@ class NoodleServer {
 
         if (prdrDRes.affectedRows > 0) {
           console.log(`✅ PRDR-D 코드 ${prdrDCode} 저장 성공`);
+          this.broadcast({
+            type: 'PRDRD_CREATED',
+            wkoCode: data.wko_code,
+            lineCode: data.line_code,
+            prdrDCode: prdrDCode,
+            eqCode: lineEqCode.eq_code,
+            timestamp: Date.now()
+          });
         }
         else {
           console.error(`❌ PRDR-D 코드 ${prdrDCode} 저장 실패`);
@@ -352,15 +368,20 @@ class NoodleServer {
   }
 
   // 작업 시작 요청
-  async requestStartWork(wkoCode, lineCode, prdrCode) {
+  async requestStartWork(data) {
+    const wkoCode = data.wko_code;
+    const lineCode = data.line_code;
+    const prdrCode = data.prdr_code;
+    const wkoQtt = data.wko_qtt;
+
     const lineState = this.getLineStatus(lineCode);
 
     if (lineState === 'IDLE') {
       // 라인이 비어있으면 즉시 시작
-      await this.startWorkOnLine(wkoCode, lineCode, prdrCode);
+      await this.startWorkOnLine(wkoCode, lineCode, prdrCode, wkoQtt);
     } else {
       // 라인이 사용 중이면 대기열에 추가
-      await this.addToLineQueue(lineCode, { wkoCode, prdrCode });
+      await this.addToLineQueue(lineCode, { wkoCode, prdrCode, wkoQtt });
 
       this.broadcast({
         type: 'WORK_QUEUED',
@@ -377,7 +398,7 @@ class NoodleServer {
   }
 
   // 라인에서 작업 시작
-  async startWorkOnLine(wkoCode, lineCode, prdrCode) {
+  async startWorkOnLine(wkoCode, lineCode, prdrCode, wkoQtt) {
     // 라인 상태를 BUSY로 변경
     this.lineStatus.set(lineCode, 'BUSY');
 
@@ -390,7 +411,7 @@ class NoodleServer {
     });
 
     // 실제 공정 진행 시작...
-    await this.processWork(wkoCode, lineCode, prdrCode);
+    await this.processWork(wkoCode, lineCode, prdrCode, wkoQtt);
   }
 
   // 작업 완료 시
@@ -479,7 +500,7 @@ class NoodleServer {
       this.lineQueues.set(lineCode, queue);
 
       // 다음 작업 시작
-      await this.startWorkOnLine(nextWork.wkoCode, lineCode, nextWork.prdrCode);
+      await this.startWorkOnLine(nextWork.wkoCode, lineCode, nextWork.prdrCode, nextWork.wkoQtt);
     }
   }
 
@@ -502,61 +523,56 @@ class NoodleServer {
     return queue.length;
   }
 
-  async processWork(wkoCode, lineCode, prdrCode) {
-    // 🤔 여기서 뭘 해야 할까?
-
-    // 1. DB에서 해당 작업의 공정 목록 조회
-    // 2. 각 공정별로 진행률 시뮬레이션 시작
-    // 3. 웹소켓으로 실시간 진행률 브로드캐스트
-    // 4. 모든 공정 완료시 onWorkCompleted 호출
+  // 작업 처리 메인 함수
+  async processWork(wkoCode, lineCode, prdrCode, qtt) {
     try {
       // 1. 해당 작업의 공정 목록 조회 (DB 호출)
       const processes = await this.getProcessList(prdrCode);
 
       // 1-1. 작업 진행 상태 변경
-      this.updateProcess(prdrCode, 'b2');
+      await this.updateProcess(prdrCode, 'b2');
 
-      // 2. 각 공정을 순차적으로 시작
-      const promises = processes.map((process, index) => {
-        return new Promise(resolve => {
-          setTimeout(async () => {
-            this.broadcast({
-              type: 'PROCESS_STARTED',
-              processId: process.prdr_d_code,
-              processName: process.po_name,
-              wkoCode,
-              lineCode,
-              process: process
-            });
+      let currentQtt = qtt; // 현재 수량 (이전 공정의 출력이 다음 공정의 입력)
 
-            await this.simulateProcess(process); // 이 함수는 async여야 함
-            resolve();
-          }, index * 1000); // 각 공정을 1초씩 차이 나게 시작
+      // 2. 각 공정을 순차적으로 처리 (동기식)
+      for (let i = 0; i < processes.length; i++) {
+        const process = processes[i];
+
+        // 공정 시작 브로드캐스트
+        this.broadcast({
+          type: 'PROCESS_STARTED',
+          processId: process.prdr_d_code,
+          processName: process.po_name,
+          wkoCode,
+          lineCode,
+          process: process,
+          inputQtt: currentQtt,
+          timestamp: Date.now()
         });
-      });
 
-      await Promise.all(promises); // 모든 simulateProcess 완료 대기
+        // 공정 초기 설정
+        process.input_qtt = currentQtt; // 이전 공정의 출력이 현재 공정의 입력
+        process.def_qtt = 0; // 불량 수량 초기화
+        process.make_qtt = 0; // 생산 수량 초기화
 
-      // // 2. 각 공정을 순차적으로 시작
-      // for (let i = 0; i < processes.length; i++) {
-      //   const process = processes[i];
+        console.log(`🚀 공정 ${i + 1}/${processes.length} 시작: ${process.po_name} (입력: ${currentQtt})`);
 
-      //   // 공정 시작 알림
-      //   this.broadcast({
-      //     type: 'PROCESS_STARTED',
-      //     processId: process.prdr_d_code,
-      //     processName: process.po_name,
-      //     wkoCode,
-      //     lineCode,
-      //     process: process
-      //   });
+        // 공정 완료까지 대기 (동기식)
+        await this.simulateProcess(process);
 
-      //   // 3. 공정 진행 시뮬레이션
-      //   this.simulateProcess(process);
+        // 다음 공정을 위한 수량 업데이트
+        currentQtt = process.make_qtt; // 현재 공정의 출력이 다음 공정의 입력
 
-      //   await this.sleep(1000); // 1초 대기 (시뮬레이션 간격)
-      // }
+        console.log(`✅ 공정 ${i + 1} 완료: ${process.po_name} (출력: ${currentQtt})`);
 
+        // 공정 간 잠깐 대기 (선택사항)
+        if (i < processes.length - 1) {
+          console.log('⏱️  다음 공정 준비 중...');
+          await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 대기
+        }
+      }
+
+      console.log('🎉 모든 공정 완료!');
 
       // 4. 모든 공정 완료
       await this.onWorkCompleted(wkoCode, lineCode, prdrCode);
@@ -567,47 +583,51 @@ class NoodleServer {
     }
   }
 
-  // 개별 공정 시뮬레이션
+  // 개별 공정 시뮬레이션 (변경 없음)
   async simulateProcess(process) {
     return new Promise((resolve) => {
       let progress = 0;
 
       // 작업 시작 시 공정 시작 일자 등록
-      this.updateProcessProgress(process.prdr_d_code, progress); 
+      this.updateProcessProgress(process.prdr_d_code, progress, process.input_qtt);
 
       const interval = setInterval(() => {
-        progress += 10; // 10%씩 증가
+        process.make_qtt += process.capacity; // 공정별 생산 수량 증가
+        if (process.make_qtt > process.input_qtt) {
+          process.make_qtt = process.input_qtt; // 생산 수량이 입력 수량을 초과하지 않도록 조정
+        }
+
+        // 진행률 계산 후 소수점 2자리로 표시
+        progress = Math.min(100, parseFloat((process.make_qtt / process.input_qtt * 100).toFixed(2)));
 
         // 진행률 브로드캐스트
         this.broadcast({
           type: 'PROCESS_UPDATE',
           processId: process.prdr_d_code,
           progress: progress,
+          inputQtt: process.input_qtt,
+          makeQtt: process.make_qtt,
           timestamp: Date.now()
         });
 
-        this.updateProcessProgress(process.prdr_d_code, progress);
-        
-        // 진행률 50%, 100%일 때 DB 업데이트
+        this.updateProcessProgress(process.prdr_d_code, progress, process.make_qtt);
+
         if (progress >= 100) {
           clearInterval(interval);
-          
-          // this.updateProcessProgress(process.prdr_d_code, progress);
 
           // 공정 완료 알림
           this.broadcast({
             type: 'PROCESS_COMPLETED',
             processId: process.prdr_d_code,
+            progress: progress,
+            inputQtt: process.input_qtt,
+            makeQtt: process.make_qtt,
             timestamp: Date.now()
           });
 
           resolve();
         }
-        // else if (progress == 50) {
-        //   this.updateProcessProgress(process.prdr_d_code, progress);
-        // }
-
-      }, 1000); // 1초마다 10%씩 증가
+      }, 1000);
     });
   }
 
@@ -622,7 +642,7 @@ class NoodleServer {
 
   
   // DB의 진행률 업데이트
-  async updateProcessProgress(prdrDCode, progress) {
+  async updateProcessProgress(prdrDCode, progress, qtt) {
     // UPDATE prdr_d_tbl SET proc_rate = ? WHERE prdr_d_code = ?
     const conn = await mariadb.connectionPool.getConnection();
     try {
@@ -630,13 +650,13 @@ class NoodleServer {
 
       let result;
       if (progress >= 100) {
-        result = await mariadb.queryConn(conn, 'updatePRDRDComplete', [progress, prdrDCode]);
+        result = await mariadb.queryConn(conn, 'updatePRDRDComplete', [progress, qtt, prdrDCode]);
       }
       else if (progress === 0) {
-        result = await mariadb.queryConn(conn, 'updatePRDRDStart', [progress, prdrDCode]);
+        result = await mariadb.queryConn(conn, 'updatePRDRDStart', [progress, qtt, prdrDCode]);
       }
       else {
-        result = await mariadb.queryConn(conn, 'updatePRDRDRate', [progress, prdrDCode]);
+        result = await mariadb.queryConn(conn, 'updatePRDRDRate', [progress, qtt, prdrDCode]);
       }
 
       if (result.affectedRows > 0) {
