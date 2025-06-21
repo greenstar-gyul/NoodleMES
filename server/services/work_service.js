@@ -48,6 +48,7 @@ const getMonthlyPerformance = async (startDate, endDate) => {
 const searchWorkingList = async (params) => {
   const {
     wko_code = null,
+    wko_name = null,
     prod_name = null,
     line_code = null,
     reg_date_from = null,
@@ -57,6 +58,7 @@ const searchWorkingList = async (params) => {
   // NULL로 들어가야 할 값은 명확히 null 처리
   const paramArray = [
     wko_code, wko_code,
+    wko_name, wko_name,
     prod_name, prod_name,
     line_code, line_code,
     reg_date_from, reg_date_to, reg_date_from, reg_date_to
