@@ -7,7 +7,7 @@ export default [
     {
         path: '/wko/list',
         name: 'wkoList',
-        component: () => import('@/views/wko/wko-sub/WKOSearchPopup.vue')
+        component: () => import('@/views/wko/WKOList.vue')
     },
     // {
     //     path: '/wko/list',

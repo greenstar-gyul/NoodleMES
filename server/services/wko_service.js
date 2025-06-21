@@ -111,10 +111,11 @@ const insertWKOTx = async (data) => {
       data.note || null,
       data.prdp_code || null,
       data.prod_code,
-      data.emp_code || null,
+      // data.emp_code || null,
       data.wko_qtt,
       data.reg_code,
       data.line_code,
+      data.wko_name || null,
     ];
     
     const result = await mariadb.queryConn(conn, "insertWKO", wkoData);
@@ -143,6 +144,7 @@ const modifyWKO = async (wkoCode, data) => {
   const updateData = [
     data.note,
     data.wko_qtt,
+    data.wko_name,
     wkoCode
   ];
   
@@ -224,8 +226,7 @@ const searchWKOByOptions = async (params) => {
   // 빈 문자열을 null로 변환
   const cleanParams = {
     wko_code: params.wko_code || null,
-    prdp_code: params.prdp_code || null, 
-    prdp_name: params.prdp_name || null,
+    wko_name: params.wko_name || null,
     prod_name: params.prod_name || null,
     reg_date_from: params.reg_date_from || null,
     reg_date_to: params.reg_date_to || null
@@ -233,8 +234,7 @@ const searchWKOByOptions = async (params) => {
   
   const bindParams = [
     cleanParams.wko_code, cleanParams.wko_code, cleanParams.wko_code,
-    cleanParams.prdp_code, cleanParams.prdp_code, cleanParams.prdp_code,
-    cleanParams.prdp_name, cleanParams.prdp_name, cleanParams.prdp_name,
+    cleanParams.wko_name, cleanParams.wko_name, cleanParams.wko_name,
     cleanParams.prod_name, cleanParams.prod_name, cleanParams.prod_name,
     cleanParams.reg_date_from, cleanParams.reg_date_from,
     cleanParams.reg_date_to, cleanParams.reg_date_to
