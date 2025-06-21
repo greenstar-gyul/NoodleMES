@@ -66,6 +66,7 @@ watch(() => wsStore.messages, (messages) => {
     
     if (processIndex !== -1) {
       data.value[processIndex].proc_rate = latest.progress;
+      data.value[processIndex].make_qtt = latest.make_qtt; // 생산량 업데이트
       console.log(`🔄 ${data.value[processIndex].po_name} 진행률: ${latest.progress}%`);
     }
   }
@@ -76,8 +77,9 @@ watch(() => wsStore.messages, (messages) => {
     );
     
     if (processIndex !== -1) {
-      data.value[processIndex].proc_rate = 100; // 완료된 공정은 100%로 설정
+      data.value[processIndex].proc_rate = latest.progress; // 완료된 공정은 100%로 설정
       data.value[processIndex].end_date = moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'); // 완료된 공정은 100%로 설정
+      data.value[processIndex].make_qtt = latest.make_qtt; // 생산량 업데이트
       console.log(`✅ ${data.value[processIndex].po_name} 공정 완료`);
     }
   }
@@ -89,6 +91,8 @@ watch(() => wsStore.messages, (messages) => {
     
     if (processIndex !== -1) {
       data.value[processIndex].start_date = moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'); // 시작일시 업데이트
+      data.value[processIndex].proc_rate = latest.progress; // 시작 시점의 진행률 업데이트
+      data.value[processIndex].input_qtt = latest.input_qtt; // 투입량 업데이트
       console.log(`▶️ ${data.value[processIndex].po_name} 공정 시작`);
     }
   }
@@ -183,19 +187,19 @@ onMounted(() => {
 
             <Column field="input_qtt" header="투입량" style="width: 7%">
                 <template #body="slotProps">
-                    <span class="text-gray-600">{{ slotProps.data.input_qtt.toLocaleString('ko-KR') }}</span>
+                    <span class="text-gray-600">{{ slotProps.data.input_qtt }}</span>
                 </template>
             </Column>
 
             <Column field="def_qtt" header="불량량" style="width: 7%">
                 <template #body="slotProps">
-                    <span class="text-gray-600">{{ slotProps.data.def_qtt.toLocaleString('ko-KR') }}</span>
+                    <span class="text-gray-600">{{ slotProps.data.def_qtt }}</span>
                 </template>
             </Column>
 
             <Column field="make_qtt" header="생산량" style="width: 7%">
                 <template #body="slotProps">
-                    <span class="text-gray-600">{{ slotProps.data.make_qtt.toLocaleString('ko-KR') }}</span>
+                    <span class="text-gray-600">{{ slotProps.data.make_qtt }}</span>
                 </template>
             </Column>
         </DataTable>

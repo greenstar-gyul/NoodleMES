@@ -196,7 +196,8 @@ ORDER BY pp_code;
 
 // 작업지시서 코드로 라인 상세 조회
 const selectLineDetailList = `
-SELECT ld.line_eq_code
+SELECT ld.line_eq_code,
+       ld.eq_code
 FROM   line_d_tbl ld JOIN wko_tbl w
 					   ON w.line_code = ld.line_code
 WHERE  w.wko_code = ?
@@ -217,9 +218,17 @@ WHERE wko_code = ? AND eq_code = ?
 
 // prdr_code로 작업지시서 공정 조회
 const selectPrdrDCodeByWkoCode = `
-SELECT prdr_d_code
-FROM prdr_d_tbl
-WHERE prdr_code = ?
+SELECT pd.prdr_d_code,
+	     eq.eq_type,
+	     pd.input_qtt,
+       0 AS "def_qtt",
+       pd.make_qtt,
+       eq.capacity
+FROM   prdr_d_tbl pd LEFT JOIN line_d_tbl ld
+							ON pd.line_eq_code = ld.line_eq_code
+                     LEFT JOIN eq_tbl eq
+                     		ON eq.eq_code = ld.eq_code
+WHERE  pd.prdr_code = ?;
 `;
 
 
@@ -313,8 +322,9 @@ const updatePRDRComplete = `
 UPDATE prdr_tbl
 SET    stat = ?,
        end_date = NOW(),
-       total_time = end_date - start_date,
-       perform_rate = 100.00
+       total_time = TIMEDIFF(end_date, start_date),
+       perform_rate = 100.00,
+       production_qtt = ord_qtt
 WHERE  prdr_code = ?
 `;
 
@@ -322,14 +332,18 @@ WHERE  prdr_code = ?
 const updatePRDRDStart = `
 UPDATE prdr_d_tbl
 SET    proc_rate = ?,
-       start_date = NOW()
+       start_date = NOW(),
+       input_qtt = ?,
+       def_qtt = 0,
+       make_qtt = 0
 WHERE  prdr_d_code = ?
 `;
 
 // 작업 진행률 갱신
 const updatePRDRDRate = `
 UPDATE prdr_d_tbl
-SET proc_rate = ?
+SET proc_rate = ?,
+    make_qtt = ?
 WHERE prdr_d_code = ?
 `;
 
@@ -338,7 +352,8 @@ const updatePRDRDComplete = `
 UPDATE prdr_d_tbl
 SET    proc_rate = ?,
        end_date = NOW(),
-       total_time = end_date - start_date
+       make_qtt = ?,
+       total_time = TIMEDIFF(end_date, start_date)
 WHERE  prdr_d_code = ?
 `;
 
@@ -348,7 +363,7 @@ UPDATE wko_tbl
 SET    start_date = NOW(),
        stat = 'v1'
 WHERE  wko_code = (
-  SELECT wko_code
+  SELECT work_order_code
   FROM   prdr_tbl
   WHERE  prdr_code = ?
 ) AND stat = 'v4'
@@ -360,7 +375,7 @@ UPDATE wko_tbl
 SET    end_date = NOW(),
        stat = 'v2'
 WHERE  wko_code IN (
-  SELECT wko_code
+  SELECT work_order_code
   FROM   prdr_tbl
   WHERE  prdr_code = ?
 ) AND stat = 'v1'
