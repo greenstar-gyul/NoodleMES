@@ -62,7 +62,7 @@ const currentData = ref({
     qio_date: null,
     insp_date: null,
     prdr_code: '',
-    purchase_code: '',
+    mpr_code: '',
     emp_name: '정품질'
 });
 
@@ -89,7 +89,7 @@ watch(() => props.data, (newData, oldData) => {
                 qio_date: parseDate(newData.qio_date) || new Date(),
                 insp_date: parseDate(newData.insp_date),
                 prdr_code: newData.prdr_code || '',
-                purchase_code: newData.purchase_code || '',
+                mpr_code: newData.mpr_code || '',
                 emp_name: newData.emp_name || '정품질'
             };
             
@@ -182,7 +182,7 @@ const loadSelectedPlan = async (value) => {
         qio_date: formatDateForDB(value.qio_date),
         insp_date: formatDateForDB(value.insp_date),
         prdr_code: value.prdr_code,
-        purchase_code: value.purchase_code,
+        mpr_code: value.mpr_code,
         emp_name: value.emp_name
     });
 
@@ -208,7 +208,7 @@ const qioPopupVisibil = ref(false);
 const qios = ref([]);
 </script>
 
-<template>
+<template>1
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <div class="grid grid-cols-1 gap-4">
             <div class="flex justify-between">
@@ -239,11 +239,11 @@ const qios = ref([]);
 
     <!-- 팝업 컴포넌트 -->
     <QualitySinglePopup v-model:visible="qioPopupVisibil" :items="qios" @confirm="loadSelectedPlan"
-        :selectedHeader="['qio_code', 'insp_date', 'prdr_code', 'purchase_code', 'emp_name']" :mapper="{
+        :selectedHeader="['qio_code', 'insp_date', 'prdr_code', 'mpr_code', 'emp_name']" :mapper="{
             qio_code: '품질검사지시 코드',
             insp_date: '지시일자',
             prdr_code: '공급업체 코드',
-            purchase_code: '구매 코드',
+            mpr_code: '구매 코드',
             emp_name: '지시자'
         }" :dataKey="'qio_code'" :placeholder="'지시서 불러오기'">
     </QualitySinglePopup>

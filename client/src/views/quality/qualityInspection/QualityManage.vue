@@ -20,7 +20,7 @@ const qioInfo = ref({
     insp_date: null,
     prdr_code: '',
     po_code: '',
-    purchase_code: '',
+    mpr_code: '',
     emp_name: '정품질'
 });
 const qirList = ref([]);
@@ -36,7 +36,6 @@ const qioList = ref([]);
 const prdrList = ref({
     prdr_code: '',
     po_name: '',
-    purchase_code: '',
     prod_name: '',
     end_date: null,
     production_qtt: '0'
@@ -46,15 +45,14 @@ const combinedMiddleData = computed(() => {
     return {
         // 기본 정보
         qio_code: qioInfo.value.qio_code || '',
-        
+
         // PRDR 필드들
         prdr_code: prdrList.value.prdr_code || '',
         po_name: prdrList.value.po_name || '',
         prod_name: prdrList.value.prod_name || '',
-        purchase_code: prdrList.value.purchase_code || '',
         end_date: prdrList.value.end_date || null,
         production_qtt: prdrList.value.production_qtt || '0',
-        
+
         // MPR 필드들
         mpr_code: mprList.value.mpr_code || '',
         mpr_d_code: mprList.value.mpr_d_code || '',
@@ -85,11 +83,14 @@ const handleQioCodeChange = async (newCode) => {
     console.log('데이터 로딩 시작:', newCode);
 
     // 병렬 처리
-    await Promise.all([
-        loadQioInfo(newCode),
-        loadPrdrInfoByQioCode(newCode),
-        loadQirInfoByQioCode(newCode)
-    ]);
+    try {
+        await loadQioInfo(newCode);
+        await loadPrdrInfoByQioCode(newCode);
+        await loadMprInfoByQioCode(newCode);
+        await loadQirInfoByQioCode(newCode);
+    } catch (error) {
+        console.error('데이터 로딩 중 오류:', error);
+    }
 
     selectedQir.value = {
         qio_code: newCode,
@@ -201,7 +202,7 @@ const saveData = async () => {
                 insp_date: formatDateForDB(qioInfo.value.insp_date),
                 prdr_code: prdrList.value.prdr_code || null,
                 po_name: prdrList.value.po_name || '',
-                purchase_code: prdrList.value.purchase_code || null,
+                mpr_code: prdrList.value.mpr_code || null,
                 emp_name: qioInfo.value.emp_name || '정품질'
             },
             detailData: qioList.value || []  // 🎯 메모리의 QIR 목록
@@ -246,7 +247,7 @@ const forcedDataReload = async (qioCode) => {
                 qio_date: freshQioData.qio_date ? new Date(freshQioData.qio_date) : null,
                 insp_date: freshQioData.insp_date ? new Date(freshQioData.insp_date) : null,
                 prdr_code: freshQioData.prdr_code || '',
-                purchase_code: freshQioData.purchase_code || '',
+                mpr_code: freshQioData.mpr_code || '',
                 emp_name: freshQioData.emp_name || '정품질'
             };
 
@@ -258,6 +259,8 @@ const forcedDataReload = async (qioCode) => {
 
         // 3️⃣ 생산실적 정보 다시 로드
         await loadPrdrInfoByQioCode(qioCode);
+
+        await loadMprInfoByQioCode(qioCode);
 
         // 4️⃣ currentQioCode 업데이트
         currentQioCode.value = qioCode;
@@ -278,16 +281,23 @@ const resetData = () => {
         qio_date: null,
         insp_date: null,
         prdr_code: '',
-        purchase_code: '',
+        mpr_code: '',
         emp_name: '정품질'
     };
     prdrList.value = {
         prdr_code: '',
         po_name: '',
-        purchase_code: '',
         prod_name: '',
         end_date: null,
         production_qtt: '0',
+    };
+    mprList.value = {
+        mpr_code: '',
+        mpr_d_code: '',
+        mat_name: '',
+        mat_code: '',
+        deadline: null,
+        req_qtt: '0'
     };
     currentQioCode.value = '';
     lastProcessedQioCode.value = '';
@@ -329,7 +339,6 @@ const loadPrdrInfoByQioCode = async (qioCodeParam) => {
                 prdr_code: data.prdr_code || '',
                 po_name: data.po_name || '',
                 prod_name: data.prod_name || '',
-                purchase_code: data.purchase_code || '',
                 end_date: data.end_date,
                 production_qtt: String(data.production_qtt || 0)
             };
@@ -342,7 +351,6 @@ const loadPrdrInfoByQioCode = async (qioCodeParam) => {
                 prdr_code: qioInfo.value.prdr_code || '',
                 po_name: '',
                 prod_name: '',
-                purchase_code: qioInfo.value.purchase_code || '',
                 end_date: null,
                 production_qtt: '0'
             };
@@ -353,10 +361,52 @@ const loadPrdrInfoByQioCode = async (qioCodeParam) => {
             qio_code: qioCodeParam,
             prdr_code: qioInfo.value.prdr_code || '',
             po_name: '',
-            purchase_code: qioInfo.value.purchase_code || '',
             prod_name: '',
             end_date: null,
             production_qtt: '0'
+        };
+    }
+};
+
+const loadMprInfoByQioCode = async (qioCodeParam) => {
+    console.log('검사지시에 연결된 자재정보 자동 로딩:', qioCodeParam);
+
+    try {
+        const response = await axios.get(`/api/qlt/qio/mpr/${qioCodeParam}`);
+        console.log('자재정보 API 응답:', response.data);
+
+        if (response.data.data && response.data.data.length > 0) {
+            const data = response.data.data[0];
+            mprList.value = {
+                mpr_code: data.mpr_code || '',
+                mpr_d_code: data.mpr_d_code || '',
+                mat_name: data.mat_name || '',
+                mat_code: data.mat_code || '',
+                deadline: data.deadline,
+                req_qtt: String(data.req_qtt || 0)
+            };
+
+            console.log('자재정보 자동 로딩 완료:', mprList.value);
+        } else {
+            // 데이터가 없을 때 초기화
+            mprList.value = {
+                mpr_code: '',
+                mpr_d_code: '',
+                mat_name: '',
+                mat_code: '',
+                deadline: null,
+                req_qtt: '0'
+            };
+        }
+    } catch (error) {
+        console.error('자재정보 자동 로딩 실패:', error);
+        mprList.value = {
+            mpr_code: '',
+            mpr_d_code: '',
+            mat_name: '',
+            mat_code: '',
+            deadline: null,
+            req_qtt: '0'
         };
     }
 };
@@ -422,16 +472,16 @@ const updateQirInMemory = (updatedQirData) => {
 // QIR 삭제
 const deleteSelectedQir = (selectedItems) => {
     console.log('QIR 삭제 요청:', selectedItems);
-    
+
     if (!selectedItems || selectedItems.length === 0) {
         alert('삭제할 QIR을 선택해주세요! 🤔');
         return;
     }
-    
+
     if (!confirm(`정말로 ${selectedItems.length}개의 QIR을 삭제하시겠습니까?`)) {
         return;
     }
-    
+
     // ✅ 진짜 삭제 처리!
     selectedItems.forEach(selectedItem => {
         const index = qioList.value.findIndex(qir => qir.qir_code === selectedItem.qir_code);
@@ -440,12 +490,12 @@ const deleteSelectedQir = (selectedItems) => {
             qioList.value.splice(index, 1);
         }
     });
-    
+
     // 선택 해제
     if (bottomTblRef.value && bottomTblRef.value.clearSelection) {
         bottomTblRef.value.clearSelection();
     }
-    
+
     alert(`${selectedItems.length}개의 QIR이 삭제 예정 목록에 추가되었어! 저장하면 완전히 삭제돼! 🎉`);
 };
 
@@ -588,21 +638,30 @@ const updateqioInfo = async (newData) => {
 
 // prdrList 업데이트
 const updatePrdrOrMprList = (newData) => {
-    // console.log('prdrList 업데이트:', newData);
-    // prdrList.value = { ...prdrList.value, ...newData };
-    // prdrList.value = newData; // 전체 교체
-    // if 들어온 데이터에 prdr_code가 있으면 prdrList
-    // mpr_code가 있으면 mprList
     if (newData.prdr_code) {
-        prdrList.value = { ...prdrList.value, ...newData };
-        prdrList.value = newData; // 전체 교체
+        // PRDR 선택 시: PRDR 업데이트, MPR 초기화
+        prdrList.value = newData;
+        mprList.value = {
+            mpr_code: '',
+            mpr_d_code: '',
+            mat_name: '',
+            mat_code: '',
+            deadline: null,
+            req_qtt: '0'
+        };
         console.log('prdrList 업데이트 완료:', prdrList.value);
     } else if (newData.mpr_code) {
-        mprList.value = { ...mprList.value, ...newData };
-        mprList.value = newData; // 전체 교체
+        // MPR 선택 시: MPR 업데이트, PRDR 초기화  
+        mprList.value = newData;
+        prdrList.value = {
+            prdr_code: '',
+            po_name: '',
+            mpr_code: '',
+            prod_name: '',
+            end_date: null,
+            production_qtt: '0'
+        };
         console.log('mprList 업데이트 완료:', mprList.value);
-    } else {
-        console.warn('업데이트할 데이터에 prdr_code나 mpr_code가 없습니다.');
     }
 };
 
@@ -623,8 +682,8 @@ const updateqioList = async (newList) => {
                 @loadQirByQio="loadQirListByQioCode" @update:data="updateqioInfo" @reset-list="resetData"
                 @save-data="saveData">
             </QualityManageSearch>
-            <QualityManageMiddleTbl :data="combinedMiddleData" @update:data="updatePrdrOrMprList" @reset-list="resetData"
-                @save-data="saveData">
+            <QualityManageMiddleTbl :data="combinedMiddleData" @update:data="updatePrdrOrMprList"
+                @reset-list="resetData" @save-data="saveData">
             </QualityManageMiddleTbl>
         </div>
 
