@@ -1,10 +1,9 @@
 <script setup>
 import axios from 'axios';
 import moment from 'moment';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useWebSocketStore } from '../../stores/websocket';
-// console.log(moment('2025.06.16', 'YYYY.MM.DD').format('YYYY년 MM월 DD일'));
 
 const wsStore = useWebSocketStore();
 
@@ -16,7 +15,7 @@ if (!wsStore.isConnected) {
 const route = useRoute();
 const wkoCode = route.params.wko_code;
 
-const data = ref({});
+const data = ref([]);  // 빈 배열로 초기화
 const dataKey = ref('id');
 
 const prdrCode = ref('');
@@ -30,68 +29,103 @@ const loadProcess = async () => {
         const result = await response.data;
         if (result.result_code === "SUCCESS") {
             // 공정 목록 가져오기 성공 시 테이블 값 설정, 공정명과 설비를 제외한 나머지 필드는 널 체크
-            await result.data.forEach(element => {
-                element.po_name = element.po_name || '-',
-                element.proc_rate = element.proc_rate || 0,
-                element.eq_code = element.eq_code || '-',
-                element.eq_name = element.eq_name || '-',
-                element.start_date = element.start_date ? moment(element.start_date).format('YYYY-MM-DD HH:mm:ss') : '-',
-                element.end_date = element.end_date ? moment(element.end_date).format('YYYY-MM-DD HH:mm:ss') : '-',
-                element.input_qtt = element.input_qtt || '-',
-                element.def_qtt = element.def_qtt || '-',
-                element.make_qtt = element.make_qtt || '-'
-            })
-            data.value = result.data;
+            const processedData = result.data.map(element => ({
+                ...element,
+                po_name: element.po_name || '-',
+                proc_rate: element.proc_rate || 0,
+                eq_code: element.eq_code || '-',
+                eq_name: element.eq_name || '-',
+                start_date: element.start_date ? moment(element.start_date).format('YYYY-MM-DD HH:mm:ss') : '-',
+                end_date: element.end_date ? moment(element.end_date).format('YYYY-MM-DD HH:mm:ss') : '-',
+                input_qtt: element.input_qtt || '-',
+                def_qtt: element.def_qtt || '-',
+                make_qtt: element.make_qtt || '-'
+            }));
+            
+            data.value = processedData;
             console.log('공정 목록 불러오기 성공:', data.value);
             
         } else {
             console.error('공정 목록 불러오기 실패:', result.message);
-            data.value = {};
+            data.value = [];
         }
     } catch (error) {
         console.error('공정 목록 불러오기 중 오류 발생:', error);
-        data.value = {};
+        data.value = [];
     }
 }
 
+// 공정 데이터 업데이트 헬퍼 함수
+const updateProcessData = (processId, updates) => {
+    const processIndex = data.value.findIndex(
+        process => process.prdr_d_code === processId
+    );
+    
+    if (processIndex !== -1) {
+        // 방법 1: 전체 배열을 새로 만들어서 할당 (가장 안전)
+        const newData = [...data.value];
+        newData[processIndex] = {
+            ...newData[processIndex],
+            ...updates
+        };
+        data.value = newData;
+        
+        // 또는 방법 2: nextTick 사용
+        // Object.assign(data.value[processIndex], updates);
+        // await nextTick();
+        
+        return data.value[processIndex];
+    }
+    return null;
+};
+
 // 웹소켓 메시지 감지해서 진행률 업데이트
 watch(() => wsStore.messages, (messages) => {
-  const latest = messages[messages.length - 1];
-  
-  if (latest?.type === 'PROCESS_UPDATE') {
-    // 해당하는 공정의 진행률 업데이트
-    const processIndex = data.value.findIndex(
-      process => process.prdr_d_code === latest.processId
-    );
+    const latest = messages[messages.length - 1];
     
-    if (processIndex !== -1) {
-      data.value[processIndex].proc_rate = latest.progress;
-      console.log(`🔄 ${data.value[processIndex].po_name} 진행률: ${latest.progress}%`);
+    if (latest?.type === 'PROCESS_UPDATE') {
+        console.log('🔄 PROCESS_UPDATE 수신:', latest);
+        
+        const updatedProcess = updateProcessData(latest.processId, {
+            proc_rate: latest.progress,
+            make_qtt: latest.makeQtt || latest.make_qtt // 둘 다 체크
+        });
+        
+        if (updatedProcess) {
+            console.log(`🔄 ${updatedProcess.po_name} 진행률: ${latest.progress}%, 생산량: ${updatedProcess.make_qtt}`);
+        }
     }
-  }
-  else if (latest?.type === 'PROCESS_COMPLETED') {
-    // 공정 완료 메시지 처리
-    const processIndex = data.value.findIndex(
-      process => process.prdr_d_code === latest.processId
-    );
-    
-    if (processIndex !== -1) {
-      data.value[processIndex].proc_rate = 100; // 완료된 공정은 100%로 설정
-      data.value[processIndex].end_date = moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'); // 완료된 공정은 100%로 설정
-      console.log(`✅ ${data.value[processIndex].po_name} 공정 완료`);
+    else if (latest?.type === 'PROCESS_COMPLETED') {
+        console.log('✅ PROCESS_COMPLETED 수신:', latest);
+        
+        const updatedProcess = updateProcessData(latest.processId, {
+            proc_rate: latest.progress,
+            end_date: moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'),
+            make_qtt: latest.makeQtt || latest.make_qtt
+        });
+        
+        if (updatedProcess) {
+            console.log(`✅ ${updatedProcess.po_name} 공정 완료, 생산량: ${updatedProcess.make_qtt}`);
+        }
     }
-  }
-  else if (latest?.type === 'PROCESS_STARTED') {
-    // 공정 시작 메시지 처리
-    const processIndex = data.value.findIndex(
-      process => process.prdr_d_code === latest.processId
-    );
-    
-    if (processIndex !== -1) {
-      data.value[processIndex].start_date = moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'); // 시작일시 업데이트
-      console.log(`▶️ ${data.value[processIndex].po_name} 공정 시작`);
+    else if (latest?.type === 'PROCESS_STARTED') {
+        console.log('▶️ PROCESS_STARTED 수신:', latest);
+        
+        const updatedProcess = updateProcessData(latest.processId, {
+            start_date: moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'),
+            proc_rate: latest.progress || 0,
+            input_qtt: latest.inputQtt || latest.input_qtt
+        });
+        
+        if (updatedProcess) {
+            console.log(`▶️ ${updatedProcess.po_name} 공정 시작`);
+        }
     }
-  }
+}, { deep: true });
+
+// 디버깅을 위한 데이터 변화 감지
+watch(() => data.value, (newData) => {
+    console.log('📊 데이터 변경됨:', newData);
 }, { deep: true });
 
 onMounted(() => {
@@ -104,6 +138,7 @@ onMounted(() => {
 });
 
 </script>
+
 <template>
     <!-- 공정 목록 테이블 영역 -->
     <div class="card mt-6">
@@ -116,6 +151,12 @@ onMounted(() => {
             </div>
         </div>
 
+        <!-- 디버깅 정보 (개발 중에만) -->
+        <div v-if="false" class="mb-4 p-2 bg-gray-100 rounded text-sm">
+            <div>데이터 개수: {{ data.length }}</div>
+            <div>최근 메시지: {{ wsStore.messages[wsStore.messages.length - 1]?.type }}</div>
+        </div>
+
         <!-- DataTable (PrimeVue) -->
         <DataTable 
             :value="data" 
@@ -124,7 +165,7 @@ onMounted(() => {
             scrollable
             scrollHeight="100%" 
             tableStyle="min-width: 50rem"
-            :emptyMessage="data != null ? '생산계획과 제품을 선택하면 공정 목록이 표시됩니다.' : '공정 정보가 없습니다.'">
+            :emptyMessage="data.length === 0 ? '생산계획과 제품을 선택하면 공정 목록이 표시됩니다.' : '공정 정보가 없습니다.'">
             
             <Column field="po_name" header="공정명" style="width: 10%">
                 <template #body="slotProps">
@@ -134,15 +175,6 @@ onMounted(() => {
             
             <Column field="proc_rate" header="진행률" style="width: 24%">
                 <template #body="slotProps">
-                    <!-- <ProgressBar :value="slotProps.data.proc_rate" class="w-full"></ProgressBar> -->
-                    <!-- <div class="w-full bg-gray-300 rounded">
-                        <div
-                        class="bg-green-500 text-white text-center py-1 rounded"
-                        :style="{ width: slotProps.data.proc_rate + '%' }"
-                        >
-                        {{ slotProps.data.proc_rate }}%
-                        </div>
-                    </div> -->
                     <div class="relative w-full h-6 bg-gray-300 rounded overflow-hidden">
                         <!-- 중앙 고정 텍스트 -->
                         <div class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-black">
@@ -151,20 +183,22 @@ onMounted(() => {
 
                         <!-- 실제 진행 바 -->
                         <div
-                            class="h-full bg-green-500"
+                            class="h-full bg-green-500 transition-all duration-300"
                             :style="{ width: slotProps.data.proc_rate + '%' }"
                         ></div>
                     </div>
-
-
                 </template>
             </Column>
 
             <Column field="eq_code" header="설비" style="width: 20%">
                 <template #body="slotProps">
                     <div class="flex items-center gap-2">
-                        <!-- <span class="font-medium text-gray-600" v-on:click="$router.push('//')">{{ slotProps.data.eq_code }} - {{ slotProps.data.eq_name }}</span> -->
-                        <Button :label="slotProps.data.eq_code + ' ' + slotProps.data.eq_name" severity="secondary" @click="$router.push(`/work/detail/${wkoCode}/${slotProps.data.eq_code}`)" class="flex-1" />
+                        <Button 
+                            :label="slotProps.data.eq_code + ' ' + slotProps.data.eq_name" 
+                            severity="secondary" 
+                            @click="$router.push(`/work/detail/${wkoCode}/${slotProps.data.eq_code}`)" 
+                            class="flex-1" 
+                        />
                     </div>
                 </template>
             </Column>
@@ -175,7 +209,7 @@ onMounted(() => {
                 </template>
             </Column>
 
-            <Column field="start_date" header="종료일시" style="width: 12%">
+            <Column field="end_date" header="종료일시" style="width: 12%">
                 <template #body="slotProps">
                     <span class="text-gray-600">{{ slotProps.data.end_date }}</span>
                 </template>
@@ -183,24 +217,27 @@ onMounted(() => {
 
             <Column field="input_qtt" header="투입량" style="width: 7%">
                 <template #body="slotProps">
-                    <span class="text-gray-600">{{ slotProps.data.input_qtt.toLocaleString('ko-KR') }}</span>
+                    <span class="text-gray-600">{{ slotProps.data.input_qtt }}</span>
                 </template>
             </Column>
 
             <Column field="def_qtt" header="불량량" style="width: 7%">
                 <template #body="slotProps">
-                    <span class="text-gray-600">{{ slotProps.data.def_qtt.toLocaleString('ko-KR') }}</span>
+                    <span class="text-gray-600">{{ slotProps.data.def_qtt }}</span>
                 </template>
             </Column>
 
             <Column field="make_qtt" header="생산량" style="width: 7%">
                 <template #body="slotProps">
-                    <span class="text-gray-600">{{ slotProps.data.make_qtt.toLocaleString('ko-KR') }}</span>
+                    <span class="text-gray-600 font-medium">
+                        {{ slotProps.data.make_qtt }}
+                    </span>
                 </template>
             </Column>
         </DataTable>
     </div>
 </template>
+
 <style>
 
 </style>

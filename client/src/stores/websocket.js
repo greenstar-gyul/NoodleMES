@@ -25,7 +25,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
     stat: '',
   })
 
-  const prdrD = ref([]);
+  const nowPage = ref(''); // 현재 페이지 상태 관리
   
   // 서버 설정
   const HOST = 'localhost';
