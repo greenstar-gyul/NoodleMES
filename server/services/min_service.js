@@ -14,92 +14,51 @@ const findAllMin = async () => {
   return list;
 }; // end of findAllMin
 
-// 검색 결과 조회
-const findSearchMpr = async (values) => {  
-  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
-  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
-  let list = await mariadb.query("selectSearchMprList", values)
-                          .catch(err => console.log(err));
-  return list;
-};
-
-// 선택한 MPR 상세 정보 조회
-const findMprDetails = async (mprCode) => {
-  // 주문 상세 테이블과 제품 테이블 JOIN해서 제품 정보까지 가져옴
-  // 전달받은 ordCode는 WHERE 조건의 바인딩 값으로 들어감
-  // SQL 쿼리에서 ?를 사용한 경우, 해당 ?에 들어갈 값을 배열로 넘겨야 정상 동작
-  // 하나만 넘기더라도 배열로 감싸서 [ordCode] 형태로 전달해야 함
-  // 만약, 이미 데이터가 배열로 구성되어 있으면 []로 감쌀 필요가 없음
-  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
-  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
-  const result = await mariadb.query("selectMprDList", [mprCode])
-    .catch(err => console.log(err));
-  return result;
-};
-// end of findMprDetail
-
-// MRP 전체 조회
-const findAllMRP = async () => {
-  const result = await mariadb.query("selectMRPList")
-    .catch(err => console.log(err));
-  return result;
-};
-// end of findAllMRP
-
 // 자재 전체 조회
 const findAllMat = async () => {
-  const result = await mariadb.query("selectMatList")
-    .catch(err => console.log(err));
-  return result;
-};
-//
-
-// MPR 등록
-const insertMpr = async (mprData) => {
-  // mprData는 mpr_code부터 client_code까지 배열 형태로 전달됨
-  const result = await mariadb.query("insertMpr", mprData)
+  const result = await mariadb.query("selectAllMatList")
     .catch(err => console.log(err));
   return result;
 };
 
-// MPR Detail 등록
-const insertMprDetail = async (detailData) => {
-  // 제품별 상세 정보 등록
-  const result = await mariadb.query("insertMprD", detailData)
+// 품질검사정보 전체 조회
+const findAllQio = async () => {
+  const result = await mariadb.query("selectAllQioList")
     .catch(err => console.log(err));
   return result;
 };
-// end of findAllMat
+// end of findAllQio
 
-// MPR 전체 등록
-const insertMprAll = async(data) => {
+
+// 자재입고 등록
+const insertMin = async (minData) => {
+  // minData는 minbnd_code부터 mcode까지 배열 형태로 전달됨
+  const result = await mariadb.query("insertMin", minData)
+    .catch(err => console.log(err));
+  return result;
+};
+
+// 자재입고 최종등록
+const insertMinAll = async (data) => {
   const conn = await mariadb.connectionPool.getConnection();
 
   try {
     await conn.beginTransaction();
     
     // 1. MPR 기본 등록
-    const mprCodeRes = await mariadb.queryConn(conn, "selectMprCodeForUpdate");
-    const mprCode = mprCodeRes[0].mpr_code;
-    const masterColumns = ['mpr_code', 'reqdate', 'deadline', 'mrp_code', 'mcode', ];
-    const detailColumns = ['mpr_d_code', 'mat_code', 'req_qtt', 'unit', 'mpr_code', 'mat_sup', 'note', ];
-    // 주문 저장
-    data.mprData.mpr_code = mprCode;
-    const result = await mariadb.queryConn(conn, "insertMpr", convertObjToAry(data.mprData, masterColumns));
+    const minCodeRes = await mariadb.queryConn(conn, "selectMinCodeForUpdate");
+    const minCode = minCodeRes[0].minbnd_code;
+    const lotNumRes = await mariadb.queryConn(conn, "selectLotNumForUpdate");
+    const lotNum = lotNumRes[0].lot_num;
 
-    // 2. MPR 상세 등록
-    for (const mprd of data.detailData) {
-      const mprDCodeRes = await mariadb.queryConn(conn, "selectMprDCodeForUpdate");
-      const mprDCode = mprDCodeRes[0].mpr_d_code;
-
-      mprd.mpr_code = mprCode;
-      mprd.mpr_d_code = mprDCode;
-
-      await mariadb.queryConn(conn, "insertMprD", convertObjToAry(mprd, detailColumns));
-    }
+    const Columns = ['minbnd_code', 'mat_code', 'mat_type', 'unit', 'inbnd_qtt', 'inbnd_date', 'ord_qtt', 'qio_code', 'lot_num', 'mat_sup', 'mcode',];
+    // 저장
+    data.minData.minbnd_code = minCode;
+    data.minData.mpr_code = lotNum;
+    const result = await mariadb.queryConn(conn, "insertMinBnd", convertObjToAry(data.minData, Columns));
 
     await conn.commit();
-    console.log('MPR 등록 성공');
+    console.log('자재입고정보 등록 성공');
     return result;
   } catch (err){
     await conn.rollback();
@@ -108,11 +67,10 @@ const insertMprAll = async(data) => {
   } finally {
     conn.release();
   }
-};
-// end of insertMprAll
+}; // end of insertMinAll
 
 
-// MPR 정보 삭제
+//  정보 삭제
 const deleteMpr = async (mprCode) => {
   const conn = await mariadb.connectionPool.getConnection();
   try {
@@ -134,15 +92,12 @@ const deleteMpr = async (mprCode) => {
 module.exports ={
     /* 조회 */ 
     findAllMin,
-    findSearchMpr,
-    findMprDetails,
-    findAllMRP,
+    findAllQio,
     findAllMat,
 
     /* 등록 */
-    insertMpr,
-    insertMprDetail,
-    insertMprAll,
+    insertMin,
+    insertMinAll,
     
     /* 삭제 */
     deleteMpr,

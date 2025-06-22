@@ -22,64 +22,7 @@ router.get('/all', async (req, res)=>{
     res.send(minList); 
 });
 
-// 검색조회
-router.get('/search', async (req, res)=>{
-    // 해당 엔드포인트(URL+METHOD)로 접속할 경우 제공되는 서비스를 실행
-    // -> 서비스가 DB에 접속하므로 비동기 작업, await/async를 활용해서 동기식으로 동작하도록 진행
-    const search = req.query;
-
-    const values = convertObjToAry(search, ['mpr_code','req_date_from','req_date_to','deadline_from','deadline_to','mrp_code','mcode'])
-
-    // console.log(values);
-    let mprList = await minService.findSearchMpr(values)
-                                    .catch(err => console.log(err));
-
-    // res(Http Response에 대응되는 변수)의 응답메소드를 호출해 데이터를 반환하거나 통신을 종료함 
-    // 주의사항) res(Http Response에 대응되는 변수)의 응답메소드를 호출하지 않으면 통신이 종료되지 않음                   
-    // res.send()는 데이터를 반환하는 응답 메소드며 객체로 반환되므로 JSON으로 자동 변환
-    res.send(mprList); 
-});
-
-// 특정 MPR의 상세 목록 조회
-router.get('/:mprCode/details', async (req, res) => {
-    try {
-        const { mprCode } = req.params;
-        const result = await minService.findMprDetails(mprCode);
-        res.json({
-            result_code: "SUCCESS",
-            message: "성공",
-            data: result
-        });
-    } catch (err) {
-        console.error("주문 상세 조회 실패:", err);
-        res.status(500).json({
-            result_code: "FAIL",
-            message: "실패",
-            error: err.message
-        });
-    }
-});
-
-// 전체 MRP 목록 조회
-router.get('/mrp', async (req, res) => {
-    try {
-        const result = await minService.findAllMRP();
-        res.json({
-            result_code: "SUCCESS",
-            message: "성공",
-            data: result
-        });
-    } catch (err) {
-        console.error("mrp 목록 조회 실패:", err);
-        res.status(500).json({
-            result_code: "FAIL",
-            message: "실패",
-            error: err.message
-        });
-    }
-});
-
-// 전체 자재 목록 조회
+// 전체 자재입고 목록 조회
 router.get('/min', async (req, res) => {
     try {
         const result = await minService.findAllMin();
@@ -97,6 +40,46 @@ router.get('/min', async (req, res) => {
         });
     }
 });
+
+
+// 전체 자재기본 정보 조회
+router.get('/mat', async (req, res) => {
+    try {
+        const result = await minService.findAllMat();
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        console.error("mrp 목록 조회 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
+
+// 전체 품질검사 정보 조회
+router.get('/qio', async (req, res) => {
+    try {
+        const result = await minService.findAllQio();
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        console.error("mrp 목록 조회 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
+
 
 // 등록
 router.post('/insert', async (req, res) => {
