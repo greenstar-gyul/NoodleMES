@@ -1,220 +1,219 @@
 <script setup>
-/* ===== IMPORT ===== */
-import { ref } from 'vue';
-import SinglePopup from '@/components/popup/SinglePopup.vue';
-import QualityMapping from '../../../service/QualityMapping';
-import qio from '../../../service/QualityInspectionOrder';
-import qir from '../../../service/QualityResults';
-import TableWithExcel from '../../../components/form/TableWithExcel.vue';
-import TableWithDelExcel from '../../../components/form/TableWithDelExcel.vue';
-import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
-import LabeledReadonlyInput from '@/components/registration-bar/LabeledReadonlyInput.vue';
-import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
-import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
-import QualityResultsTbl from './QualityResultsTbl.vue';
+import { onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import QltRListTable from './QltRListTable.vue';
+import QltRListSearch from './QltRListSearch.vue';
+import axios from 'axios';
+import moment from 'moment';
 
+const currentQioCode = ref('');
+const route = useRoute();
 
-/* ===== DATA ===== */
-// 팝업
-const  qioVisible = ref(false);
-const  qirVisible = ref(false);
-const ordersRef = ref(qio);
-const resultsQir = ref(qir);
+const qioInfo = ref({
+    qio_code: '',
+    chk_start_date: null,
+    chk_end_date: null,
+    client: '',
+    note: '',
+    manager: '',
+    inspector: ''
+});
 
-// 기본정보 폼 데이터
-const qio_code = ref('');
-const prod_code = ref('');
-const po_code = ref('');
-const selectedInsp = ref(null);
-const selectedManager = ref(null);
+const qirList = ref([]);
 
-// 🚀 수정 불가 상태 변수
-const isReadonly = ref(false);
+const getQioCodeFromRoute = () => {
+    const qioCodeParam = route.params.qioCode;
+    console.log('라우트에서 가져온 qio_code:', qioCodeParam);
+    return qioCodeParam || '';
+};
 
-// 지시자 옵션 예시
-const InspOptions = ref([
-    { label: '김길동', value: 'Insp1' },
-    { label: '이길동', value: 'Insp2' },
-    { label: '박길동', value: 'Insp3' }
-]);
-
-// 공정명 옵션 예시
-const PoOptions = ref([
-    { label: '김철수', value: 'manager1' },
-    { label: '이영희', value: 'manager2' },
-    { label: '박민수', value: 'manager3' }
-]);
-
-/* ===== FUNCTIONS ===== */
-// 팝업 Confirm 핸들러
-const handleConfirm = (qio) => {
-    console.log('선택된 주문:', qio);
-
-    qio_code.value = qio.qio_code;
-    prod_code.value = qio.prod_code;
-    ord_date.value = qio.ord_date;
-
-    // 거래처 처리
-    const clientOption = InspOptions.value.find(option => option.label === qio.client);
-    if (!clientOption && qio.client) {
-        InspOptions.value.push({
-            label: qio.client,
-            value: qio.client
-        });
+watch(currentQioCode, async (newCode, oldCode) => {
+    console.log('currentQioCode 변경됨:', oldCode, '->', newCode);
+    
+    if (newCode && newCode !== oldCode) {
+        console.log('검사 결과 로딩 시작:', newCode);
+        await loadQirInfo(newCode);
     }
-    selectedInsp.value = qio.client;
+}, { immediate: true });
 
-    // 거래처 담당자 처리
-    if (qio.manager) {
-        const managerOption = managerOptions.value.find(option => option.label === qio.manager);
-        if (!managerOption) {
-            managerOptions.value.push({
-                label: qio.manager,
-                value: qio.manager
-            });
+watch(
+    () => qioInfo.value.qio_code,
+    async (newCode) => {
+        if (newCode && newCode !== currentQioCode.value) {
+            currentQioCode.value = newCode;
+            await loadQirInfo(newCode);
         }
-        selectedManager.value = qio.manager;
-    } else {
-        selectedManager.value = null;
+    },
+    { immediate: true }
+);
+
+const loadQioDataByCode = async (qioCodeParam) => {
+    if (!qioCodeParam) return;
+
+    try {
+        const response = await axios.get(`/api/qc/results/${qioCodeParam}`);
+
+        if (response.data && response.data.data) {
+            qioInfo.value = {
+                ...response.data.data,
+                chk_start_date: response.data.data.chk_start_date ? new Date(response.data.data.chk_start_date) : null,
+                chk_end_date: response.data.data.chk_end_date ? new Date(response.data.data.chk_end_date) : null
+            };
+            currentQioCode.value = qioInfo.value.qio_code;
+            console.log('qio_code:', qioInfo.value.qio_code);
+        }
+    } catch (error) {
+        console.error('데이터 로딩 실패:', error);
+    }
+};
+
+onMounted(async () => {
+    const qioCodeFromRoute = getQioCodeFromRoute();
+    if (qioCodeFromRoute) {
+        await loadQioDataByCode(qioCodeFromRoute);
+    }
+});
+
+const formatDateTimeForDB = (date) => {
+    return date ? moment(date).format('YYYY-MM-DD HH:mm:ss') : null;
+};
+
+const validateData = () => {
+    if (!qioInfo.value.chk_start_date) {
+        alert('검사 시작일자를 입력해주세요.');
+        return false;
+    }
+    if (!qioInfo.value.chk_end_date) {
+        alert('검사 종료일자를 입력해주세요.');
+        return false;
+    }
+    if (!qirList.value || qirList.value.length === 0) {
+        alert('검사 결과 항목을 추가해주세요.');
+        return false;
     }
 
-    po_code.value = qio.po_code || '';
-
-    // 🚀 기본정보 수정 불가 처리
-    isReadonly.value = true;
+    return true;
 };
 
-// 검사 지시서 불러오기
-const fetchOrders = async () => {
-  const res = await fetch('/api/qcr/all-orders');
-  const data = await res.json();
-  ordersRef.value = data;
+const saveData = async () => {
+    if (!confirm('품질검사 정보를 저장하시겠습니까?')) {
+        alert('저장을 취소했습니다.');
+        return;
+    }
+
+    if (!validateData()) {
+        return;
+    }
+
+    try {
+        const qioDataForServer = {
+            ...qioInfo.value,
+            chk_start_date: formatDateTimeForDB(qioInfo.value.chk_start_date),
+            chk_end_date: formatDateTimeForDB(qioInfo.value.chk_end_date),
+        };
+
+        const qirDataForServer = qirList.value.map(item => ({
+            ...item,
+            qio_code: qioInfo.value.qio_code
+        }));
+
+        const requestData = {
+            qioData: qioDataForServer,
+            detailData: qirDataForServer
+        };
+
+        let response;
+        if (!qioInfo.value.qio_code) {
+            response = await axios.post(`/api/qc/results/save-all`, requestData);
+        } else {
+            response = await axios.put(`/api/qc/results/save-all/${qioInfo.value.qio_code}`, requestData);
+        }
+
+        const result = response.data;
+        if (result.success && result.data.result_code === "SUCCESS") {
+            alert('저장에 성공했습니다.');
+
+            if (result.data.qio_code && !qioInfo.value.qio_code) {
+                qioInfo.value.qio_code = result.data.qio_code;
+                currentQioCode.value = result.data.qio_code;
+                await loadQirInfo(result.data.qio_code);
+            }
+        } else {
+            alert('저장에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('저장 중 오류:', error);
+        alert('저장 중 오류가 발생했습니다.');
+    }
 };
 
-// 검사 결과 불러오기
-const fetchResults = async () => {
-  const res = await fetch('/api/qc/all-results');
-  const data = await res.json();
-  resultsQir.value = data;
+const resetData = () => {
+    qirList.value = [];
+    qioInfo.value = {
+        qio_code: '',
+        chk_start_date: null,
+        chk_end_date: null,
+        client: '',
+        note: '',
+        manager: '',
+        inspector: ''
+    };
+    currentQioCode.value = '';
 };
 
-
-
-
-// EditableTable 업데이트 핸들러
-const handleUpdate = (updatedData) => {
-    console.log('EditableTable 업데이트:', updatedData);
+const loadQirInfo = async (qioCodeParam) => {
+    if (qioCodeParam) {
+        try {
+            const result = await axios.get(`/api/qc/results/detail/${qioCodeParam}`);
+            qirList.value = result.data;
+        } catch (error) {
+            qirList.value = [];
+        }
+    } else {
+        qirList.value = [];
+    }
 };
 
+const updateQioInfo = (newData) => {
+    console.log('qioInfo 업데이트:', newData);
+    const hasChanges = Object.keys(newData).some(key =>
+        qioInfo.value[key] !== newData[key]
+    );
+    if (!hasChanges) {
+        console.log('변경사항 없음, 업데이트 건너뜀');
+        return;
+    }
+
+    qioInfo.value = { ...qioInfo.value, ...newData };
+
+    if (newData.qio_code && newData.qio_code !== currentQioCode.value) {
+        currentQioCode.value = newData.qio_code;
+        loadQirInfo(newData.qio_code);
+    }
+};
+
+const updateQirList = async (newList) => {
+    console.log('qirList 업데이트:', newList);
+    await loadQirInfo(currentQioCode.value);
+};
 </script>
-
 <template>
-    <!-- ===== 기본정보 영역 ===== -->
-    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
-        <!-- 헤더 영역 -->
-        <div class="grid grid-cols-1 gap-4">
-            <div class="flex justify-between">
-                <div>
-                    <div class="font-semibold text-2xl">기본정보</div>
-                </div>
-                <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="삭제" severity="danger" class="min-w-fit" />
-                    <Button label="초기화" severity="contrast" class="min-w-fit" />
-                    <Button label="저장" severity="info" class="min-w-fit" />
-                    <Button
-                        label="검사지시서 불러오기"
-                        severity="success"
-                        class="min-w-fit whitespace-nowrap"
-                        @click=" qioVisible = true"
-                    />
-                </div>
-            </div>
-        </div>
-
-        <!-- 입력 폼 영역 1 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="지시코드" v-model="qio_code" :readonly="isReadonly" />    
-            <LabeledInput label="제품명" :value="prod_code" placeholder="제품명" :disabled="true" />
-        </div>
-
-        <!-- 입력 폼 영역 2 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- 공정코드po_code -->
-            <LabeledSelect
-                label="공정명"
-                v-model="selectedInsp"
-                :options="PoOptions"
-                placeholder="공정명을 선택해주세요"
-                :disabled="isReadonly"
-            />
-        </div>
+    <div>
+        <QltRListSearch
+            :data="qioInfo"
+            @update:data="updateQioInfo"
+            @reset-list="resetData"
+            @save-data="saveData"
+        />
+        
+        <QltRListTable
+            v-if="currentQioCode"
+            :subData="qirList"
+            @update:subData="updateQirList"
+            :qio="currentQioCode"
+            :dataKey="'qir_code'"
+            :columns="['qir_code', 'prod_code', 'chk_start_date', 'chk_end_date', 'def_qty', 'note', 'result', 'inspector']"
+            title="품질검사 결과 항목"
+        />
     </div>
-<!-- ===== 결과정보 영역 ===== -->
-    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
-        <!-- 헤더 영역 -->
-        <div class="grid grid-cols-1 gap-4">
-            <div class="flex justify-between">
-                <div>
-                    <div class="font-semibold text-2xl">결과정보</div>
-                </div>
-                <div class="flex items-center gap-2 flex-nowrap">
-                    <Button
-                        label="검사결과 불러오기"
-                        severity="success"
-                        class="min-w-fit whitespace-nowrap"
-                        @click="qirVisible = true"
-                    />
-                </div>
-            </div>
-        </div>
-
-        <!-- 입력 폼 영역 1 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="공정명" v-model="qio_code" :readonly="isReadonly" />    
-            <LabeledInput label="검사자" :value="prod_code" placeholder="제품명" :disabled="true" />
-        </div>
-
-        <!-- 입력 폼 영역 2 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- 공정코드po_code -->
-            <LabeledSelect
-                label="시작일시"
-                v-model="selectedInsp"
-                :options="InspOptions"
-                placeholder="공정명을 선택해주세요"
-                :disabled="isReadonly"
-            />
-            <LabeledSelect
-                label="종료일시"
-                v-model="selectedInsp"
-                :options="InspOptions"
-                placeholder="지시자를 선택해주세요"
-                :disabled="isReadonly"
-            />
-        </div>
-        <!-- 입력 폼 영역 3 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="불량수량" v-model="qio_code" :readonly="isReadonly" />    
-            <LabeledInput label="비고" :value="prod_code" placeholder="제품명" :disabled="true" />
-        </div>
-        <QualityResultsTbl v-model:subData="qioList" v-model:eqii="qioCode" :dataKey="'eqir_code'"
-         :columns="['eqir_code','eq_name', 'chk_start_date','chk_end_date','chk_detail','note','chk_result','eqi_stat']"
-          title="품질점검항목"></QualityResultsTbl>
-    </div>
-
-
-  
-    <!-- ===== 팝업 영역 ===== -->
-    <SinglePopup
-        v-model:visible=" qioVisible"
-        :items="ordersRef"
-        @confirm="handleConfirm"
-        :mapper="QualityMapping"
-    />
-    <SinglePopup
-        v-model:visible=" qirVisible"
-        :items="resultsQir"
-        @confirm="handleConfirm"
-        :mapper="QualityMapping"
-    />
 </template>

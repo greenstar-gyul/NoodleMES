@@ -4,8 +4,8 @@ import { useRoute } from 'vue-router';
 import QualityManageSearch from './QualityManageSearch.vue';
 import QualityManageMiddleTbl from './QualityManageMiddleTbl.vue';
 import QualityManageBottomTbl from './QualityManageBottomTbl.vue';
+import QualityMapping from '../../../service/QualityMapping';
 import axios from 'axios';
-import moment from 'moment';
 import QualityManageInputForm from './QualityManageInputForm.vue';
 
 const currentQioCode = ref('');

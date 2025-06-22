@@ -1,248 +1,72 @@
 <script setup>
-import { ref, watch, computed, onMounted, nextTick } from 'vue';
-import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import InputNumber from 'primevue/inputnumber';
-import axios from 'axios';
-import eqiiresMapping from '@/service/EquipIIResMapping';
-import bomSubMapping from '@/service/BOMSubMapping';
-import MultiplePopup from '@/views/equipment/components/MultiplePopup.vue'; // 경로는 실제 경로로 수정
+import { onMounted, defineProps, defineEmits, computed, ref } from 'vue';
+import moment from 'moment';
+import EqTableWithExcel from '../components/EqTableWithExcel.vue';
+import eqiiMapping from '../../../service/EquipIIMapping';
 
 const props = defineProps({
-    dataKey: {
-        type: String,
-        default: 'id'
-    },
-    title: {
-        type: String,
-        default: ''
-    },
-    columns: {
-        type: Array,
-        default: [],
-    },  
-    subData: {
-        type: Array,
-        default: [],
-    },
-    eqii: { // 품질 계획 코드
-        type: String,
-        default: ''
-    }
+  eqiidata: Array,
+  required: true,
 });
 
-const emit = defineEmits(['update:subData']);
+const pickedEqii = ref(null); // 선택된 Eqii 데이터
+const emit = defineEmits(['initData', 'update:data']);
 
-// DataTable 선택된 행 (선택 모드)
-const selectedWAD = ref([]);
-const itemsWAD = ref([]);
-const dialogVisible = ref(false);
-const mapper = ref({});
-const popupEqirs = ref([]);
+const eqiiOption = [
+  { label: '전체', value: 'all' },
+    { label: '점검중', value: 'u1' },
+    { label: '점검완료', value: 'u2' },
+    { label: '지시전달', value: 'u3' }
+]
 
-// 🌟 품질 점검 결과 불러오기
-const loadqir = async () => {
-    console.log('props.eqii', props.eqii);
-    if (props.eqii == null || props.eqii == '') {
-        alert('검사계획을 먼저 불러오세요.');
-        return;
-    }
-
-    if (confirm('qio 데이터를 새로 불러오시겠습니까?')) {
-        console.log('qio 불러오기 시작');
-        const result = await axios.get(`/api/eq/eqirall/${props.eqii}`);
-        
-        console.log('🚀 qio API 원본:', result.data);
-        
-        const qioList = result.data; // 배열이 바로 오는 것 같으니까
-        console.log('🎯 qioList:', qioList);
-        
-        if (qioList && qioList.length > 0) {
-            console.log('🔍 첫 번째 qio 아이템:', qioList[0]);
-            console.log('🔍 inspection_item:', qioList[0].inspection_item);
-        }
-
-        // 1단계: 빈 배열로 초기화
-        emit('update:subData', []);
-        await nextTick();
-
-        // 2단계: 새 데이터로 설정
-        emit('update:subData', qioList);
-    }
+const getStatLabel = (statValue) => {
+  if (!statValue) return '';
+  const option = eqiiOption.find(opt => opt.value === statValue);
+  return option ? option.label : statValue; // 못 찾으면 원본 값 반환
 };
 
-// 🌟 품질기준항목 불러오기 팝업
-const openPopup = async () => {
-    if (props.eqii == null || props.eqii == '') {
-        alert('계획을 먼저 불러오세요.');
-        return;
-    }
-    await loadqirList();
-    dialogVisible.value = true;
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return moment(dateString).format('YYYY-MM-DD HH:mm');
 };
 
-const loadqirList = async () => {
-    if (props.eqii == null || props.eqii == '') {
-        alert('품질계획지시서를 먼저 불러오세요.');
-        return;
-    }
+const formattedEqiiData = computed(() => {
+  if (!props.eqiidata || !Array.isArray(props.eqiidata)) return [];
+  
+  return props.eqiidata.map(item => ({
+    ...item,
+    inst_date: formatDate(item.inst_date),
+    chk_exp_date: formatDate(item.chk_exp_date),
+    stat: getStatLabel(item.stat)
+  }));
+});
 
-    const response = await axios.get(`/api/eq/eqitype`);
-    
-    // 🔍 응답 구조 확인
-    console.log('🚀 품질기준항목 API 원본:', response.data);
-    
-    popupEqirs.value = response.data.data || response.data;
-    
-    console.log('📦 popupEqirs에 할당된 데이터:', popupEqirs.value);
+// EqTableWithExcel에서 crctEqii을 받아온 것을 부모로 전달하는 함수
+const handleEqiiSelect = (eqii) => {
+  pickedEqii.value = eqii;
+  console.log('선택된 Eqii:', eqii);
+  emit('update:data', eqii); // 부모 컴포넌트로 선택된 Eqii 데이터 전달
 };
-
-// 🌟 이 함수 이름이 문제였어! (chkEqiType → addEqiType으로 변경)
-const addEqiType = (values) => {
-    const subDatas = [...props.subData];
-    console.log('선택된 품질기준항목:', values);
-    subDatas.push(...values);
-    emit('update:subData', subDatas);
-    dialogVisible.value = false; // 팝업 닫기 추가
-}
-
-// 🌟 선택된 행 삭제 기능 추가
-const deleteSelected = () => {
-    if (selectedWAD.value.length === 0) {
-        alert('삭제할 항목을 선택해주세요.');
-        return;
-    }
-    
-    if (confirm('선택한 항목을 삭제하시겠습니까?')) {
-        const remainingData = props.subData.filter(item => 
-            !selectedWAD.value.some(selected => selected.inspection_item === item.inspection_item)
-        );
-        emit('update:subData', remainingData);
-        selectedWAD.value = []; // 선택 초기화
-    }
-}
 
 onMounted(() => {
-    mapper.value = eqiiresMapping.eqiiresMapping;
-})
-
-// 기존 watch 코드들...
-watch(
-    () => props.subData,
-    (newVal) => {
-        if (props.columns.length > 0) return;
-
-        if (Array.isArray(newVal) && newVal.length > 0) {
-            itemsWAD.value = Object.keys(newVal[0]);
-        }
-        else {
-            itemsWAD.value = [];
-        }
-    },
-    { immediate: true }
-);
-
-watch(
-    () => props.columns,
-    (newVal) => {
-        if (newVal.length > 0) {
-            itemsWAD.value = newVal;
-        }
-        else if (Array.isArray(props.subData) && props.subData.length > 0) {
-            itemsWAD.value = Object.keys(props.subData[0]);
-        }
-        else {
-            itemsWAD.value = [];
-        }
-    },
-    { immediate: true }
-);
+  emit('initData');
+});
 </script>
 
 <template>
-    <!-- 검색 조회 테이블 영역 -->
-    <div class="card mt-6">
-        <!-- 테이블 상단 (타이틀 + 버튼들) -->
-        <div class="grid grid-cols-1 gap-4 mb-4">
-            <div class="flex justify-between">
-                <div>
-                    <div class="font-semibold text-2xl">{{ title }}</div>
-                </div>
-                <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="품질 점검 결과 불러오기" severity="info" class="min-w-fit whitespace-nowrap"
-                        @click="loadqir" />
-                    <Button label="품질기준항목 추가" severity="success" class="min-w-fit whitespace-nowrap"
-                        @click="openPopup" />
-                    <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" 
-                        @click="deleteSelected" />
-                </div>
-            </div>
-        </div>
-
-        <!-- DataTable (PrimeVue) -->
-        <DataTable 
-            v-model:selection="selectedWAD" 
-            :value="subData" 
-            dataKey="inspection_item"
-            showGridlines 
-            scrollable
-            scrollHeight="400px" 
-            tableStyle="min-width: 50rem">
-            
-            <Column selectionMode="multiple" headerStyle="width: 3rem" />
-
-            <Column field="inspection_item" header="검사항목">
-                <template #body="slotProps">
-                    {{ slotProps.data.inspection_item }}
-                </template>
-            </Column>
-
-            <Column field="range_top" header="기준(상한)" style="width: 200px">
-                <template #body="slotProps">
-                    {{ slotProps.data.range_top }}
-                </template>
-            </Column>
-
-            <Column field="range_bot" header="기준(하한)">
-                <template #body="slotProps">
-                    {{ slotProps.data.range_bot }}
-                </template>
-            </Column>
-
-            <Column field="unit" header="단위">
-                <template #body="slotProps">
-                    {{ slotProps.data.unit }}
-                </template>
-            </Column>
-            
-            <Column field="chk_result" header="점검결과">
-                <template #body="slotProps">
-                    {{ slotProps.data.chk_result }}
-                </template>
-            </Column>
-
-            <Column field="note" header="비고">
-                <template #body="slotProps">
-                    {{ slotProps.data.note }}
-                </template>
-            </Column>
-
-        </DataTable>
-    </div>
-    <MultiplePopup 
-        v-model:visible="dialogVisible" 
-        :items="popupEqirs" 
-        @confirm="addEqiType"
-        :selectedHeader="['inspection_item', 'range_top', 'range_bot', 'unit', 'chk_detail', 'note', 'chk_result', 'eqi_stat']"
-        :mapper="{ 
-            inspection_item: '검사항목', 
-            range_top: '기준(상한)', 
-            range_bot: '기준(하한)', 
-            unit: '단위', 
-            chk_result: '점검결과', 
-            note: '비고', 
-        }"
-        :dataKey="'inspection_item'">
-    </MultiplePopup>
-</template>
+  <EqTableWithExcel 
+    :data="formattedEqiiData" 
+    :dataKey="'eqii_code'" 
+    :columns="['eqii_code', 'inst_date', 'chk_exp_date', 'stat', 'inst_emp_name', 'note']"
+    :mapper="{
+      eqii_code: '점검지시코드', 
+      inst_date: '지시일자', 
+      chk_exp_date: '점검만료일', 
+      stat: '상태', 
+      inst_emp_name: '지시자명', 
+      note: '비고'
+    }"
+    title="검색결과" 
+    @crctEqii="handleEqiiSelect"
+  />
+</template> 

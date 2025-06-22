@@ -1,29 +1,39 @@
 <template>
   <!-- 검색 바 -->
   <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
+    <!-- 검색 조건 영역 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
       <div class="flex items-center gap-3 w-full">
+        <!-- 품질기준코드 -->
         <label class="font-semibold w-24">품질기준코드</label>
         <InputText v-model="search.qcr_code" class="flex-1" />
       </div>
+
+      <!-- 공정코드 -->
       <div class="flex items-center gap-3 w-full">
         <label class="font-semibold w-24">공정코드</label>
         <InputText v-model="search.po_code" class="flex-1" />
       </div>
+
+      <!-- 검사항목 -->
       <div class="flex items-center gap-3 w-full">
         <label class="font-semibold w-24">검사항목</label>
         <InputText v-model="search.inspection_item" class="flex-1" />
       </div>
+
+      <!-- 판정방식 -->
       <div class="flex items-center gap-3 w-full">
         <label class="font-semibold w-24">판정방식</label>
         <Dropdown v-model="search.check_method" :options="orderStatusOptions" optionLabel="label" optionValue="value" class="flex-1" />
       </div>
+
+      <!-- 조회/초기화 버튼영역 -->
+      </div>
+      <div class="flex justify-center gap-3 mt-4">
+        <Button label="초기화" severity="contrast" @click="resetSearch" />
+        <Button label="조회" severity="info" @click="fetchOrders" />
+      </div>
     </div>
-    <div class="flex justify-center gap-3 mt-4">
-      <Button label="초기화" severity="contrast" @click="resetSearch" />
-      <Button label="조회" severity="info" @click="fetchOrders" />
-    </div>
-  </div>
 
   <!-- 테이블 + 등록 폼 -->
   <div class="flex flex-col lg:flex-row gap-6 mt-6">
@@ -52,6 +62,7 @@ import QualitySTDForm from './QualitySTDForm.vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
+
 import QualityMapping from '@/service/QualityMapping';
 
 // 검색조건 데이터 (v-model)
