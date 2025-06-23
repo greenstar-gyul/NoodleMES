@@ -113,8 +113,8 @@ const insertQir = async (qirData) => {
 
     const qirValues = [
       generatedCode,
-      formatDateForDB(qirData.start_date),      // 🔥 변환!
-      formatDateForDB(qirData.end_date),        // 🔥 변환!
+      qirData.start_date,
+      qirData.end_date,
       qirData.unpass_qtt,
       qirData.pass_qtt,
       qirData.unpass_rate,
@@ -166,7 +166,7 @@ const saveQioWithResults = async (qioData, qirList) => {
         qioData.insp_date || null,
         qioData.prdr_code || null,
         qioData.po_name || null,
-        qioData.purchase_code || null,
+        qioData.mpr_d_code || null,
         qioData.emp_name || '정품질'
       ];
 
@@ -182,7 +182,7 @@ const saveQioWithResults = async (qioData, qirList) => {
         qioData.insp_date || null,
         qioData.prdr_code || null,
         qioData.po_name || null,
-        qioData.purchase_code || null,
+        qioData.mpr_d_code || null,
         qioData.emp_name || '정품질',
         generatedQioCode
       ];
@@ -252,7 +252,10 @@ const saveQioWithResults = async (qioData, qirList) => {
           qirData.result || null,
           qirData.note || null,
           generatedQioCode,
-          qirData.qir_emp_name || null,
+          // 🎯 여기가 핵심! 3개 파라미터로 변경
+          qirData.qir_emp_code || null,        // 첫 번째: qir_emp_code (CASE 조건용)
+          qirData.qir_emp_name || '정품질',     // 두 번째: qir_emp_name (이름으로 찾기용)
+          qirData.qir_emp_code || null,        // 세 번째: qir_emp_code (그대로 사용용)
           qirData.inspection_item || null,
           qirData.qir_code
         ];
@@ -270,6 +273,7 @@ const saveQioWithResults = async (qioData, qirList) => {
         const generatedQirCode = qirCodeRes[0].next_qir_code;
         console.log('✅ 생성된 QIR 코드:', generatedQirCode);
 
+        // 🆕 새 QIR 등록 부분
         const qirValues = [
           generatedQirCode,
           formatDateForDB(qirData.start_date) || null,
@@ -280,7 +284,10 @@ const saveQioWithResults = async (qioData, qirList) => {
           qirData.result || null,
           qirData.note || null,
           generatedQioCode,
-          qirData.qir_emp_name || null,
+          // 🎯 여기도 3개 파라미터로 변경
+          qirData.qir_emp_code || null,        // 첫 번째: qir_emp_code (CASE 조건용)
+          qirData.qir_emp_name || '정품질',     // 두 번째: qir_emp_name (이름으로 찾기용)
+          qirData.qir_emp_code || null,        // 세 번째: qir_emp_code (그대로 사용용)
           qirData.inspection_item || null
         ];
 
@@ -531,7 +538,7 @@ const getQirInfo = async (qirCode) => {
     console.error('❌ QIR 정보 조회 서비스 실패:', error);
     return null;
   }
-}; 
+};
 
 const getQcrList = async () => {
   try {
