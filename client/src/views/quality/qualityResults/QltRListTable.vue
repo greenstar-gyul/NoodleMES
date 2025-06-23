@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, defineProps, defineEmits, computed, ref } from 'vue';
 import moment from 'moment';
-import EqTableWithExcel from './EqTableWithExcel.vue';
+import EditableTable from '../../../components/form/EditableTable.vue';
 import QualityMapping from '../../../service/QualityMapping';
 
 const props = defineProps({
