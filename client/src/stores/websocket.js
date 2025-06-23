@@ -3,8 +3,8 @@ import { ref, computed } from 'vue';
 import { NoodleClient } from '@/service/noodle_client.js';
 
 // 서버 설정
-// const HOST = '223.130.135.17';
-const HOST = 'localhost'; // 로컬 개발용
+const HOST = '223.130.135.17';
+// const HOST = 'localhost'; // 로컬 개발용
 const PORT = '3721';
 const server = `ws://${HOST}:${PORT}`;
 
