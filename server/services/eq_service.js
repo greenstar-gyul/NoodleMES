@@ -405,6 +405,25 @@ const selectEqiiStatus = async (eqiiCode) => {
   return result && result.length > 0 ? result[0].stat : null;
 };
 
+const checkLineUsage = async (eqCodes) => {
+  try {
+    const usedCodes = [];
+    
+    // 각 설비코드별로 라인 사용 여부 체크
+    for (const eqCode of eqCodes) {
+      const result = await mariadb.query("checkLineUsage", [eqCode]);
+      if (result.length > 0) {
+        usedCodes.push(eqCode);
+      }
+    }
+    
+    return usedCodes;
+  } catch (err) {
+    console.log('라인 사용 체크 오류:', err);
+    throw err;
+  }
+};
+
 const deleteMultiple = async (eqCodes) => {
   const conn = await mariadb.connectionPool.getConnection();
 
@@ -413,16 +432,16 @@ const deleteMultiple = async (eqCodes) => {
 
     const results = [];
     for (const eqCode of eqCodes) {
-      const result = await mariadb.query("deleteEq", [eqCode])
-        .catch(err => console.log(err));
+      const result = await mariadb.queryConn(conn, "deleteEq", [eqCode]);
       results.push(result);
     }
+    
     await conn.commit();
     return results;
   }
   catch (err) {
     await conn.rollback();
-    console.error('트랜잭션 실패:', err);
+    console.error('삭제 실패:', err);
     throw err;
   }
   finally {
@@ -558,5 +577,6 @@ module.exports = {
   findEqirMgListByCode,
   simpleslectEqirList,
   searchEqMa,
-  deleteEqMa
+  deleteEqMa,
+  checkLineUsage  
 };

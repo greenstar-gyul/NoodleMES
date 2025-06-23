@@ -13,15 +13,15 @@ const route = useRoute();
 const eqMaInfo = ref({
   eq_ma_code: '',
   eq_name: '',
-  fail_date: null,
+  fail_date: new Date(),
   fail_cause: '',
   act_detail: '',
   act_result: '',
-  start_date: null,
-  end_date: null,
-  re_chk_exp_date: null,
+  start_date: new Date(),
+  end_date: new Date(),
+  re_chk_exp_date: new Date(),
   eqir_code: '',
-  regdate: null,
+  regdate: new Date(),
   note: '',
   m_emp_name: '',
   fix_emp_name: ''
@@ -85,12 +85,12 @@ onMounted(async () => {
 
 const formatDateForDB = (date) => {
   if (!date) return null;
-  return moment(date).format('YYYY-MM-DD HH:mm:ss');
+  return moment(date).format('YYYY-MM-DD hh:mm:ss');
 };
 
 const formatDateTimeForDB = (date) => {
   if (!date) return null;
-  return moment(date).format('YYYY-MM-DD HH:mm:ss');
+  return moment(date).format('YYYY-MM-DD hh:mm:ss');
 };
 
 const validateData = () => {
@@ -193,15 +193,15 @@ const resetData = () => {
   eqMaInfo.value = {
     eq_ma_code: '',
     eq_name: '',
-    fail_date: null,
+    fail_date: new Date(),
     fail_cause: '',
     act_detail: '',
     act_result: '',
-    start_date: null,
-    end_date: null,
-    re_chk_exp_date: null,
+    start_date: new Date(),
+    end_date: new Date(),
+    re_chk_exp_date: new Date(),
     eqir_code: '',
-    regdate: null,
+    regdate: new Date(),
     note: '',
     m_emp_name: '최설비',
     fix_emp_name: '최설비'

@@ -175,6 +175,7 @@ const resetSearch = async (selectedItems) => {
     await loadAll();
 };
 
+
 const handleDelete = async (selectedItems) => {
     const confirmDelete = confirm(`정말로 ${selectedItems.length}개의 설비를 삭제하시겠습니까?`);
     if (!confirmDelete) return;
@@ -182,15 +183,29 @@ const handleDelete = async (selectedItems) => {
     try {
         const codes = selectedItems.map(item => item.eq_code);
 
-        const response = await axios.delete('/api/eq/multiple/delete', {
+        // 🔍 1단계: 라인 사용 여부 미리 체크
+        const checkResponse = await axios.post('/api/eq/check-line-usage', {
+            codes: codes
+        });
+
+        // 라인에서 사용 중인 설비가 있으면 삭제 중단
+        if (!checkResponse.data.canDelete) {
+            alert(checkResponse.data.message);
+            return; // 여기서 끝!
+        }
+
+        // 🗑️ 2단계: 문제없으면 삭제 진행
+        const deleteResponse = await axios.delete('/api/eq/multiple/delete', {
             data: { codes }
         });
 
-        if (response.data && response.data.success) {
+        if (deleteResponse.data && deleteResponse.data.success) {
             alert(`${selectedItems.length}개의 설비가 모두 삭제되었습니다.`);
-            await loadAll(); // 목록 새로고침
+            eqTableRef.value.clearSelection();
+            await loadAll();
         }
     } catch (error) {
+        console.error('삭제 처리 중 오류:', error);
         alert('삭제 중 오류가 발생했습니다.');
     }
 };

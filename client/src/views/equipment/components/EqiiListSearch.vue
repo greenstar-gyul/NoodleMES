@@ -78,9 +78,6 @@ defineExpose({ resetSearchOption });
 
       <!-- 지시자명 -->
       <SearchText v-model="searchOption.inst_emp_name" label="지시자명" placeholder="지시자명을 입력하세요" />
-
-      <!-- 비고 -->
-      <SearchText v-model="searchOption.note" label="비고" placeholder="비고를 입력하세요" />
     </div>
 
     <!-- 조회/초기화 버튼 -->
