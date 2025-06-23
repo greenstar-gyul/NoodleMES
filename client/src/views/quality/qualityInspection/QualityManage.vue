@@ -766,7 +766,7 @@ const updateqioList = async (newList) => {
 
 <template>
     <div>
-        <div class="flex flex-col lg:flex-row gap-6 mt-4">
+        <div class="grid grid-cols-2 gap-4 mt-4">
             <QualityManageSearch :data="qioInfo" @loadPrdrByQio="loadPrdrInfoByQioCode"
                 @loadQirByQio="loadQirListByQioCode" @update:data="updateqioInfo" @reset-list="resetData"
                 @save-data="saveData">
@@ -775,9 +775,8 @@ const updateqioList = async (newList) => {
                 @reset-list="resetData" @save-data="saveData">
             </QualityManageMiddleTbl>
         </div>
-
-        <div class="flex flex-col lg:flex-row gap-6 mt-6">
-            <div class="space-y-6" style="width: 43%">
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <!-- <div class="space-y-6" style="width: 43%"> -->
                 <QualityManageBottomTbl ref="bottomTblRef" :data="qioList" :dataKey="'qir_code'" :title="'품질검사결과 목록'"
                     :columns="[
                         'qir_code',
@@ -790,7 +789,7 @@ const updateqioList = async (newList) => {
                         result: '검사결과',
                         qio_date: '지시일자'
                     }" @selection-change="onSelectionChange" @delete="deleteSelectedQir" @export="exportQirToExcel" />
-            </div>
+            <!-- </div> -->
             <QualityManageInputForm :selectedData="selectedQir" @data-updated="onDataUpdated"
                 @add-to-memory="addQirToMemory" @update-in-memory="updateQirInMemory" />
         </div>
