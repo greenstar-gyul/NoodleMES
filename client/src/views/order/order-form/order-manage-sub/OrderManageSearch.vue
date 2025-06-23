@@ -94,6 +94,7 @@ const handleDelete = async () => {
 
     try {
       await axios.delete(`/api/order/${props.ordCode.value}`);
+      await loadOrders(); // 주문 목록 재조회 추가
       handleReset(); // 초기화 함수 호출
       alert('주문이 삭제되었습니다.');
     } catch (error) {
@@ -146,6 +147,8 @@ const handleSave = async () => {
       await axios.post('/api/order', { order, details });
       alert('주문이 등록되었습니다.');
     }
+
+    await loadOrders(); // 주문 목록 재조회
     handleReset();
   } catch (err) {
     console.error('주문 저장 실패:', err);
@@ -153,6 +156,24 @@ const handleSave = async () => {
   }
 };
 
+// 주문 목록 조회 함수 분리
+const loadOrders = async () => {
+  try {
+    // 주문 목록 조회
+    const res = await axios.get('/api/order/all');
+    //ordersRef.value = res.data;
+
+    //moment 패키지 사용
+    //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들어주는 함수
+    ordersRef.value = res.data.data.map(order => ({
+      //기존 order 객체를 그대로 복사하면서 ord_date 값만 YYYY-MM-DD 포맷으로 변환해서 덮어쓰기
+      ...order,
+      ord_date: moment(order.ord_date).format('YYYY-MM-DD')
+    }));
+  } catch (err) {
+    console.error('주문 목록 로딩 실패:', err);
+  }
+};
 
 // 주문정보 팝업 Confirm 핸들러
 const handleConfirm = async (selectedOrder) => {
@@ -192,19 +213,8 @@ const clientConfirm = selectedClient => {
 
 // 최초 로딩 시 주문 목록과 거래처 목록 조회
 onMounted(async () => {
+  await loadOrders();
   try {
-    // 주문 목록 조회
-    const res = await axios.get('/api/order/all');
-    //ordersRef.value = res.data;
-
-    //moment 패키지 사용
-    //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들어주는 함수
-    ordersRef.value = res.data.data.map(order => ({
-      //기존 order 객체를 그대로 복사하면서 ord_date 값만 YYYY-MM-DD 포맷으로 변환해서 덮어쓰기
-      ...order,
-      ord_date: moment(order.ord_date).format('YYYY-MM-DD')
-    }));
-
     // 전체 거래처 목록 조회
     const clientRes = await axios.get('/api/order/clients');
     const clientList = clientRes.data.data;
