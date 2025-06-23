@@ -4,7 +4,7 @@ SELECT
   a.qio_date,
   a.insp_date,
   IFNULL(a.prdr_code, '해당없음') AS prdr_code,
-  IFNULL(a.purchase_code, '해당없음') AS purchase_code,
+  IFNULL(a.mpr_d_code, '해당없음') AS mpr_code,
   b.emp_name
 FROM qio_tbl as a
 JOIN emp_tbl as b ON a.emp_code = b.emp_code
@@ -78,17 +78,37 @@ ORDER BY prdp_date;
 
 const selectPrdrByQioCode = `
 SELECT q.qio_code,
-       IFNULL(p.prdr_code, q.prdr_code) AS prdr_code,
-       IFNULL(o.po_name, '해당없음') AS po_name,
+       q.prdr_code,
+       o.po_name,
        p.end_date,
-       q.purchase_code,  -- 🎯 QIO에서 직접 가져오기 (mpo_tbl JOIN 제거)
-       IFNULL(prod.prod_name, '해당없음') AS prod_name,
-       IFNULL(p.production_qtt, 0) AS production_qtt
+       prod.prod_name,
+       p.production_qtt
 FROM qio_tbl q
 LEFT JOIN prdr_tbl p ON q.prdr_code = p.prdr_code
 LEFT JOIN po_tbl o ON q.po_code = o.po_code  
 LEFT JOIN prod_tbl prod ON p.prod_code = prod.prod_code
 WHERE q.qio_code = ?
+`;
+const selectMprByQioCode = `
+SELECT q.qio_code,
+       md.mpr_code,
+       md.mpr_d_code,
+       m.deadline,
+       mat.mat_name,
+       md.req_qtt
+FROM qio_tbl q
+JOIN mpr_d_tbl md ON q.mpr_d_code = md.mpr_d_code
+LEFT JOIN mat_tbl mat ON md.mat_code = mat.mat_code
+LEFT JOIN mpr_tbl m ON md.mpr_code = m.mpr_code
+WHERE q.qio_code = ?;
+`;
+
+const getQcrForPopup = `
+SELECT
+    qcr_code,
+    inspection_item,
+    check_method
+FROM qcr_tbl
 `;
 
 // 기준정보 등록
@@ -329,9 +349,11 @@ module.exports = {
     selectQcrcodeProd,
     selectQcrCodeMat,
     selectPrdrByQioCode,
+    selectMprByQioCode,
     selectSimpleQir,
     selectSimpleQirByQioCode,
     selectQirCodesByQioCode,
+    selectQcrForPopup: getQcrForPopup,
     selectQir,
     selectQioCodeForUpdate: selectQioCodeForUpdate,
     selectQirCodeForUpdate: selectQirCodeForUpdate,

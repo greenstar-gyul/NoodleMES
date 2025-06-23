@@ -5,26 +5,6 @@ import Button from 'primevue/button';
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import moment from 'moment';
 
-const formattedStartDate = computed({
-  get() {
-    const raw = localDetail.value.start_date;
-    return raw ? moment(raw).format('YYYY-MM-DD HH:mm:ss') : '';
-  },
-  set(val) {
-    localDetail.value.start_date = val; // 값 변경 시 원본도 갱신
-  }
-});
-
-const formattedEndDate = computed({
-  get() {
-    const raw = localDetail.value.end_date;
-    return raw ? moment(raw).format('YYYY-MM-DD HH:mm:ss') : '';
-  },
-  set(val) {
-    localDetail.value.end_date = val;
-  }
-});
-
 const props = defineProps({
   detail: {
     type: Object,
@@ -79,6 +59,26 @@ onMounted(() => {
   console.log('🚀 설비 상세 컴포넌트 마운트됨', props.detail);
 });
 
+const formattedStartDate = computed({
+  get() {
+    const raw = localDetail.value.start_date;
+    return raw ? moment(raw).format('YYYY-MM-DD HH:mm:ss') : '';
+  },
+  set(val) {
+    localDetail.value.start_date = val; // 값 변경 시 원본도 갱신
+  }
+});
+
+const formattedEndDate = computed({
+  get() {
+    const raw = localDetail.value.end_date;
+    return raw ? moment(raw).format('YYYY-MM-DD HH:mm:ss') : '';
+  },
+  set(val) {
+    localDetail.value.end_date = val;
+  }
+});
+
 // 웹소켓 메시지 감지해서 진행률 업데이트
 watch(() => wsStore.messages, (messages) => {
   const latest = messages[messages.length - 1];
@@ -92,11 +92,17 @@ watch(() => wsStore.messages, (messages) => {
     console.log('❌ 작업지시 코드 불일치:', latest.wkoCode, '!=', props.wkoCode);
     return; // 현재 작업지시와 관련 없는 메시지는 무시
   }
+  else {
+    console.log('✅ 작업지시 코드 일치:', latest.wkoCode, '==', props.wkoCode);
+  }
 
   // 현재 받은 메시지가 지금 페이지의 조회한 장비와 관련 있는지 확인
-  if (latest?.eq_code && latest.eq_code !== props.detail.eq_code) {
-    console.log('❌ 설비 코드 불일치:', latest.eq_code, '!=', props.detail.eq_code);
+  if (latest?.eqCode && latest.eqCode !== props.detail.eq_code) {
+    console.log('❌ 설비 코드 불일치:', latest.eqCode, '!=', props.detail.eq_code);
     return; // 현재 장비와 관련 없는 메시지는 무시
+  }
+  else {
+    console.log('✅ 설비 코드 일치:', latest.eq_code, '==', props.detail.eq_code);
   }
 
   if (latest?.type === 'PRDRD_CREATED') { // PRDR 생성
@@ -105,7 +111,7 @@ watch(() => wsStore.messages, (messages) => {
   else if (latest?.type === 'PROCESS_COMPLETED') {
     console.log('✅ 공정 완료 메시지 수신:', latest);
     updateLocalDetail({
-      end_date: latest.end_date,
+      end_date: latest.timestamp,
       total_time: latest.total_time,
       proc_rate: 100, // 완료 시 100%
       make_qtt: latest.makeQtt || latest.make_qtt
@@ -115,7 +121,7 @@ watch(() => wsStore.messages, (messages) => {
     console.log('▶️ 공정 시작 메시지 수신:', latest);
     updateLocalDetail({
       input_qtt: latest.inputQtt || latest.input_qtt,
-      start_date: latest.start_date,
+      start_date: latest.timestamp,
       proc_rate: 0 // 시작 시 0%
     });
   }
