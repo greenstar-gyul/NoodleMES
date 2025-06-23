@@ -25,6 +25,7 @@ const searchPrdr = `
     p.prod_name,
     prdr.start_date,
     prdr.end_date,
+    TIME_FORMAT(TIMEDIFF(prdr.end_date, prdr.start_date), '%H:%i') AS total_time,
     prdr.production_qtt,
     prdr.perform_rate
   FROM    prdr_tbl prdr
