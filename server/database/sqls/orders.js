@@ -105,26 +105,28 @@ const selectOrderStatuses = `
 // 제품 전체 조회
 const selectProductList = `
   SELECT prod_code,
-         prod_name,
-         note,
-         comm_name(unit) as unit,
-         comm_name(spec) as spec,
-         comm_name(com_value) as com_value
-    FROM prod_tbl
-   ORDER BY prod_code
+        prod_name,
+        comm_name(com_value) as com_value,
+        comm_name(unit) as unit,
+        comm_name(spec) as spec,
+        note
+  FROM prod_tbl
+  WHERE prod_type = 'i1'
+  ORDER BY prod_name
+  
 `;
 
 // 제품명 검색 조회
-const selectProductByName = `
+const selectProductByNames = `
   SELECT prod_code,
-         prod_name,
-         comm_name(com_value) as com_value,
-         comm_name(unit) as unit,
-         comm_name(spec) as spec,
-         note
-    FROM prod_tbl
-   WHERE prod_name LIKE CONCAT('%', ?, '%')
-   ORDER BY prod_name
+        prod_name,
+        comm_name(com_value) as com_value,
+        comm_name(unit) as unit,
+        comm_name(spec) as spec,
+        note
+  FROM prod_tbl
+  WHERE prod_type = 'i1'
+  ORDER BY prod_name
 `;
 
 // 주문 코드 생성용 (FOR UPDATE 잠금)
@@ -530,7 +532,7 @@ module.exports = {
   selectOrderDetailList,
   selectClientList,
   selectProductList,
-  selectProductByName,
+  selectProductByNames,
   selectOrderStatuses,
   selectOrderListWithDate,
   selectOrderListByCondition,
