@@ -153,7 +153,7 @@ FROM   prod_tbl prod JOIN prdp_d_tbl prdd
                        ON prod.prod_code = prdd.prod_code
                      JOIN prdp_tbl prdp
                        ON prdd.prdp_code = prdp.prdp_code
-WHERE  prod.com_value = 'i1'
+WHERE  1=1
   AND  (? IS NULL OR ? = '' OR prdp.prdp_code LIKE CONCAT('%', ?, '%'))
 `;
 
@@ -164,6 +164,7 @@ SELECT prod_code,
        '-' AS "planned_qtt",
        note
 FROM   prod_tbl
+WHERE  prod_type = 'i1'
 `;
 
 const updateWKO = `
