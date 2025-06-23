@@ -2,6 +2,16 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { NoodleClient } from '@/service/noodle_client.js';
 
+require('dotenv').config({ path: './envs/devSetting.env' });
+
+// build : 빌드, dev : 개발 모드 // env파일을 이용해서 전환
+const DEV_MODE = process.env.DEV_MODE === 'dev' ? true : false; // 개발 모드 여부
+
+// 서버 설정
+const HOST = DEV_MODE ? '223.130.135.17' : 'localhost';
+const PORT = '3721';
+const server = `ws://${HOST}:${PORT}`;
+
 export const useWebSocketStore = defineStore('websocket', () => {
   // State
   const client = new NoodleClient();
@@ -26,11 +36,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
   })
 
   const nowPage = ref(''); // 현재 페이지 상태 관리
-  
-  // 서버 설정
-  const HOST = 'localhost';
-  const PORT = '3721';
-  const server = `ws://${HOST}:${PORT}`;
   
   // Getters
   const getStatusText = computed(() => {
