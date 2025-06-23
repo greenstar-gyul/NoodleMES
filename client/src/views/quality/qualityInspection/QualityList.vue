@@ -1,195 +1,101 @@
-<template>
-    <!-- 🔍 검색바 영역 -->
-    <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
-        <!-- 검색 조건 영역 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <!-- 지시코드 -->
-            <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">지시코드</label>
-                <InputText v-model="search.qio_code" class="flex-1" />
-            </div>
-
-            <!-- 공정명 -->
-            <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">공정명</label>
-                <InputText v-model="search.pname" class="flex-1" />
-            </div>
-
-            <!-- 제품명 -->
-            <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">제품명</label>
-                <InputText v-model="search.prod_name" class="flex-1" />
-            </div>
-            
-            <!-- LOT번호 -->
-            <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">LOT번호</label>
-                <InputText v-model="search.prod_code" class="flex-1" />
-            </div>
-            
-            <!-- 검사기간 -->
-            <div class="flex items-center gap-3 w-full">
-                <SearchDateBetween label="검사기간" :from="search.start_date" :to="search.end_date"
-                    @update:from="search.start_date = $event" @update:to="search.end_date = $event">
-                </SearchDateBetween>
-            </div>
-            <!-- 검사유형 -->
-            <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">지시자</label>
-                <Dropdown v-model="search.insp_emp_code" :options="orderStatusOptions" optionLabel="label" optionValue="value" placeholder="" class="flex-1" />
-            </div>
-        </div>
-
-        <!-- 조회/초기화 버튼 영역 -->
-        <div class="flex justify-center gap-3 mt-4">
-            <Button label="초기화" severity="contrast" @click="resetSearch" />
-            <Button label="조회" severity="info" @click="fetchLists" />
-        </div>
-    </div>
-
-    <!-- 📋 검색 조회 테이블 영역 -->
-    <div class="flex flex-col lg:flex-row gap-6 mt-6">
-        <!-- 좌측: 검색결과 + 하위자재 구성 (50%) -->
-        <div class="space-y-6" style="width: 100%">
-            <TableWDE :data="qualitys" :dataKey="'qio_code'" :mapper="QualityMapping"/>
-        </div>
-
-
-    <!-- <MultiplePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></MultiplePopup> -->
-    <SinglePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></SinglePopup>
-    </div>
-</template>
-
 <script setup>
 import axios from 'axios';
-import { ref } from 'vue';
-import InputText from 'primevue/inputtext';
-import Dropdown from 'primevue/dropdown';
-import Calendar from 'primevue/calendar';
-import Button from 'primevue/button';
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import QualityListTable from './QualityListTable.vue';
+import QualityListSearch from './QualityListSearch.vue';
 
-import QualityInputForm from '../../../components/form/QualityInputForm.vue';
-import TableWDE from '@/components/form/TableWithDelExcel.vue';
-import TableWAD from '@/components/form/TableWithAddDel.vue';
-import QualityMapping from '@/service/QualityMapping';
-import MultiplePopup from '@/components/popup/MultiplePopup.vue';
-import SinglePopup from '@/components/popup/SinglePopup.vue';
+// 데이터 및 옵션
+const qioData = ref([]);
+const originalData = ref([]);
+const searchRef = ref(null);
 
+const router = useRouter();
 
-// 검색조건 데이터 (v-model로 바인딩됨)
-const search = ref({
-    qio_code: '',
-    pname: '',
-    prod_name: '',
-    prod_code: '',
-    start_date: null,
-    end_date: null,
-    insp_emp_code: ''
-});
+// 초기 데이터 로드
+const initData = async () => {
+  try {
+    const result = await axios.get('/api/qlt/qio');  // 기존 API 사용
+    originalData.value = result.data;
+    qioData.value = result.data; 
+    console.log('초기 데이터 로드 완료:', result.data.length, '건');
+  } catch (err) {
+    console.error('초기 데이터 로드 실패:', err);
+  } 
+}
 
-// 팝업창 Open/Close 변수
-const dialogVisible = ref(false);
+// update:data 이벤트 핸들러
+const updateData = (selectedQio) => {
+  
+  if (selectedQio && selectedQio[0].qio_code) {
+    router.push({
+      name: 'qiodetail',  // 품질검사 상세 페이지 라우터 이름
+      params: { qioCode: selectedQio[0].qio_code }
+    });
+    
+  } else {
+    console.warn('선택된 Qio 데이터가 잘못되었습니다.');
+  }
+};
 
-// 주문상태 옵션 (예시 데이터)
-const orderStatusOptions = [
-
-    { label: '수동', value: 'a1' },
-    { label: '자동', value: 'a2' }
-
-];
-
-// 조회 버튼 기능 (API 호출 자리)
-const fetchLists = async () => {
-    console.log('조회 실행:', search.value);
-    // TODO: 실제 API 호출로 데이터 갱신
-     try {
-        const params = { ...search.value };
-
-        // 필요시 날짜 변환 처리
-        if (params.start_date instanceof Date)
-            params.start_date = params.start_date.toISOString().slice(0, 10);
-        if (params.end_date instanceof Date)
-            params.end_date = params.end_date.toISOString().slice(0, 10);
-
-        const response = await axios.get('/api/quality/search', { params });
-        qualitys.value = response.data;
-        console.log('qualitys.value');
-        console.log(qualitys.value);
+const handleSearch = async (searchParams) => {
+    try {
+        console.log('🔍 검색 조건:', searchParams);
+        
+        // 백엔드 검색 API 호출
+        const params = new URLSearchParams();
+        
+        // null이나 빈 값이 아닌 경우만 파라미터에 추가
+        if (searchParams.qio_code) params.append('qio_code', searchParams.qio_code);
+        if (searchParams.prdr_code) params.append('prdr_code', searchParams.prdr_code);
+        if (searchParams.mpr_d_code) params.append('mpr_d_code', searchParams.mpr_d_code);
+        if (searchParams.emp_name) params.append('emp_name', searchParams.emp_name);
+        if (searchParams.start_date) params.append('start_date', searchParams.start_date);
+        if (searchParams.end_date) params.append('end_date', searchParams.end_date);
+        if (searchParams.insp_start_date) params.append('insp_start_date', searchParams.insp_start_date);
+        if (searchParams.insp_end_date) params.append('insp_end_date', searchParams.insp_end_date);
+        
+        const response = await axios.get(`/api/qlt/qio/search?${params}`);
+        
+        if (response.data.success) {
+            qioData.value = response.data.data;
+            console.log('🎯 검색 완료:', response.data.count, '건');
+        } else {
+            console.error('검색 실패:', response.data.message);
+            qioData.value = [];
+        }
     } catch (error) {
-        console.error('조회 실패:', error);
+        console.error('🚨 검색 오류:', error);
+        qioData.value = [];
     }
 };
 
-// 초기화 버튼 기능
+// 검색 조건 초기화
 const resetSearch = () => {
-    search.value = {
-        prod_code: '',
-        lot_code : '',
-        start_date: null,
-        end_date: null,
-        qio_date: null,
-        insp_emp_code: ''
-    };
+  qioData.value = [...originalData.value];
 };
 
-
-// 테이블에 보여줄 목록 데이터 (예시 데이터)
-const qualitys = ref([
-    {
-        qio_code: '검사지시코드1',
-        pname: '공정명',
-        lot_code: 'LOT번호',
-        prod_name: '(검사대상코드)제품명',
-        qio_date: '지시일자',
-        insp_emp_code: '지시자',
-        note: '비고'
-    },
-    {
-        qio_code: '검사지시코드2',
-        pname: '공정명',
-        lot_code: 'LOT번호',
-        prod_name: '(검사대상코드)제품명',
-        qio_date: '지시일자',
-        insp_emp_code: '지시자',
-        note: '비고'
-    },
-    {
-        qio_code: '검사지시코드3',
-        pname: '공정명',
-        lot_code: 'LOT번호',
-        prod_name: '(검사대상코드)제품명',
-        qio_date: '지시일자',
-        insp_emp_code: '지시자',
-        note: '비고'
-    },
-    {
-        qio_code: '검사지시코드4',
-        pname: '공정명',
-        lot_code: 'LOT번호',
-        prod_name: '(검사대상코드)제품명',
-        qio_date: '지시일자',
-        insp_emp_code: '지시자',
-        note: '비고'
-    },
-    {
-        qio_code: '검사지시코드5',
-        pname: '공정명',
-        lot_code: 'LOT번호',
-        prod_name: '(검사대상코드)제품명',
-        qio_date: '지시일자',
-        insp_emp_code: '지시자',
-        note: '비고'
-    },
-]);
-
-
-
-const openPopup = () => {
-    dialogVisible.value = true;
-}
+onMounted(() => {
+  initData();
+})
 
 </script>
 
-<style scoped>
-/* 필요시 커스텀 스타일 여기에 추가 */
-</style>
+<template>
+  <QualityListSearch 
+    @search="handleSearch" 
+    @resetSearch="resetSearch"  
+    ref="searchRef" 
+  />
+  
+  <QualityListTable 
+    :qiodata="qioData" 
+    @initData="initData" 
+    @update:data="updateData"
+  />
+ 
+  <!-- 조건 미일치 메시지 -->
+  <div v-if="qioData.length === 0" class="text-center text-gray-500 mt-4">
+    조건에 맞는 데이터가 없습니다.
+  </div>
+</template>

@@ -65,13 +65,115 @@ router.post('/register', async (req, res) => {
 // 위에 선언한 기능(변수, 함수 등)들 중 외부로 노출할 대상을 설정 
 // => 다른 파일에서 require()을 통해 가져옴
 
-router.get('/qio', async (req, res) => {
+router.get('/qio/search', async (req, res) => {
   try {
+    const { 
+      qio_code, 
+      prdr_code, 
+      mpr_d_code, 
+      emp_name, 
+      start_date, 
+      end_date, 
+      insp_start_date, 
+      insp_end_date 
+    } = req.query;
+
+    console.log('🔍 검색 조건:', req.query);
+
+    // 전체 데이터 먼저 조회
     let qioList = await qltService.getQioList();
-    res.send(qioList);
-  } catch (err) {
-    console.log(err);
-    res.status(500).send({ error: '조회 실패' });
+    
+    // 클라이언트 사이드 필터링 적용
+    let filteredData = qioList;
+
+    if (qio_code) {
+      filteredData = filteredData.filter(item => 
+        item.qio_code && item.qio_code.includes(qio_code)
+      );
+    }
+
+    if (prdr_code && prdr_code !== '해당없음') {
+      filteredData = filteredData.filter(item => 
+        item.prdr_code && item.prdr_code.includes(prdr_code)
+      );
+    }
+
+    if (mpr_d_code && mpr_d_code !== '해당없음') {
+      filteredData = filteredData.filter(item => 
+        item.mpr_d_code && item.mpr_d_code.includes(mpr_d_code)
+      );
+    }
+
+    if (emp_name) {
+      filteredData = filteredData.filter(item => 
+        item.emp_name && item.emp_name.includes(emp_name)
+      );
+    }
+
+    // 🔥 날짜 변환 함수 추가!
+    const formatDateForComparison = (dateValue) => {
+      if (!dateValue) return null;
+      
+      // Date 객체인 경우
+      if (dateValue instanceof Date) {
+        return dateValue.toISOString().substring(0, 10);
+      }
+      
+      // 문자열인 경우
+      if (typeof dateValue === 'string') {
+        return dateValue.substring(0, 10);
+      }
+      
+      // 그 외의 경우 null 반환
+      return null;
+    };
+
+    // 🔥 날짜 비교 수정! (qio_date)
+    if (start_date) {
+      filteredData = filteredData.filter(item => {
+        const itemDate = formatDateForComparison(item.qio_date);
+        return itemDate && itemDate >= start_date;
+      });
+    }
+
+    if (end_date) {
+      filteredData = filteredData.filter(item => {
+        const itemDate = formatDateForComparison(item.qio_date);
+        return itemDate && itemDate <= end_date;
+      });
+    }
+
+    // 🔥 날짜 비교 수정! (insp_date)
+    if (insp_start_date) {
+      filteredData = filteredData.filter(item => {
+        const itemDate = formatDateForComparison(item.insp_date);
+        return itemDate && itemDate >= insp_start_date;
+      });
+    }
+
+    if (insp_end_date) {
+      filteredData = filteredData.filter(item => {
+        const itemDate = formatDateForComparison(item.insp_date);
+        return itemDate && itemDate <= insp_end_date;
+      });
+    }
+
+    console.log(`🎯 검색 결과: ${filteredData.length}건`);
+
+    res.json({
+      success: true,
+      data: filteredData,
+      count: filteredData.length,
+      message: `${filteredData.length}건 조회 완료`
+    });
+
+  } catch (error) {
+    console.error('❌ QIO 검색 실패:', error);
+    res.status(500).json({
+      success: false,
+      message: '검색 중 오류가 발생했습니다.',
+      error: error.message
+    });
   }
 });
 
@@ -87,6 +189,16 @@ router.get('/qio/:code', async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/qio', async (req, res) => {
+  try {
+    let qioList = await qltService.getQioList();
+    res.send(qioList);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ error: '조회 실패' });
   }
 });
 
