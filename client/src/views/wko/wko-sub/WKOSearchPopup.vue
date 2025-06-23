@@ -178,7 +178,7 @@ const onRowDoubleClick = (event) => {
 
     <!-- 검색 조건 영역 -->
     <div class="p-4 bg-gray-50 rounded mb-4">
-      <h4 class="text-lg font-semibold mb-3">🔍 검색 조건</h4>
+      <!-- <h4 class="text-lg font-semibold mb-3">🔍 검색 조건</h4> -->
 
       <!-- 첫 번째 행 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -228,17 +228,13 @@ const onRowDoubleClick = (event) => {
 
       <Column field="wko_code" header="작업지시서코드" style="width: 15%">
         <template #body="slotProps">
-          <span class="font-mono text-blue-600 font-medium">
-            {{ slotProps.data.wko_code }}
-          </span>
+          {{ slotProps.data.wko_code }}
         </template>
       </Column>
 
       <Column field="wko_name" header="작업지시명" style="width: 20%">
         <template #body="slotProps">
-          <span class="font-mono text-purple-600">
-            {{ slotProps.data.wko_name ?? '-' }}
-          </span>
+          {{ slotProps.data.wko_name ?? '-' }}
         </template>
       </Column>
 
