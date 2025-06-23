@@ -80,6 +80,7 @@ FROM prdr_tbl p
 LEFT JOIN qio_tbl q ON p.prdr_code = q.prdr_code
 LEFT JOIN po_tbl po ON q.po_code = po.po_code
 LEFT JOIN prod_tbl d ON p.prod_code = d.prod_code
+WHERE p.stat = 'b3'
 `;
 
 module.exports = {

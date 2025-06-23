@@ -60,7 +60,7 @@ const onRowUnselect = (event) => {
 // 선택 초기화 메서드
 const clearSelection = () => {
     selectedWDEeiqchk.value = [];
-    emit('selection-change', []);  // 부모한테도 알려주기
+    emit('selection-change', []);
 };
 
 const deleteSelected = () => {
@@ -68,6 +68,18 @@ const deleteSelected = () => {
         console.log('삭제 요청:', selectedWDEeiqchk.value);
         emit('delete', selectedWDEeiqchk.value);
     }
+};
+
+const StatusOptions = [
+    { label: '미사용', value: 'f1' },
+    { label: '사용', value: 'f2' },
+    { label: '전체', value: '' }
+];
+
+// 상태 라벨 변환 함수만 추가
+const getStatusLabel = (value) => {
+    const option = StatusOptions.find(opt => opt.value === value);
+    return option ? option.label : value || '-';
 };
 
 defineExpose({
@@ -82,9 +94,7 @@ const exportToExcel = () => {
 </script>
 
 <template>
-    <!-- 설비 테이블 영역 -->
     <div class="card" style="margin-bottom: 1rem;">
-        <!-- 테이블 상단 (타이틀 + 엑셀 다운로드 버튼) -->
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
                 <div>
@@ -92,58 +102,39 @@ const exportToExcel = () => {
                     <div class="text-sm text-gray-500 mt-1">총 {{ data.length }}건</div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" 
-                            @click="deleteSelected" :disabled="!selectedWDEeiqchk || selectedWDEeiqchk.length == 0" />
-                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" 
-                            outlined @click="exportToExcel" />
+                    <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" @click="deleteSelected"
+                        :disabled="!selectedWDEeiqchk || selectedWDEeiqchk.length == 0" />
+                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined
+                        @click="exportToExcel" />
                 </div>
             </div>
         </div>
 
-        <!-- 데이터 없을 때 표시 -->
         <div v-if="!data || data.length === 0" class="text-center p-8 text-gray-500">
             <p>표시할 데이터가 없습니다.</p>
             <p class="text-sm mt-2">검색 조건을 확인하거나 새로운 설비를 등록해주세요.</p>
         </div>
 
-        <!-- DataTable (PrimeVue) -->
-        <DataTable
-            v-else
-            v-model:selection="selectedWDEeiqchk"
-            :value="data"
-            :dataKey="dataKey"
-            showGridlines
-            scrollable
-            scrollHeight="400px"
-            tableStyle="min-width: 50rem"
-            selectionMode="multiple"
-            @row-select="onRowSelect"
-            @row-unselect="onRowUnselect"
-        >   
-            <!-- 다중 선택 컬럼 -->
+        <DataTable v-else v-model:selection="selectedWDEeiqchk" :value="data" :dataKey="dataKey" showGridlines
+            scrollable scrollHeight="400px" tableStyle="min-width: 50rem" selectionMode="multiple"
+            @row-select="onRowSelect" @row-unselect="onRowUnselect">
             <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-            <!-- 고정 컬럼들 (props.columns가 있으면 사용) -->
-            <Column
-                v-if="columns && columns.length > 0"
-                v-for="col in columns"
-                :key="col"
-                :field="col"
-                :header="mapper[col] ?? col"
-                sortable
-            />
+            <Column v-if="columns && columns.length > 0" v-for="col in columns" :key="col" :field="col"
+                :header="mapper[col] ?? col" sortable>
+                <template v-if="col === 'is_used'" #body="slotProps">
+                    {{ getStatusLabel(slotProps.data.is_used) }}
+                </template>
+            </Column>
 
-            <!-- 동적 컬럼 생성 (columns가 없으면 자동 생성) -->
-            <Column
-                v-if="!columns || columns.length === 0"
-                v-for="item in dynamicColumns"
-                :key="item"
-                :field="item"
-                :header="mapper[item] ?? item"
-                sortable
-            />
+            <Column v-if="!columns || columns.length === 0" v-for="item in dynamicColumns" :key="item" :field="item"
+                :header="mapper[item] ?? item" sortable>
+                <template v-if="item === 'is_used'" #body="slotProps">
+                    {{ getStatusLabel(slotProps.data.is_used) }}
+                </template>
+            </Column>
         </DataTable>
-        <!-- 선택된 행 정보 표시 -->
+
         <div v-if="selectedWDEeiqchk && selectedWDEeiqchk.length > 0" class="mt-4 p-3 bg-blue-50 rounded">
             <p class="text-sm text-blue-600">
                 선택된 설비: {{ selectedWDEeiqchk.length }}개
