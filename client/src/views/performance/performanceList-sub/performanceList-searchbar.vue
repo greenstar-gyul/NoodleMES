@@ -16,9 +16,8 @@ const totalTime = moment().format('HH-MM-DD');
 // 검색 조건을 저장할 반응형 객체
 const search = reactive({
     prdr_code: '',
-    prod_code: '',
-    line_code: '',
-    wko_code: '',
+    prod_name: '',
+    work_order_code: '',
     start_date: firstDay,
     end_date: lastDay, 
 });
@@ -31,9 +30,8 @@ const fetchPrdps = () => {
 // 초기화 버튼 클릭 시 emit
 const resetSearch = () => {
     search.prdr_code = '';
-    search.prod_code = '';
-    search.line_code = '';
-    search.wko_code = '';
+    search.prod_name = '';
+    search.work_order_code = '';
     search.start_date =  moment().startOf('month').format('YYYY-MM-DD');
     search.end_date = moment().endOf('month').format('YYYY-MM-DD');
   emit('reset'); // 필요 시
