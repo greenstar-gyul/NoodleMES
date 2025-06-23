@@ -132,38 +132,43 @@ const model = ref([
                         label: '자재구매 요청목록',
                         to: '/mpr/list'
                     },
-                    {
-                        label: '자재구매 상세정보',
-                        to: '/mpr/detail'
-                    },
-                    {
-                        label: '발주서 관리',
-                        to: '/mpo/manage'
-                    },
-                    {
-                        label: '발주서 목록',
-                        to: '/mpo/list'
-                    },
+                    // {
+                    //     label: '자재구매 상세정보',
+                    //     to: '/mpr/detail'
+                    // },
+                    // {
+                    //     label: '발주서 관리',
+                    //     to: '/mpo/manage'
+                    // },
+                    // {
+                    //     label: '발주서 목록',
+                    //     to: '/mpo/list'
+                    // },
                     {
                         label: '자재입고 관리',
                         to: '/min/manage'
                     },
                     {
-                        label: '자재입출고 내역조회',
+                        label: '자재입고 내역조회',
                         to: '/min/list'
                     },
                     {
-                        label: '자재재고 목록조회',
-                        to: '/min/inven'
-                    },
-                    {
-                        label: '완제품입출고 내역조회',
-                        to: '/product/iobnd'
-                    },
-                                        {
-                        label: '완제품재고 목록조회',
-                        to: '/product/list'
-                    },
+                        label: '자재출고 내역조회',
+                        to: '/mout/list'
+                    },                    
+                    // {
+                    //     label: '자재재고 목록조회',
+                    //     to: '/mat/inven'
+                    // },
+
+                    // {
+                    //     label: '완제품입출고 내역조회',
+                    //     to: '/product/iobnd'
+                    // },
+                    //                     {
+                    //     label: '완제품재고 목록조회',
+                    //     to: '/product/list'
+                    // },
                 ]
             },
             {

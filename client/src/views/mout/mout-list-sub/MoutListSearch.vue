@@ -1,18 +1,14 @@
 <script setup>
 // import axios from 'axios';
-import { onMounted, ref } from 'vue';
-import { storeToRefs } from 'pinia';
-import { useMinStore } from '@/stores/minStore.js';
+// import { onMounted, ref } from 'vue';
+// import Button from 'primevue/button';
+// import SearchText from '@/components/search-bar/SearchText.vue';
+// import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
-import Button from 'primevue/button';
-import SearchText from '@/components/search-bar/SearchText.vue';
-import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
-// pinia
-const minStore = useMinStore();
 
-const { search, clients } = storeToRefs(ordStore);
-
+// // 데이터 및 옵션
+// // const mprdata = ref(MprData);
 
 // const searchmprdate = ref([])
 
