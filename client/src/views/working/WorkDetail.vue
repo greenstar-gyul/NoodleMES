@@ -6,6 +6,7 @@ import axios from 'axios';
 import workDetailTop from './Work-sub/work-detail-top.vue';
 import workDetailBottom from './Work-sub/work-detail-bottom.vue';
 import { useWebSocketStore } from '../../stores/websocket';
+import moment from 'moment';
 
 const wsStore = useWebSocketStore();
 
@@ -30,6 +31,8 @@ const loadDetail = async () => {
     });
     res.data.eq_code = eq_code;
     workDetail.value = res.data;
+    workDetail.value.start_date = workDetail.value.start_date ? moment(workDetail.value.start_date).format('YYYY-MM-DD HH:mm:ss') : null;
+    workDetail.value.end_date = workDetail.value.end_date ? moment(workDetail.value.end_date).format('YYYY-MM-DD HH:mm:ss') : null;
     console.log('✅ 상세 데이터:', workDetail.value);
   } catch (err) {
     console.error('❌ 상세조회 실패:', err);

@@ -373,6 +373,7 @@ class NoodleServer {
     const lineCode = data.line_code;
     const prdrCode = data.prdr_code;
     const wkoQtt = data.wko_qtt;
+    const eqCode = data.eq_code;
 
     const lineState = this.getLineStatus(lineCode);
 
@@ -529,6 +530,8 @@ class NoodleServer {
       // 1. 해당 작업의 공정 목록 조회 (DB 호출)
       const processes = await this.getProcessList(prdrCode);
 
+      const lineEQCodeList = await mariadb.query('selectLineDetailList', [wkoCode]);
+
       // 1-1. 작업 진행 상태 변경
       await this.updateProcess(prdrCode, 'b2');
 
@@ -537,6 +540,7 @@ class NoodleServer {
       // 2. 각 공정을 순차적으로 처리 (동기식)
       for (let i = 0; i < processes.length; i++) {
         const process = processes[i];
+        const eqCode = lineEQCodeList[i].eq_code; // 현재 공정의 장비 코드
 
         // 공정 시작 브로드캐스트
         this.broadcast({
@@ -544,6 +548,7 @@ class NoodleServer {
           processId: process.prdr_d_code,
           processName: process.po_name,
           wkoCode,
+          eqCode,
           lineCode,
           process: process,
           inputQtt: currentQtt,
@@ -555,10 +560,10 @@ class NoodleServer {
         process.def_qtt = 0; // 불량 수량 초기화
         process.make_qtt = 0; // 생산 수량 초기화
 
-        console.log(`🚀 공정 ${i + 1}/${processes.length} 시작: ${process.po_name} (입력: ${currentQtt})`);
+        console.log(`🚀 공정 ${i + 1}/${processes.length} 시작: ${eqCode} (입력: ${currentQtt})`);
 
         // 공정 완료까지 대기 (동기식)
-        await this.simulateProcess(process);
+        await this.simulateProcess(process, wkoCode, eqCode);
 
         // 다음 공정을 위한 수량 업데이트
         currentQtt = process.make_qtt; // 현재 공정의 출력이 다음 공정의 입력
@@ -584,7 +589,7 @@ class NoodleServer {
   }
 
   // 개별 공정 시뮬레이션 (변경 없음)
-  async simulateProcess(process) {
+  async simulateProcess(process, wkoCode, eqCode) {
     return new Promise((resolve) => {
       let progress = 0;
 
@@ -605,6 +610,8 @@ class NoodleServer {
           type: 'PROCESS_UPDATE',
           processId: process.prdr_d_code,
           progress: progress,
+          wkoCode,
+          eqCode,
           inputQtt: process.input_qtt,
           makeQtt: process.make_qtt,
           timestamp: Date.now()
@@ -620,6 +627,8 @@ class NoodleServer {
             type: 'PROCESS_COMPLETED',
             processId: process.prdr_d_code,
             progress: progress,
+            wkoCode,
+            eqCode,
             inputQtt: process.input_qtt,
             makeQtt: process.make_qtt,
             timestamp: Date.now()
