@@ -1,6 +1,6 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue';
-import TableWithDelExcelFixClick from '../../../components/form/TableWithDelExcelFixClick.vue';
+import TableWithExcel from '../../../components/form/TableWithExcel.vue';
 
 const props = defineProps({
   data: Array,
@@ -15,11 +15,11 @@ const handleRowClick = (row) => {
 </script>
 
 <template>
-  <TableWithDelExcelFixClick
+  <TableWithExcel
     :data="props.data"
     :mapper="props.mapper"
     :dataKey="'prdr_code'"
-    title="검색결과"
+    title="생산실적조회"
     class="mt-5"
     @row-click="handleRowClick"
   />

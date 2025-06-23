@@ -172,7 +172,7 @@ watch(() => props.tableData, (newData) => {
       :dataKey="'line_code'"
       :mapper="lineMapping"
       :columns="['line_code', 'line_name', 'line_type','regdate_t', 'note', 'is_used']"
-      title="검색결과"
+      title="라인정보"
       :scrollHeight="'200px'"
       @row-click="handleLineRowClick"
     />

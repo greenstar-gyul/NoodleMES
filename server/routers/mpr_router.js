@@ -121,10 +121,10 @@ router.post('/insert', async (req, res) => {
   } catch (err) {
       console.error("등록 실패 : ", err);
       res.status(500).json({
-        result_code: "FAIL",
-        message: "실패",
-        err: err.message
-      });
+      result_code: "FAIL",
+      message: "실패",
+      err: err.message
+    });
   }
 });
 

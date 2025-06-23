@@ -20,7 +20,7 @@ onMounted(() => {
 
 <template>
   <TableWithExcel
-    title="검색결과"
+    title="출고조회"
     :data="releases"
     :dataKey="'out_req_d_code'" 
     :mapper="releaseMapper"

@@ -8,5 +8,5 @@ defineProps({
 </script>
 
 <template>
-  <TableWithExcel :data="data" :dataKey="'prdp_code'" title="검색결과" />
+  <TableWithExcel :data="data" :dataKey="'prdp_code'" title="생산계획조회" />
 </template>

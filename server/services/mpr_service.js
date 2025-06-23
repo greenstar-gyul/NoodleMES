@@ -83,7 +83,7 @@ const insertMprAll = async(data) => {
     const mprCode = mprCodeRes[0].mpr_code;
     const masterColumns = ['mpr_code', 'reqdate', 'deadline', 'mrp_code', 'mcode', ];
     const detailColumns = ['mpr_d_code', 'mat_code', 'req_qtt', 'unit', 'mpr_code', 'mat_sup', 'note', ];
-    // 주문 저장
+    // 저장
     data.mprData.mpr_code = mprCode;
     const result = await mariadb.queryConn(conn, "insertMpr", convertObjToAry(data.mprData, masterColumns));
 

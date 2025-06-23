@@ -25,7 +25,7 @@ defineProps({
       :dataKey="'qcr_code'"
       :mapper="qcrMapping"
       :columns="['qcr_code', 'inspection_item','com_value', 'regdate', 'note']"
-      title="검색결과"
+      title="품질기준정보"
       scrollHeight="450px"
       @row-click="handleProductRowClick"
     />

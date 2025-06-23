@@ -58,7 +58,7 @@ onMounted(() => {
 
 <template>
   <MprListSearch @searchOption="handleSearch" @resetSearch="resetSearch"  ref="searchRef" />
-  <MprListTable :mprdata="mprdata" :mapper="MprMapper" @initData="initData" />
+  <MprListTable :mprdata="mprdata" :mapper="MprMapper.MprMapper" @initData="initData" />
  
   <!-- 조건 미일치 메시지 -->
   <div v-if="mprdata.length === 0" class="text-center text-gray-500 mt-4">

@@ -125,7 +125,7 @@ const unitOptions = [
   <div class="space-y-4" style="width: 60%">
     <!-- 제품 검색 결과 (고정 영역) -->
   <TableWithDelExcelFix :data="data" :dataKey="'bom_code'" :mapper="bomMapper"
-      :columns="['bom_code', 'prod_code', 'prod_name', 'regdate']" title="검색결과" scrollHeight="200px"
+      :columns="['bom_code', 'prod_code', 'prod_name', 'regdate']" title="제품 및 BOM" scrollHeight="200px"
        @row-click="handleProductRowClick" />
 
     <!-- 자재 입력 테이블 -->
