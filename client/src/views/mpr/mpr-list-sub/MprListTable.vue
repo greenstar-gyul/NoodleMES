@@ -19,5 +19,5 @@ onMounted(() => {
 
 <template>
    <!-- 결과 테이블 -->
-  <TableWithExcel :data="mprdata" :dataKey="'mpr_code'" :mapper="mprMapping.MprMapper" title="검색결과" />
+  <TableWithExcel :data="mprdata" :dataKey="'mpr_code'" :mapper="mprMapping.MprMapper" title="자재구매 요청목록" />
 </template>
