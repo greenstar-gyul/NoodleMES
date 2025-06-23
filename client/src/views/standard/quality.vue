@@ -22,7 +22,7 @@ onMounted(() => {
 // ✅ 기본 목록 조회 (/list)
 const fetchQcrList = async () => {
   try {
-    const res = await axios.get('/api/qrc/list')
+    const res = await axios.get('/api/qcr/list')
     bomList.value = res.data
   } catch (err) {
     console.error('품질 목록 조회 실패:', err)
@@ -33,7 +33,7 @@ const fetchQcrList = async () => {
 const searchQcrList = async (searchParams) => {
   console.log('🔍 검색 조건:', searchParams)
   try {
-    const res = await axios.get('/api/qrc/search', {
+    const res = await axios.get('/api/qcr/search', {
       params: searchParams
     })
     console.log('✅ 검색 결과:', res.data)
@@ -76,7 +76,7 @@ const handleRegister = async () => {
     const qcrData = formRef.value.getFormData()
     
     // ✅ 객체 그대로 보내기 (key 펼치기!)
-    const response = await axios.post('/api/qrc/register', qcrData)
+    const response = await axios.post('/api/qcr/register', qcrData)
 
     console.log('✅ 등록 성공:', response.data)
     alert('등록 완료되었습니다!')
@@ -94,7 +94,7 @@ const handleRegister = async () => {
 const handleRowSelected = async (row) => {
   console.log('🔍 row selected in parent:', row)
   try {
-    const res = await axios.get('/api/qrc/detail', {
+    const res = await axios.get('/api/qcr/detail', {
       params: { qcr_code: row.qcr_code }
     })
 

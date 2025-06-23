@@ -101,6 +101,7 @@ const insertLineAndLineD = async (data) => {
       lineData.regdate_t,
       lineData.is_used,
       lineData.note || '',
+      lineData.prod_code,
     ]);
 
     // ✅ 3. 라인 상세 등록 (반복문 안에서 line_eq_code 생성)

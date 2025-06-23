@@ -26,7 +26,7 @@ defineProps({
       :mapper="qcrMapping"
       :columns="['qcr_code', 'inspection_item','com_value', 'regdate', 'note']"
       title="검색결과"
-      scrollHeight="500px"
+      scrollHeight="450px"
       @row-click="handleProductRowClick"
     />
   </div>

@@ -60,8 +60,9 @@ INSERT INTO line_tbl (line_code,
                       mdept_code,
                       regdate_t,
                       is_used,
-                      note)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+                      note,
+                      prod_code)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 `
 
 const insertLineDetail = `
@@ -87,14 +88,14 @@ FROM line_d_tbl
 FOR UPDATE;
 `;
 const selectLineOne = `
-SELECT 
-line_code,
-line_name,
-line_type,
-is_used,
-regdate_t,
-note,
-mdept_code
+SELECT  line_code,
+        line_name,
+        line_type,
+        is_used,
+        regdate_t,
+        note,
+        prod_code,
+        mdept_code
 FROM line_tbl
 WHERE line_code = ?
 `;
