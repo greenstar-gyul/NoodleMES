@@ -80,34 +80,26 @@ router.get('/qio', async (req, res) => {
     }
 });
 
-
 // 등록
 router.post('/insert', async (req, res) => {
-  const { mpr, details } = req.body;
-
-  const regMpr = {
-    mprData: mpr,
-    detailData: details,
-  }
-  console.log('mpr 출력 테스트 : ' + mpr);
-  console.log('details 출력 테스트 : ' + details);
+  console.log('등록 데이터 확인');
+  console.log(req.body);
+  const min = req.body;
 
   try {
-    const result = await minService.insertMprAll(regMpr);
-
-    res.json({
+    const result = await minService.insertMinAll(min);
+      res.json({
       result_code: "SUCCESS",
       message: "성공",
       data: result
     });
-
   } catch (err) {
       console.error("등록 실패 : ", err);
       res.status(500).json({
-        result_code: "FAIL",
-        message: "실패",
-        err: err.message
-      });
+      result_code: "FAIL",
+      message: "실패",
+      err: err.message
+    });
   }
 });
 

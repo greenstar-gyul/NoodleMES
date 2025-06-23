@@ -1,5 +1,6 @@
 // Service에서 필요하면 DB에 접속할 수 있도록 mapper를 가져옴
 const mariadb = require("../database/mapper.js");
+const minsql = require("../database/sqls/min.js");
 // 공통으로 사용하는 기능들 중 필요한 함수만 구조분해할당(Destructuring)으로 가져옴
 const { convertObjToAry } = require('../utils/converts.js');
 
@@ -44,25 +45,57 @@ const insertMinAll = async (data) => {
 
   try {
     await conn.beginTransaction();
-    
-    // 1. MPR 기본 등록
-    const minCodeRes = await mariadb.queryConn(conn, "selectMinCodeForUpdate");
-    const minCode = minCodeRes[0].minbnd_code;
-    const lotNumRes = await mariadb.queryConn(conn, "selectLotNumForUpdate");
-    const lotNum = lotNumRes[0].lot_num;
 
-    const Columns = ['minbnd_code', 'mat_code', 'mat_type', 'unit', 'inbnd_qtt', 'inbnd_date', 'ord_qtt', 'qio_code', 'lot_num', 'mat_sup', 'mcode',];
-    // 저장
-    data.minData.minbnd_code = minCode;
-    data.minData.mpr_code = lotNum;
-    const result = await mariadb.queryConn(conn, "insertMinBnd", convertObjToAry(data.minData, Columns));
+    // minbnd_code 생성
+    const newMinCode = await mariadb.queryConn(conn, "selectMinCodeForUpdate");
+   
+    // lot_num 생성
+    console.log(data.mat_type);
+
+    let newLotNum ='';
+    if(data.mat_type === 't1' || data.mat_type === 'i4') {
+      newLotNum = await conn.query(minsql.selectLotNumForUpdateOne);
+      await conn.query(minsql.insertMatLOT, [
+      newLotNum[0].lot_num,
+      data.mat_type,
+      data.mat_code,
+      ]);
+    } else if (data.mat_type === 't2' || data.mat_type === 'i3') {
+        newLotNum = await conn.query(minsql.selectLotNumForUpdateTwo);
+        await conn.query(minsql.insertMatLOT, [
+        newLotNum[0].lot_num,
+        data.mat_type,
+        data.mat_code,
+      ]);
+    } 
+
+    console.log('lot값 체크');
+    // console.log(newLotNum[0].lot_num);
+
+    // console.log(newMinCode[0].minbnd_code);
+    // console.log(newLotNum[0].lot_num);
+    // console.log(data);
+     
+    const result = await conn.query(minsql.insertMinBnd, [
+      newMinCode[0].minbnd_code,
+      data.mat_code,
+      data.mat_type,
+      data.unit,
+      data.inbnd_qtt,
+      data.inbnd_date,
+      data.ord_qtt,
+      data.qio_code,
+      newLotNum[0].lot_num,
+      data.mat_sup,
+      data.mcode,
+    ]);
 
     await conn.commit();
     console.log('자재입고정보 등록 성공');
-    return result;
+    // return result;
   } catch (err){
     await conn.rollback();
-    console.log(err);
+    // console.log('오류발생');
     throw err;
   } finally {
     conn.release();

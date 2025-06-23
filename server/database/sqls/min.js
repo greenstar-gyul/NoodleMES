@@ -93,10 +93,12 @@ FROM   qio_tbl
 // 자재입고코드 생성
 const selectMinCodeForUpdate =
   `
-SELECT CONCAT('MIN-', 
-              LPAD(IFNULL(MAX(CAST(SUBSTRING(mpr_code, 5) AS UNSIGNED)), 0) + 1, 3, '0')
-             ) AS mpr_code
-FROM mpr_tbl
+SELECT CONCAT(
+              CONCAT('MIN-', DATE_FORMAT( CURDATE(), '%Y%m%d-')), 
+              LPAD(IFNULL(MAX(SUBSTR(minbnd_code, -3)), 0) + 1, 3, '0')
+             ) AS minbnd_code
+FROM minbnd_tbl
+WHERE SUBSTR(minbnd_code, 5, 8) = DATE_FORMAT( CURDATE(), '%Y%m%d')
 FOR UPDATE
 `;
 
@@ -123,7 +125,43 @@ WHERE mat_type = 't2'
   AND SUBSTRING(lot_num, 9, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
 FOR UPDATE
 `;
-// 자재구매요청 (MPR) 등록
+
+// 원자재 LOT 번호 생성
+const selectLotNumForUpdateOne =
+`
+SELECT CONCAT('LOT-100-', 
+           DATE_FORMAT(CURDATE(), '%Y%m%d'), '-', LPAD( IFNULL(MAX(SUBSTRING(lot_num, -3)), 0) + 1, 3,'0' )
+       ) AS lot_num
+FROM mat_lot_tbl
+WHERE SUBSTRING(lot_num, 9, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+FOR UPDATE;
+`;
+
+// 부자재 LOT 번호 생성
+const selectLotNumForUpdateTwo =
+`
+SELECT CONCAT('LOT-200-', 
+           DATE_FORMAT(CURDATE(), '%Y%m%d'), '-', LPAD( IFNULL(MAX(SUBSTRING(lot_num, -3)), 0) + 1, 3,'0' )
+       ) AS lot_num
+FROM mat_lot_tbl
+WHERE SUBSTRING(lot_num, 9, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+FOR UPDATE;
+`;
+
+// 반제품 LOT 번호 생성
+const selectLotNumForUpdateThree =
+`
+SELECT CONCAT('LOT-300-', 
+           DATE_FORMAT(CURDATE(), '%Y%m%d'), '-', LPAD( IFNULL(MAX(SUBSTRING(lot_num, -3)), 0) + 1, 3,'0' )
+       ) AS lot_num
+FROM mat_lot_tbl  
+WHERE SUBSTRING(lot_num, 9, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+FOR UPDATE;
+`;
+
+
+
+// 자재구매요청 (Min) 등록
 const insertMinBnd =
 `
 INSERT INTO minbnd_tbl (
@@ -140,6 +178,18 @@ minbnd_code
 , mcode )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
+
+// LOT 정보 등록
+const insertMatLOT =
+`
+INSERT INTO mat_lot_tbl(
+lot_num
+,issdate
+,item_type_code
+,mat_code
+)
+VALUES (?, CURDATE(), ?, ?)
+`
 
 /* ================================== 등록 끝 ================================== */
 /* ================================== 삭제 시작 ================================== */
@@ -169,7 +219,11 @@ module.exports = {
   /* 등록 */
   insertMinBnd,
   selectMinCodeForUpdate,
-  selectLotNumForUpdate
+  selectLotNumForUpdate,
+  selectLotNumForUpdateOne,
+  selectLotNumForUpdateTwo,
+  selectLotNumForUpdateThree,
+  insertMatLOT,
   
   /* 삭제 */
 
