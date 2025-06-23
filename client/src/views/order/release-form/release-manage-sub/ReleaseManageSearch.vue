@@ -81,7 +81,7 @@ const handleReset = () => {
 
 //삭제
 const handleDelete = async () => {
-    if (!props.ordCode.value) {
+    if (!props.releaseCode.value) {
         alert('출고코드가 없습니다. 삭제할 출고를 먼저 선택하세요!');
         return;
     }
@@ -90,7 +90,15 @@ const handleDelete = async () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`/api/order/${props.ordCode.value}`);
+      await axios.delete(`/api/order/releases/${props.releaseCode.value}`);
+
+      // 삭제 후 출고 목록 갱신
+      const releaseRes = await axios.get('/api/order/releases/popup');
+      releaseList.value = releaseRes.data.data.map(release => ({
+        ...release,
+        out_req_date: moment(release.out_req_date).format('YYYY-MM-DD')
+      }));
+
       handleReset(); // 초기화 함수 호출
       alert('출고가 삭제되었습니다.');
     } catch (error) {
@@ -132,7 +140,7 @@ const handleSave = async () => {
         client_code: clientCode.value || productRows.value[0]?.client_code,
         mcode: props.empCode.value ?? 'EMP-10001',
         note: props.note.value,
-        outbound_request_code,
+        outbound_request_code: row.outbound_request_code || props.releaseCode.value || '',
         com_value: row.com_value_code,
         ord_amount
       };
@@ -154,12 +162,20 @@ const handleSave = async () => {
       await axios.post('/api/order/releases', payload);
     } else {
       // 전체 수정
-      const poutbnd_code = details[0].poutbnd_code;
-      await axios.put(`/api/order/releases/${poutbnd_code}`, { details });
+      await axios.put(`/api/order/releases/${props.releaseCode.value}`, { details });
     }
 
     alert('출고 정보가 저장되었습니다.');
     handleReset();
+
+    // 저장 후 출고 목록 갱신
+    const releaseRes = await axios.get('/api/order/releases/popup');
+    releaseList.value = releaseRes.data.data.map(release => ({
+      ...release,
+      out_req_date: moment(release.out_req_date).format('YYYY-MM-DD')
+    }));
+
+    console.log("저장용 details 데이터:", details);
   } catch (err) {
     console.error('출고 저장 실패:', err);
     alert(err.message || '출고 저장 중 오류 발생');

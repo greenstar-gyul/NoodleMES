@@ -11,7 +11,8 @@ SELECT  prdr.prdr_code,
         prdr.perform_rate
 FROM    prdr_tbl prdr
 LEFT JOIN prod_tbl p ON prdr.prod_code = p.prod_code
-WHERE CONVERT_TZ(prdr.start_date, '+00:00', '+09:00') BETWEEN ? AND ?
+WHERE prdr.stat = 'b3'
+  AND CONVERT_TZ(prdr.start_date, '+00:00', '+09:00') BETWEEN ? AND ?
 ORDER BY prdr.start_date;
 `;
 

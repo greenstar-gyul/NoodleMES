@@ -2,6 +2,7 @@
 // 작업진행 목록 조회 (작업완료 제외)
 const getCurrentMonthPlan = `
 SELECT  w.wko_code,
+        w.wko_name,
         w.prod_code,
         p.prod_name,
         w.wko_qtt,
@@ -131,6 +132,7 @@ FROM prdr_d_tbl
 // 작업진행 조건 검색
 const searchWorkingList = `
 SELECT  w.wko_code,
+        w.wko_name,
         w.prod_code,
         p.prod_name,
         w.wko_qtt,
@@ -142,8 +144,9 @@ SELECT  w.wko_code,
 FROM    wko_tbl w
 LEFT JOIN prod_tbl p ON w.prod_code = p.prod_code
 WHERE 1 = 1
-  AND w.stat != 'v2'  -- 작업완료 제외
+  AND w.stat <> 'v2'  -- 작업완료 제외
   AND (? IS NULL OR w.wko_code LIKE CONCAT('%', ?, '%'))
+  AND (? IS NULL OR w.wko_name LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR p.prod_name LIKE CONCAT('%', ?, '%'))
   AND (? IS NULL OR w.line_code LIKE CONCAT('%', ?, '%'))
   AND (
@@ -160,6 +163,7 @@ SELECT  COALESCE(v.po_name, '미설정') AS po_name,
         v.prod_code,
         p.prod_name,
         v.wko_code,
+        w.wko_name,                  
         v.line_code,
         v.start_date,
         v.end_date,
@@ -177,9 +181,10 @@ SELECT  COALESCE(v.po_name, '미설정') AS po_name,
           THEN (v.make_qtt / v.wko_qtt) * 100 
           ELSE 0 
         END AS "perform_rate"
-FROM   processes_v v  -- ✅ 기존 뷰 사용
+FROM   processes_v v
 LEFT JOIN prod_tbl p ON v.prod_code = p.prod_code
-WHERE v.wko_code = ? AND v.eq_code = ?
+LEFT JOIN wko_tbl w ON v.wko_code = w.wko_code      -- ✅ 여기 조인 추가
+WHERE  v.wko_code = ? AND v.eq_code = ?
 `;
 
 // 상세에 맞는 현재 사용설비가저오는 쿼리
@@ -193,7 +198,8 @@ ORDER BY pp_code;
 
 // 작업지시서 코드로 라인 상세 조회
 const selectLineDetailList = `
-SELECT ld.line_eq_code
+SELECT ld.line_eq_code,
+       ld.eq_code
 FROM   line_d_tbl ld JOIN wko_tbl w
 					   ON w.line_code = ld.line_code
 WHERE  w.wko_code = ?
@@ -214,9 +220,17 @@ WHERE wko_code = ? AND eq_code = ?
 
 // prdr_code로 작업지시서 공정 조회
 const selectPrdrDCodeByWkoCode = `
-SELECT prdr_d_code
-FROM prdr_d_tbl
-WHERE prdr_code = ?
+SELECT pd.prdr_d_code,
+	     eq.eq_type,
+	     pd.input_qtt,
+       0 AS "def_qtt",
+       pd.make_qtt,
+       eq.capacity
+FROM   prdr_d_tbl pd LEFT JOIN line_d_tbl ld
+							ON pd.line_eq_code = ld.line_eq_code
+                     LEFT JOIN eq_tbl eq
+                     		ON eq.eq_code = ld.eq_code
+WHERE  pd.prdr_code = ?;
 `;
 
 
@@ -310,8 +324,9 @@ const updatePRDRComplete = `
 UPDATE prdr_tbl
 SET    stat = ?,
        end_date = NOW(),
-       total_time = end_date - start_date,
-       proc_rate = 100
+       total_time = TIMEDIFF(end_date, start_date),
+       perform_rate = 100.00,
+       production_qtt = ord_qtt
 WHERE  prdr_code = ?
 `;
 
@@ -319,14 +334,18 @@ WHERE  prdr_code = ?
 const updatePRDRDStart = `
 UPDATE prdr_d_tbl
 SET    proc_rate = ?,
-       start_date = NOW()
+       start_date = NOW(),
+       input_qtt = ?,
+       def_qtt = 0,
+       make_qtt = 0
 WHERE  prdr_d_code = ?
 `;
 
 // 작업 진행률 갱신
 const updatePRDRDRate = `
 UPDATE prdr_d_tbl
-SET proc_rate = ?
+SET proc_rate = ?,
+    make_qtt = ?
 WHERE prdr_d_code = ?
 `;
 
@@ -335,7 +354,8 @@ const updatePRDRDComplete = `
 UPDATE prdr_d_tbl
 SET    proc_rate = ?,
        end_date = NOW(),
-       total_time = end_date - start_date
+       make_qtt = ?,
+       total_time = TIMEDIFF(end_date, start_date)
 WHERE  prdr_d_code = ?
 `;
 
@@ -345,7 +365,7 @@ UPDATE wko_tbl
 SET    start_date = NOW(),
        stat = 'v1'
 WHERE  wko_code = (
-  SELECT wko_code
+  SELECT work_order_code
   FROM   prdr_tbl
   WHERE  prdr_code = ?
 ) AND stat = 'v4'
@@ -357,7 +377,7 @@ UPDATE wko_tbl
 SET    end_date = NOW(),
        stat = 'v2'
 WHERE  wko_code IN (
-  SELECT wko_code
+  SELECT work_order_code
   FROM   prdr_tbl
   WHERE  prdr_code = ?
 ) AND stat = 'v1'

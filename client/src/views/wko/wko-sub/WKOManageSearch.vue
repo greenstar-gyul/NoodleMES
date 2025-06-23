@@ -1,3 +1,4 @@
+<!-- WKOManageSearch.vue 수정 버전 -->
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import Button from 'primevue/button';
@@ -17,6 +18,15 @@ const props = defineProps({
         required: true
     }
 });
+
+// 필드 업데이트 함수 추가
+const updateField = (fieldName, value) => {
+    const updatedData = {
+        ...props.data,
+        [fieldName]: value
+    };
+    emit('update:data', updatedData);
+};
 
 onMounted(() => {
 
@@ -47,7 +57,6 @@ const loadProdData = async () => {
                 }
             });
             products.value = await response.data.data;
-            // console.log('조회된 제품 목록\n', products.value);
         }
         else {
             const response = await axios.get(`/api/wko/prodall`);
@@ -96,7 +105,6 @@ const loadLinesData = async () => {
             }
         })
         lines.value = await response.data.data;
-        // console.log(lines.value);
     }
     catch (err) {
         console.error(err);
@@ -113,6 +121,7 @@ const prdpLoad = async (value) => {
     const updatedData = {
         ...props.data,
         wko_code: '', // 신규 등록 시 코드 비워두기
+        wko_name: '', // 신규 등록 시 이름 비워두기
         prdp_code: value.prdp_code,
         reg_date: new Date().toISOString().split('T')[0], // 현재 날짜로 설정
         reg_name: '김영업',
@@ -135,7 +144,11 @@ const prodLoad = async (value) => {
             prod_code: value.prod_code,
             prod_name: value.prod_name,
             wko_qtt: value.planned_qtt === '-' ? 0 : value.planned_qtt, // 계획 수량 설정
+            line_code: '', // 라인 코드 초기화
+            line_name: '', // 라인 이름 초기화
         };
+
+        console.log(`제품 선택: ${value.prod_code}, ${value.prod_name}`);
 
         emit('update:data', updatedData);
 
@@ -195,8 +208,6 @@ const openPrdpPopup = async () => {
  * 작업자 선택 팝업 (필요시 구현)
  */
 const openEmpPopup = async () => {
-    // 작업자 선택 팝업 로직 (필요시 구현)
-    // alert('작업자 선택 기능은 추후 구현 예정입니다.');
     await loadEmpListData();
     empPopupVisible.value = true;
 }
@@ -207,12 +218,12 @@ const openProdPopup = async () => {
 }
 
 const saveWKO = async () => {
-    if (!props.data.emp_code) {
-        alert('작업자를 선택하세요.');
-        return;
-    }
     if (!props.data.prod_code) {
         alert('제품을 선택하세요.');
+        return;
+    }
+    if (!props.data.line_code) {
+        alert('생산라인을 선택하세요.');
         return;
     }
     emit('saveData')
@@ -237,7 +248,6 @@ const searchProd = async (value) => {
                 }
             });
             products.value = await response.data.data;
-            // console.log('검색 결과', products.value);
         }
         else {
             const response = await axios.get(`/api/wko/prodSearch`, {
@@ -246,7 +256,6 @@ const searchProd = async (value) => {
                 }
             });
             products.value = await response.data.data;
-            // console.log('검색 결과', products.value);
         }
     }
     catch (err) {
@@ -335,13 +344,16 @@ const statOptions = ref([
                 <LabeledInput label="작업지시코드" :model-value="data.wko_code" :disabled="true"
                     placeholder="저장 시 자동으로 생성됩니다." />
                 <div class="flex gap-2">
+                    <!-- 수정: v-model 사용 또는 updateField 함수 사용 -->
+                    <LabeledInput 
+                        label="작업지시명" 
+                        :model-value="data.wko_name" 
+                        @update:model-value="updateField('wko_name', $event)"
+                        class="flex-1" />
+                </div>
+                <div class="flex gap-2">
                     <LabeledInput label="생산계획코드" :model-value="data.prdp_code" :disabled="true" class="flex-1" />
                     <Button icon="pi pi-search" @click="openPrdpPopup" />
-                </div>
-                <!-- <LabeledInput label="작업시작일" v-model="data.start_date" type="date" /> -->
-                <div class="flex gap-2">
-                    <LabeledInput label="작업자" :model-value="data.emp_name" :disabled="true" class="flex-1" />
-                    <Button icon="pi pi-user" @click="openEmpPopup" />
                 </div>
             </div>
 
@@ -351,7 +363,12 @@ const statOptions = ref([
                     <LabeledInput label="제품" :model-value="data.prod_name" :disabled="true" class="flex-1" />
                     <Button icon="pi pi-search" @click="openProdPopup" />
                 </div>
-                <LabeledInput label="생산수량" v-model="data.wko_qtt" type="number" />
+                <!-- 수정: v-model을 updateField로 변경 -->
+                <LabeledInput 
+                    label="생산수량" 
+                    :model-value="data.wko_qtt" 
+                    @update:model-value="updateField('wko_qtt', $event)"
+                    type="number" />
                 <div class="flex gap-2">
                     <LabeledInput label="생산라인" :model-value="data.line_code" :disabled="true" class="flex-1" />
                     <Button icon="pi pi-search" @click="openLinePopup" />
@@ -360,9 +377,15 @@ const statOptions = ref([
 
             <!-- 세 번째 행: 담당자, 비고 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <LabeledInput label="지시자" :model-value="data.reg_name" :disabled="true" />
-                <LabeledInput label="지시생성일" :model-value="data.reg_date" :disabled="true" />
-                <LabeledTextarea label="비고" v-model="data.note" placeholder="특이사항 입력" :rows="1" />
+                <LabeledInput label="작성자" :model-value="data.reg_name" :disabled="true" />
+                <LabeledInput label="작성일" :model-value="data.reg_date" :disabled="true" />
+                <!-- 수정: v-model을 updateField로 변경 -->
+                <LabeledTextarea 
+                    label="비고" 
+                    :model-value="data.note" 
+                    @update:model-value="updateField('note', $event)"
+                    placeholder="특이사항 입력" 
+                    :rows="1" />
             </div>
         </div>
     </div>
@@ -370,12 +393,6 @@ const statOptions = ref([
     <!-- 작업지시서 검색 팝업 -->
     <WKOSearchPopup v-model:visible="wkoPopupVisible" @confirm="loadExistingWKO">
     </WKOSearchPopup>
-
-    <!-- 작업자 선택 팝업 -->
-    <SinglePopup v-model:visible="empPopupVisible" :items="empList" @confirm="empLoad" @search="searchEmp"
-        :mapper="{ 'emp_code': '사원코드', 'emp_name': '사원명', 'emp_job': '직책', 'dept_name': '부서명' }" :dataKey="'emp_code'"
-        :placeholder="'작업자 선택'">
-    </SinglePopup>
 
     <!-- 생산계획 선택 팝업 -->
     <SinglePopup v-model:visible="prdpPopupVisible" :items="prodPlans" @confirm="prdpLoad" :mapper="prodPlanMapping"

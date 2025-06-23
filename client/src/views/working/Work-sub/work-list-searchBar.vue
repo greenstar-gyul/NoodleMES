@@ -15,6 +15,7 @@ const lastDay = moment().endOf('month').format('YYYY-MM-DD');
 // 검색 조건을 저장할 반응형 객체
 const search = reactive({
     wko_code: '',
+    wko_name: '',
     prod_code: '',
     prod_name: '',
     line_code: '',
@@ -30,6 +31,7 @@ const fetchPrdps = () => {
 // 초기화 버튼 클릭 시 emit
 const resetSearch = () => {
     search.wko_code = '';
+    search.wko_name = '';
     search.prod_code = '';
     search.prod_name = '',
     search.line_code = '';
@@ -46,6 +48,7 @@ const resetSearch = () => {
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
             <SearchText v-model="search.wko_code" label="작업지시코드" />
+            <SearchText v-model="search.wko_name" label="작업지시명" />
             <SearchText v-model="search.prod_name" label="제품명" />
             <SearchText v-model="search.line_code" label="라인코드" />
             <SearchDateBetween label="등록일자" 
