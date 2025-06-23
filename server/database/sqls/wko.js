@@ -74,14 +74,15 @@ SELECT wko.wko_code,
        emp2.emp_name AS "reg_name",
        TO_CHAR(wko.reg_date, 'yyyy-MM-dd') AS "reg_date",
        wko.line_code,
-       line.line_name
-FROM   wko_tbl wko JOIN prod_tbl prod
+       line.line_name,
+       wko.wko_name
+FROM   wko_tbl wko LEFT JOIN prod_tbl prod
                      ON wko.prod_code = prod.prod_code
-                   JOIN emp_tbl emp
+                   LEFT JOIN emp_tbl emp
                      ON wko.emp_code = emp.emp_code
-                   JOIN emp_tbl emp2
+                   LEFT JOIN emp_tbl emp2
                      ON wko.reg_code = emp2.emp_code
-                   JOIN line_tbl line
+                   LEFT JOIN line_tbl line
                      ON wko.line_code = line.line_code
 WHERE  wko.wko_code = ?
 `;

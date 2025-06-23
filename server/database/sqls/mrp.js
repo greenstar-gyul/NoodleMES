@@ -221,7 +221,7 @@ GROUP BY be.mat_code,
            WHEN mstock.unit IN ('h3', 'hc') THEN 'L'
            ELSE comm_name(mstock.unit)
          END
-ORDER BY be.mat_code;
+ORDER BY be.mat_code
 `;
 
 // 전체 자재 목록 가져오기

@@ -243,7 +243,11 @@ class NoodleServer {
       }
 
       // // 자재 재고 상태 파악
-      // const materialList = await this.checkMatStock(conn, prdrCode);
+      const materialList = await this.checkMatStock(conn, prdrCode);
+      console.log('자재 목록:', materialList);
+
+      // 자재 출고 처리
+      await this.releaseMaterials(conn, prdrCode, data.emp_code ?? 'EMP-10001', materialList);
 
       // 라인 공정 코드 목록 조회
       const lineEQCodeList = await mariadb.queryConn(conn, 'selectLineDetailList', [data.wko_code ?? 'WKO-20250605-001']);
@@ -278,9 +282,6 @@ class NoodleServer {
       const prdrDCodeRes = await mariadb.queryConn(conn, 'selectPrdrDCodeForDetail', [data.wko_code ?? 'WKO-20250606-001', data.eq_code ?? 'EQ-MIX-0001']);
       const prdrDCode = prdrDCodeRes[0].prdr_d_code;
       console.log('PRDR-D 코드 조회 결과:', prdrDCode);
-
-      // 자재 출고 처리
-      // await this.releaseMaterials(conn, prdrCode, data.emp_code ?? 'EMP-10001', materialList);
 
       await conn.commit(); // 트랜잭션 커밋
       console.log('✅ PRDR 저장 트랜잭션 성공:', prdrCode, prdrDCode);

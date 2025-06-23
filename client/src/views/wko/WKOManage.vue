@@ -71,7 +71,7 @@ const loadWKO = async (wkoCode) => {
     if (wkoCode && wkoCode !== '') {
         try {
             const result = await axios.get(`/api/wko/${wkoCode}`);
-            const wkoData = result.data.data[0];
+            const wkoData = await result.data.data[0];
             console.log('로딩된 작업 지시서', wkoData);
             if (wkoData) {
                 wkoInfo.value = { ...wkoData };
