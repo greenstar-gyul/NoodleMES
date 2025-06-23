@@ -76,21 +76,23 @@ SELECT line_code,
        regdate_t,
        note,
        comm_name(is_used) AS "is_used"
-FROM line_tbl
-WHERE line_type = ?
+FROM  line_tbl
+WHERE line_type = ?             -- 일반 제품유형 라인
+  OR  (line_type = 's3' AND prod_code = ?)  -- 제품전용 라인 중 해당 제품만
 ORDER BY line_code
 `;
 
 
 // 제품 목록 조회
-const selectProdList = 
-`SELECT prod_code,
+const selectProdList = `
+SELECT  prod_code,
         prod_name,
         comm_name(spec) AS "spec",
         comm_name(unit) AS "unit",
         comm_name(com_value) AS "com_value"
 FROM prod_tbl
-ORDER BY prod_code`;
+ORDER BY prod_code
+`;
 
 
 // 생산 계획 등록
