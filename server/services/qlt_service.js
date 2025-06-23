@@ -62,6 +62,12 @@ const searchPrdrListByQioCode = async (qioCode) => {
   return list;
 };
 
+const searchMprListByQioCode = async (qioCode) => {
+  let list = await mariadb.query("selectMprByQioCode", [qioCode])
+    .catch(err => console.log(err));
+  return list;
+};
+
 // standard  기준정보 등록
 const insertQlt = async (data) => {
   let list = await mariadb.query("insertQlt", data)
@@ -525,7 +531,23 @@ const getQirInfo = async (qirCode) => {
     console.error('❌ QIR 정보 조회 서비스 실패:', error);
     return null;
   }
-};
+}; 
+
+const getQcrList = async () => {
+  try {
+    let list = await mariadb.query("selectQcrForPopup")
+      .catch(err => {
+        console.error('❌ 품질 기준 팝업 목록 조회 실패:', err);
+        throw err;
+      });
+
+    console.log('✅ 품질 기준 팝업 목록 조회 완료:', list.length, '건');
+    return list;
+  } catch (error) {
+    console.error('❌ 품질 기준 팝업 목록 조회 서비스 실패:', error);
+    return [];
+  }
+}
 
 module.exports = {
   // 해당 객체에 등록해야지 외부로 노출
@@ -539,6 +561,7 @@ module.exports = {
   insertQio,
   insertQir,
   updateQir,
+  getQcrList,
   convertObjToAry,
   saveQioWithResults,
   deleteQioWithResults,
@@ -546,5 +569,6 @@ module.exports = {
   getQioListForPopup,
   formatDateForDB,
   selectSimpleQirByQioCode,
-  selectSimpleQir
+  selectSimpleQir,
+  searchMprListByQioCode
 }

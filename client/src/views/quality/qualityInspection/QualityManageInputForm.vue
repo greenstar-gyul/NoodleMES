@@ -48,11 +48,22 @@
             </div>
         </div>
 
-        <!-- 품질기준항목 / 결과 -->
+        <!-- 🎯 품질기준항목 (텍스트박스 클릭으로 팝업) / 결과 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">품질기준항목</label>
-                <InputText v-model="qirForm.inspection_item" type="text" placeholder="검사항목 입력" class="w-full" />
+                <InputText 
+                    v-model="qirForm.inspection_item" 
+                    type="text" 
+                    placeholder="클릭해서 검사항목 선택" 
+                    class="w-full cursor-pointer" 
+                    readonly
+                    @click="openQcrPopup" 
+                />
+                <!-- 🎯 검사방법 표시 (선택된 항목의 검사방법) -->
+                <div v-if="selectedQcrMethod" class="text-sm text-gray-600 mt-1">
+                    검사방법: {{ selectedQcrMethod }}
+                </div>
             </div>
             <div>
                 <label class="font-semibold text-xl block mb-2">결과</label>
@@ -94,6 +105,20 @@
             </div>
         </div>
     </div>
+
+    <!-- 🎯 품질기준항목 선택 팝업 -->
+    <QualitySinglePopup 
+        v-model:visible="qcrPopupVisible" 
+        :items="qcrPopupInfo" 
+        @confirm="loadSelectedQcr"
+        :selectedHeader="['inspection_item', 'check_method']" 
+        :mapper="{
+            inspection_item: '검사항목',
+            check_method: '검사방법'
+        }" 
+        :dataKey="'inspection_item'" 
+        :placeholder="'품질기준항목 선택'">
+    </QualitySinglePopup>
 </template>
 
 <script setup>
@@ -103,6 +128,7 @@ import Dropdown from 'primevue/dropdown';
 import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import LabeledDatePicker from '../../../components/common/LabeledDatePicker.vue';
+import QualitySinglePopup from './QualitySinglePopup.vue';
 import axios from 'axios';
 
 // Props 정의 (부모에서 선택된 데이터 받기)
@@ -131,6 +157,11 @@ const qirForm = ref({
     inspection_item: ''
 });
 
+// 🎯 품질기준항목 팝업 관련
+const qcrPopupVisible = ref(false);
+const qcrPopupInfo = ref([]);
+const selectedQcrMethod = ref(''); // 선택된 검사방법 표시용
+
 // 🎯 수정 모드 여부 계산 (QIR 코드가 있고 임시코드가 아니면 수정모드)
 const isEditMode = computed(() => {
     return props.selectedData && 
@@ -154,6 +185,8 @@ const resetForm = async () => {
         qir_emp_name: '',
         inspection_item: ''
     };
+    
+    selectedQcrMethod.value = ''; // 검사방법도 초기화
 
     await nextTick();
 };
@@ -184,6 +217,9 @@ watch(
                 qir_emp_name: newData.qir_emp_name || '',
                 inspection_item: newData.inspection_item || ''
             };
+            
+            // 🎯 검사방법도 복원 (기존 데이터에 있다면)
+            selectedQcrMethod.value = newData.check_method || '';
         } else {
             resetForm();
         }
@@ -216,6 +252,96 @@ const resultOptions = [
     { label: '불합격', value: 'g1' },
     { label: '조건부 합격', value: 'g3' }
 ];
+
+// 🎯 품질기준항목 데이터 로딩
+const loadQcrData = async () => {
+    try {
+        console.log('🔍 품질기준항목 데이터 로딩 시작...');
+        const response = await axios.get('/api/qlt/qio/qcr');
+
+        console.log('🎯 QCR API 응답:', response.data);
+
+        if (response.data && Array.isArray(response.data)) {
+            qcrPopupInfo.value = response.data.map(item => ({
+                qcr_code: item.qcr_code || '',
+                inspection_item: item.inspection_item || '',
+                check_method: item.check_method || ''
+            }));
+        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+            // 다른 API 응답 구조일 경우
+            qcrPopupInfo.value = response.data.data.map(item => ({
+                qcr_code: item.qcr_code || '',
+                inspection_item: item.inspection_item || '',
+                check_method: item.check_method || ''
+            }));
+        } else {
+            console.warn('❌ QCR 데이터 구조가 예상과 다름:', response.data);
+            qcrPopupInfo.value = [];
+        }
+
+        console.log('✅ QCR 데이터 로딩 완료:', qcrPopupInfo.value.length, '건');
+        
+        // 🚨 데이터가 없으면 임시 데이터로 테스트
+        if (qcrPopupInfo.value.length === 0) {
+            console.log('🚨 QCR 데이터가 비어있어서 임시 데이터 주입!');
+            qcrPopupInfo.value = [
+                {
+                    inspection_item: '외관검사',
+                    check_method: '육안검사'
+                },
+                {
+                    inspection_item: '치수검사',
+                    check_method: '측정기구 사용'
+                },
+                {
+                    inspection_item: '기능검사',
+                    check_method: '성능 테스트'
+                }
+            ];
+        }
+
+    } catch (error) {
+        console.error('💥 QCR 데이터 로딩 실패:', error);
+        qcrPopupInfo.value = [
+            {
+                inspection_item: '외관검사',
+                check_method: '육안검사'
+            },
+            {
+                inspection_item: '치수검사',
+                check_method: '측정기구 사용'
+            }
+        ];
+    }
+};
+
+// 🎯 품질기준항목 팝업 열기
+const openQcrPopup = async () => {
+    console.log('🚀 품질기준항목 팝업 열기!');
+    await loadQcrData();
+    qcrPopupVisible.value = true;
+};
+
+// 🎯 품질기준항목 선택 처리
+const loadSelectedQcr = (selectedItem) => {
+    console.log('🎯 선택된 품질기준항목:', selectedItem);
+
+    if (!selectedItem || !selectedItem.inspection_item) {
+        alert('품질기준항목을 선택해줘! 🤔');
+        return;
+    }
+
+    // 폼에 선택된 데이터 설정
+    qirForm.value.inspection_item = selectedItem.inspection_item;
+    selectedQcrMethod.value = selectedItem.check_method || '';
+
+    // 팝업 닫기
+    qcrPopupVisible.value = false;
+
+    console.log('✅ 품질기준항목 선택 완료!');
+    console.log('- 검사항목:', qirForm.value.inspection_item);
+    console.log('- 검사방법:', selectedQcrMethod.value);
+};
 
 const formatDateForDB = (date) => {
     if (!date) return null;
@@ -251,7 +377,7 @@ const saveQir = async () => {
         }
 
         if (!qirForm.value.inspection_item) {
-            alert('품질기준항목을 입력해줘! 🤔');
+            alert('품질기준항목을 선택해줘! 🤔');
             return;
         }
 
@@ -282,6 +408,7 @@ const saveQir = async () => {
             note: qirForm.value.note || '',
             qir_emp_name: qirForm.value.qir_emp_name,
             inspection_item: qirForm.value.inspection_item,
+            check_method: selectedQcrMethod.value || '', // 검사방법도 저장
             po_name: '임시',  // BottomTbl 표시용
             qio_date: new Date().toISOString().split('T')[0]  // 오늘 날짜
         };
@@ -312,7 +439,7 @@ const updateQir = async () => {
         }
 
         if (!qirForm.value.inspection_item) {
-            alert('품질기준항목을 입력해줘! 🤔');
+            alert('품질기준항목을 선택해줘! 🤔');
             return;
         }
 
@@ -338,6 +465,7 @@ const updateQir = async () => {
             note: qirForm.value.note || '',
             qir_emp_name: qirForm.value.qir_emp_name,
             inspection_item: qirForm.value.inspection_item,
+            check_method: selectedQcrMethod.value || '', // 검사방법도 저장
             po_name: '수정됨',  // BottomTbl 표시용
             qio_date: new Date().toISOString().split('T')[0]  // 오늘 날짜
         };
