@@ -39,14 +39,15 @@ router.get('/order-list', async (req, res) => {
 
 // 라인 타입 조회
 router.get("/line", async (req, res) => {
-  const lineType = req.query.type;  // 이제 바로 s1, s2가 넘어옴
+  const lineType = req.query.type;      // 예: 's1', 's2'
+  const prodCode = req.query.prodCode;  // 예: 'P001'
 
-  if (!lineType) {
-    return res.status(400).send("❌ 제품 유형 누락됨");
+  if (!lineType || !prodCode) {
+    return res.status(400).send("❌ 제품유형 또는 제품코드 누락됨");
   }
 
   try {
-    const lines = await prdpService.findLineByType(lineType); // s1 그대로 사용
+    const lines = await prdpService.findLineByType(lineType, prodCode);
     res.send(lines);
   } catch (err) {
     console.error('❌ DB 조회 실패:', err);

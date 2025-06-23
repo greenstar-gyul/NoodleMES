@@ -138,28 +138,33 @@
   };
 
   // 라인 팝업 열기
-  const openlinePopup = async (row) => {
-    currentLineRow.value = row;
+ const openlinePopup = async (row) => {
+  currentLineRow.value = row;
 
-    const prodTypeKey = row.com_value;                    // 제품 유형: j1, j2, j3
-    const lineTypeCode = productTypeMap[prodTypeKey];     // → s1, s2로 매핑
-    
-    if (!lineTypeCode) {
-      alert(`지원하지 않는 제품 유형입니다: ${prodTypeKey}`);
-      return;
-    }
-    try {
-      const response = await axios.get('/api/prdp/line', {
-        params: { type: lineTypeCode }                    // 서버로 s1, s2 전달
-      });
+  const prodTypeKey = row.com_value;                    // 제품 유형: j1, j2, j3
+  const lineTypeCode = productTypeMap[prodTypeKey];     // → s1, s2로 매핑
+  const prodCode = row.prod_code;                       // ✅ 제품코드 추출
 
-      lines.value = response.data;                        // 팝업 목록 세팅
-      linePopupVisible.value = true;                      // 팝업 오픈
-    } catch (error) {
-      console.error('❌ 라인 조회 실패:', error);
-      alert('라인 정보를 불러오는 데 실패했습니다.');
-    }
-  };
+  if (!lineTypeCode || !prodCode) {
+    alert(`유효하지 않은 제품 정보입니다: type=${lineTypeCode}, code=${prodCode}`);
+    return;
+  }
+
+  try {
+    const response = await axios.get('/api/prdp/line', {
+      params: {
+        type: lineTypeCode,    // ex: s1
+        prodCode: prodCode     // ex: P001
+      }
+    });
+
+    lines.value = response.data;
+    linePopupVisible.value = true;
+  } catch (error) {
+    console.error('❌ 라인 조회 실패:', error);
+    alert('라인 정보를 불러오는 데 실패했습니다.');
+  }
+};
 
 
   // 🔍 제품명 팝업 열릴 때 데이터 조회
@@ -167,9 +172,6 @@
   if (visible) {
     try {
       const response = await axios.get('/api/prdp/product');
-
-      // 이미 선택된 제품 코드 목록 추출
-      const selectedCodes = productRows.value.map(row => row.prod_code);
 
       // disabled 플래그 추가하여 products 세팅
       products.value = response.data.map(item => ({
@@ -208,14 +210,23 @@
     }
   };
 
+  // 제품유형 코드 → 라인유형 코드 매핑 (로직용)
   const productTypeMap = {
-  'j1': 's1',
-  'j2': 's2',
-  'j3': 's2',
-  '봉지라면': 's1',
-  '컵라면(대)': 's2',
-  '컵라면(소)': 's2'
-};
+    'j1': 's1',
+    'j2': 's2',
+    'j3': 's2',
+    '봉지라면': 's1',
+    '컵라면(대)': 's2',
+    '컵라면(소)': 's2'
+  };
+
+  // 라인유형 코드 → 사람 읽기용 이름 매핑 (표시용)
+  const productTypeNameMap = {
+    's1': '봉지라면',
+    's2': '컵라면(대)',
+    's4': '컵라면(소)',
+    's3': '제품전용'
+  };
 </script>
 
 <template>
@@ -252,7 +263,7 @@
           <Column field="com_value" header="제품유형" style="width: 150px">
             <template #body="slotProps">
               <InputText
-                :value="productTypeMap[slotProps.data.com_value.toUpperCase()] || slotProps.data.com_value"
+                :value="productTypeNameMap[productTypeMap[slotProps.data.com_value] || slotProps.data.com_value] || slotProps.data.com_value"
                 readonly
                 style="width: 100%"
               />

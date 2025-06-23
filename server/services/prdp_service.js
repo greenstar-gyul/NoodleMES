@@ -17,7 +17,7 @@ const findAll = async () => {
 
 // 오늘기준 해당하는달에 대한 조회
 const selectMonth = async () => {
-  let list = await mariadb.query("getCurrentMonthPlan")
+  let list = await mariadb.query("selectMonthPlans")
                           .catch(err => {
                             console.error('❌ 쿼리 실패:', err);
                             return []; // ✅ 빈 배열 반환
@@ -32,10 +32,14 @@ const findOrder = async () => {
   return list;
 };
 
-// 생산라인 목록 조회 by 제품유형
-const findLineByType = async (lineType) => {
-  console.log("🔍 전달된 lineType:", lineType); // 예: 's1'
-  return await mariadb.query("selectLineType", [lineType])
+// 생산라인 목록 조회 by 제품유형 + 제품전용 라인
+const findLineByType = async (lineType, prodCode) => {
+  console.log("🔍 전달된 lineType:", lineType);
+  console.log("🔍 전달된 prodCode:", prodCode);
+
+  const values = [lineType, prodCode];
+
+  return await mariadb.query("selectLineType", values)
     .catch((err) => {
       console.error("🔴 라인 조회 실패:", err);
       throw err;

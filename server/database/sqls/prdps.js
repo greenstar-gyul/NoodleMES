@@ -18,7 +18,7 @@ FROM prdp_tbl
 ORDER BY prdp_code`;
 
 // 오늘날짜를 기준으로 해당하는 달에 내용만 조회
-const getCurrentMonthPlan = `
+const selectMonthPlans = `
 SELECT prdp_code
      , prdp_name 
      , prdp_date
@@ -28,9 +28,9 @@ SELECT prdp_code
      , reg
      , note
 FROM prdp_tbl
-WHERE YEAR(DATE_ADD(prdp_date, INTERVAL 9 HOUR)) = YEAR(CURDATE())
-  AND MONTH(DATE_ADD(prdp_date, INTERVAL 9 HOUR)) = MONTH(CURDATE())
-ORDER BY prdp_code;
+WHERE prdp_date BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                   AND LAST_DAY(CURDATE())
+ORDER BY prdp_code
 `;
 
 
@@ -73,24 +73,25 @@ const selectLineType = `
 SELECT line_code,
        line_name,
        comm_name(line_type) AS "line_type",
-       regdate_t,
        note,
        comm_name(is_used) AS "is_used"
-FROM line_tbl
-WHERE line_type = ?
+FROM  line_tbl
+WHERE line_type = ?             -- 일반 제품유형 라인
+  OR  (line_type = 's3' AND prod_code = ?)  -- 제품전용 라인 중 해당 제품만
 ORDER BY line_code
 `;
 
 
 // 제품 목록 조회
-const selectProdList = 
-`SELECT prod_code,
+const selectProdList = `
+SELECT  prod_code,
         prod_name,
         comm_name(spec) AS "spec",
         comm_name(unit) AS "unit",
         comm_name(com_value) AS "com_value"
 FROM prod_tbl
-ORDER BY prod_code`;
+ORDER BY prod_code
+`;
 
 
 // 생산 계획 등록
@@ -194,7 +195,7 @@ FOR UPDATE
 
 module.exports = {
     selectPrdpList,
-    getCurrentMonthPlan,
+    selectMonthPlans,
     selectPrdpDOne,
     selectOrdList,
     selectLineType,
