@@ -9,8 +9,8 @@ import LabeledTextarea from '@/components/common/LabeledTextarea.vue'
 
 // 옵션 정의
 const productTypeOptions = [
-  { label: '반제품', value: 'i2' },
-  { label: '완제품', value: 'i1' }
+  { label: '완제품', value: 'i1' },
+  { label: '반제품', value: 'i2' }
 ]
 
 const comValueOptions = [

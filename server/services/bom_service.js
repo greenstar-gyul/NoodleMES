@@ -5,7 +5,6 @@ const bomSql  = require('../database/sqls/bom.js');
 // 공통으로 사용하는 기능들 중 필요한 함수만 구조분해할당(Destructuring)으로 가져옴
 const { convertObjToAry } = require('../utils/converts.js');
 
-
 // 제품등록 트랜잭션
 const insertProductAndBomTx = async (data) => {
   const conn = await mariadb.connectionPool.getConnection();
@@ -24,13 +23,25 @@ const insertProductAndBomTx = async (data) => {
     const prod_code = Object.values(prodCodeRow)[0]; // 예: 'PROD-1002'
 
     // ✅ 2. BOM코드 자동 생성 (제품코드 기반)
-    const bom_code = `BOM-${prod_code}`; // 예: 'BOM-1002'
+    const bom_code = `BOM-${prod_code}`; // 예: 'BOM-PROD-1002'
 
-    // ✅ 3. 제품 등록
+    // ✅ 3. prod_type이 올바른 값인지 확인
+    console.log('🔍 원본 productData.prod_type:', productData.prod_type);
+
+    // ✅ 4. 타입 문자열이면 변환
+    const typeMap = {
+      '완제품': 'i1',
+      '반제품': 'i2'
+    };
+    const normalizedProdType = typeMap[productData.prod_type] || productData.prod_type;
+
+    console.log('✅ 변환된 prod_type:', normalizedProdType);
+
+    // ✅ 5. 제품 등록
     await conn.query(bomSql.insertProduct, [
       prod_code,
       productData.prod_name,
-      productData.prod_type,
+      normalizedProdType,
       productData.unit,
       productData.spec,
       productData.is_used,
@@ -41,7 +52,7 @@ const insertProductAndBomTx = async (data) => {
       productData.reg || 'EMP-10001'
     ]);
 
-    // ✅ 4. BOM 등록
+    // ✅ 6. BOM 등록
     await conn.query(bomSql.insertBom, [
       bom_code,
       bomData.unit,
@@ -52,13 +63,23 @@ const insertProductAndBomTx = async (data) => {
       bomData.is_used
     ]);
 
-    // ✅ 5. BOM 자재 구성 등록
+    // ✅ 7. BOM 자재 구성 등록
+    // ✅ 7. BOM 자재 구성 등록
     for (const item of detailData) {
+      // 🔄 타입 매핑
+      const typeMap = {
+        '반제품': 'i2'
+      };
+
+      const mat_type_code = typeMap[item.mat_type] || item.mat_type; // 코드로 변환
+
+      console.log(`🔧 변환된 자재 타입: ${item.mat_type} → ${mat_type_code}`);
+
       await conn.query(bomSql.insertBomMat, [
         bom_code,
         item.mat_code,
         item.mat_name,
-        item.mat_type,
+        mat_type_code, // 변환된 코드로 저장
         item.req_qtt,
         item.unit,
         item.loss_rate
