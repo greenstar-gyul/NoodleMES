@@ -35,6 +35,13 @@ const mrps = {
   mrp_note: ref('')
 };
 
+// 단위 코드 매핑 (단방향: 값 → 코드)
+const unitCodeMap = {
+  'kg': 'h1',
+  'L': 'h3',
+  'ea': 'h4',
+};
+
 // pinia
 const mprStore = useMprStore();
 
@@ -110,7 +117,7 @@ const handleSave = async () => {
     mpr_d_code: item.mpr_d_code,
     mat_code: item.mat_code,
     req_qtt: item.req_qtt,
-    unit: item.unit,
+    unit: unitCodeMap[item.unit],
     mpr_code: item.mpr_code,
     client_name: item.client_name, // 출력용
     mat_sup: item.mat_sup, // 저장용
