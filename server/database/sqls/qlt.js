@@ -105,6 +105,7 @@ WHERE q.qio_code = ?;
 
 const getQcrForPopup = `
 SELECT
+    qcr_code,
     inspection_item,
     check_method
 FROM qcr_tbl

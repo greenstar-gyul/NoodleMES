@@ -263,12 +263,14 @@ const loadQcrData = async () => {
 
         if (response.data && Array.isArray(response.data)) {
             qcrPopupInfo.value = response.data.map(item => ({
+                qcr_code: item.qcr_code || '',
                 inspection_item: item.inspection_item || '',
                 check_method: item.check_method || ''
             }));
         } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
             // 다른 API 응답 구조일 경우
             qcrPopupInfo.value = response.data.data.map(item => ({
+                qcr_code: item.qcr_code || '',
                 inspection_item: item.inspection_item || '',
                 check_method: item.check_method || ''
             }));
