@@ -18,7 +18,7 @@ FROM prdp_tbl
 ORDER BY prdp_code`;
 
 // 오늘날짜를 기준으로 해당하는 달에 내용만 조회
-const getCurrentMonthPlan = `
+const selectMonthPlans = `
 SELECT prdp_code
      , prdp_name 
      , prdp_date
@@ -28,9 +28,9 @@ SELECT prdp_code
      , reg
      , note
 FROM prdp_tbl
-WHERE YEAR(DATE_ADD(prdp_date, INTERVAL 9 HOUR)) = YEAR(CURDATE())
-  AND MONTH(DATE_ADD(prdp_date, INTERVAL 9 HOUR)) = MONTH(CURDATE())
-ORDER BY prdp_code;
+WHERE prdp_date BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                   AND LAST_DAY(CURDATE())
+ORDER BY prdp_code
 `;
 
 
@@ -73,7 +73,6 @@ const selectLineType = `
 SELECT line_code,
        line_name,
        comm_name(line_type) AS "line_type",
-       regdate_t,
        note,
        comm_name(is_used) AS "is_used"
 FROM  line_tbl
@@ -196,7 +195,7 @@ FOR UPDATE
 
 module.exports = {
     selectPrdpList,
-    getCurrentMonthPlan,
+    selectMonthPlans,
     selectPrdpDOne,
     selectOrdList,
     selectLineType,

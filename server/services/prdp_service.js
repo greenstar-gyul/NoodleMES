@@ -17,7 +17,7 @@ const findAll = async () => {
 
 // 오늘기준 해당하는달에 대한 조회
 const selectMonth = async () => {
-  let list = await mariadb.query("getCurrentMonthPlan")
+  let list = await mariadb.query("selectMonthPlans")
                           .catch(err => {
                             console.error('❌ 쿼리 실패:', err);
                             return []; // ✅ 빈 배열 반환

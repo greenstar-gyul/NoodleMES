@@ -65,10 +65,13 @@ watch(orderVisible, async (visible) => {
       const response = await axios.get('/api/prdp/order-list');
       orders.value = response.data.map(item => ({
         ...item,
+        ord_date: moment.utc(item.ord_date).local().format('YYYY-MM-DD')  // ✅ 날짜 포맷 추가
       }));
     } catch (error) {
-      console.error('생산계획 목록 조회 실패:', error);
+      console.error('주문정보 목록 조회 실패:', error);
     }
+  } else {
+    orders.value = [];
   }
 });
 

@@ -8,6 +8,10 @@ import ProductMapper from '@/service/ProductionMapping';
 
 const tableData = ref([]);
 
+onMounted(() => {
+  loadTableData();
+});
+
 // 날자 변환 함수 
 const formatDateFields = (data) => {
   return data.map(item => ({
@@ -35,6 +39,7 @@ const loadTableData = async () => {
     console.error('❌ 리스트 조회 실패:', err);
   }
 };
+
 
 // ✅ 검색 기능
 const handleSearch = async (searchParams) => {
@@ -67,10 +72,6 @@ const handleSearch = async (searchParams) => {
 const resetSearch = async () => {
   await loadTableData();
 };
-
-onMounted(() => {
-  loadTableData();
-});
 </script>
 
 <template>
