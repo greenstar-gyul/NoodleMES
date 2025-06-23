@@ -124,11 +124,18 @@ const loadPlansData = async () => {
         const response = await axios.get(`/api/eq/eqiiall`);
         console.log('Plans data loaded:', response.data);
 
-        eqiis.value = response.data.map(item => ({
-            ...item,
-            inst_date: item.inst_date ? moment(item.inst_date).format('YYYY-MM-DD HH:mm:ss') : null,
-            chk_exp_date: item.chk_exp_date ? moment(item.chk_exp_date).format('YYYY-MM-DD HH:mm:ss') : null
-        }));
+        eqiis.value = response.data.map(item => {
+            // 원본 데이터에서 stat 빼고 나머지만 복사
+            const { stat, ...itemWithoutStat } = item;
+            
+            return {
+                ...itemWithoutStat,  // stat 제외한 모든 데이터
+                inst_date: item.inst_date ? moment(item.inst_date).format('YYYY-MM-DD HH:mm:ss') : null,
+                chk_exp_date: item.chk_exp_date ? moment(item.chk_exp_date).format('YYYY-MM-DD HH:mm:ss') : null,
+                stat_display: getStatusLabel(item.stat),  // 화면용
+                original_stat: item.stat  // 원본 stat은 다른 이름으로 보관
+            };
+        });
 
     } catch (err) {
         console.error('데이터 로딩 에러:', err);
@@ -146,7 +153,7 @@ const loadSelectedPlan = async (value) => {
         eqii_code: value.eqii_code,
         inst_date: formatDateForDB(value.inst_date),
         chk_exp_date: formatDateForDB(value.chk_exp_date),
-        stat: value.stat || '',
+        stat: value.original_stat || '',  // ← 원본 stat 값 사용!
         note: value.note || '',
         inst_emp_name: value.inst_emp_name || 'EMP-10001',
         inst_emp_code: value.inst_emp_code
@@ -163,6 +170,11 @@ const openPopup = async () => {
 const saveMRP = async () => {
     emit('saveData');
 }
+
+const getStatusLabel = (value) => {
+    const option = statusOptions.find(opt => opt.value === value);
+    return option ? option.label : value || '-';
+};
 
 const eqiiPopupVisibil = ref(false);
 const eqiis = ref([]);

@@ -251,7 +251,8 @@ const updateEqiiInfo = (newData) => {
 // eqirList 업데이트 함수
 const updateEqirList = async (newList) => {
     console.log('eqirList 업데이트:', newList);
-    await loadEqirInfo(currentEqiiCode.value);
+    // await loadEqirInfo(currentEqiiCode.value);
+    eqirList.value = newList;
 }
 
 </script>
