@@ -9,7 +9,6 @@ import PrdrMapper from '@/service/PrdrMapping';
 
 const tableData = ref([]);
 
-const router = useRouter();
 
 const start = moment().startOf('month').format('YYYY-MM-DD 00:00:00');
 const end = moment().endOf('month').format('YYYY-MM-DD 23:59:59');
@@ -71,9 +70,6 @@ const handleSearch = async (searchParams) => {
   }
 };
 
-const handleRowClick = (row) => {
-  router.push(`/performance/detail/${row.prdr_code}`);
-};
 
 </script>
 
