@@ -96,7 +96,7 @@ const matSelectDetail = `
 const selectAllMaterialsForPopup = `
   SELECT    mat_code AS code,
             mat_name AS name,
-            material_type_code AS type
+            comm_name(material_type_code) AS type
   FROM      mat_tbl
 
   UNION
