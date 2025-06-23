@@ -11,6 +11,8 @@ const searchRef = ref()
 const tableRef = ref()
 const formRef = ref()
 
+const selectedRow = ref(null)
+
 // 목록 데이터
 const bomList = ref([])
 
@@ -126,9 +128,21 @@ const handleMaterialSelected = (matRow) => {
   // (선택 로직은 필요 시 여기에 작성)
 }
 
-// 초기화 버튼 클릭시
 const handleReset = async () => {
-  await fetchBomList(); // 전체 목록 다시 불러오기
+  // 검색 조건 초기화
+  searchRef.value.resetSearch();
+
+  // 입력 폼 초기화
+  formRef.value.resetForm();
+
+  // 자재 테이블 초기화
+  tableRef.value.resetRows();
+
+  // 선택된 행 초기화
+  tableRef.value.resetSelection()
+
+  // 목록도 다시 가져오기 (완전히 새로고침처럼)
+  await fetchBomList();
 };
 </script>
 
@@ -143,6 +157,7 @@ const handleReset = async () => {
       ref="tableRef"
       :data="bomList"
       @rowSelected="handleRowSelected"
+      v-model:selection="selectedRow"
       @materialRowSelected="handleMaterialSelected"
       class="flex-1"
     />
