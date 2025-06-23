@@ -63,9 +63,11 @@ const handleProductConfirm = (selectedProduct) => {
         // 선택된 제품 정보를 현재 선택된 행에 넣기
         currentProductRow.value.prod_name = selectedProduct.prod_name;
         currentProductRow.value.com_value = selectedProduct.com_value;
-        currentProductRow.value.spec = selectedProduct.spec;
-        currentProductRow.value.unit = selectedProduct.unit;
-        currentProductRow.value.prod_code = selectedProduct.prod_code; // 서버 전송용
+        currentProductRow.value.spec = selectedProduct.spec;                // 한글명
+        currentProductRow.value.spec_code = selectedProduct.spec_code;      // 🔥 코드값 추가
+        currentProductRow.value.unit = selectedProduct.unit;                // 한글명
+        currentProductRow.value.unit_code = selectedProduct.unit_code;      // 🔥 코드값 추가
+        currentProductRow.value.prod_code = selectedProduct.prod_code;
 
         // 현재 행의 나머지 필드 초기화
         currentProductRow.value.ord_amount = 0;
@@ -75,6 +77,7 @@ const handleProductConfirm = (selectedProduct) => {
         currentProductRow.value.total_price = 0;
     }
 };
+
 
 // 행 추가
 const addRow = () => {

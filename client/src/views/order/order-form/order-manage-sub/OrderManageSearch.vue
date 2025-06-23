@@ -7,20 +7,12 @@ import axios from 'axios';
 import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
-import productMapping from '@/service/ProductMapping.js';
 import clientMapping from '@/service/ClientMapping.js';
 
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import LabeledInputIcon from '@/components/registration-bar/LabeledInputIcon.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
-import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
 import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import InputNumber from 'primevue/inputnumber';
-import Calendar from 'primevue/calendar';
-import { Select } from 'primevue';
 
 // 상위 컴포넌트에서 전달받은 props
 const props = defineProps({
@@ -106,6 +98,7 @@ const handleDelete = async () => {
 //저장
 const handleSave = async () => {
   console.log("등록자 코드 (mcode):", props.empCode.value);
+  console.log('productRows 값 확인:', productRows.value);
   
   if (!props.ordName.value || !props.selectedClient.value) {
     alert('주문명과 거래처는 필수입니다.');
@@ -127,8 +120,8 @@ const handleSave = async () => {
   };
 
   const details = productRows.value.map(item => ({
-    unit: item.unit,
-    spec: item.spec,
+    unit: item.unit_code,
+    spec: item.spec_code,
     ord_amount: item.ord_amount,
     prod_price: item.prod_price,
     delivery_date:moment(item.delivery_date).format("YYYY-MM-DD"),

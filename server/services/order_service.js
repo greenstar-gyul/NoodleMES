@@ -274,7 +274,7 @@ const insertRelease = async (release) => {
       release.deadline,
       stat,
       release.outbound_request_code,
-      release.lot_num,
+      release.lot_num ?? null,
       release.prod_code,
       release.client_code,
       release.mcode ?? "EMP-10001"
@@ -315,7 +315,7 @@ const insertFinalRelease = async (release) => {
     const codeRes = await mariadb.queryConn(conn, "selectOutReqCodeForUpdate");
     const out_req_code = codeRes[0].out_req_code;
 
-    console.log("🔥 insertOutReq 실행 직전 client_code:", release.client_code);
+    console.log("🔥 insertOutReq 실행 직전 client_code:", out_req_code);
 
     // 출고기본정보 등록
     await mariadb.queryConn(conn, "insertOutReq", [
@@ -337,8 +337,8 @@ const insertFinalRelease = async (release) => {
 
       const out_req_d_code = outReqDCodeRes[0].out_req_d_code;
 
-      const lot_num = await findAvailableLotByProduct(item.prod_code);
-      if (!lot_num) throw new Error(`제품 ${item.prod_name}의 유효한 LOT 번호가 없습니다.`);
+      // const lot_num = await findAvailableLotByProduct(item.prod_code);
+      // if (!lot_num) throw new Error(`제품 ${item.prod_name}의 유효한 LOT 번호가 없습니다.`);
 
       const req_qtt = item.req_qtt;
       const outbnd_qtt = item.outbnd_qtt;
@@ -359,12 +359,18 @@ const insertFinalRelease = async (release) => {
         item.prod_code,
       ]);
 
-    // 본출고코드 생성
-    const poutbndCodeRes = await mariadb.queryConn(conn, "selectReleaseCodeForUpdate", [
-      out_req_code, out_req_code, out_req_code
-    ]);
+      // 출고 수량이 0이면 본출고 등록 제외
+      if (outbnd_qtt === 0) {
+        console.log(`출고 수량 0 → 본출고 등록 제외: ${item.prod_name}`);
+        continue; // 다음 제품으로 넘어감
+      }
 
-    const poutbnd_code = poutbndCodeRes[0].poutbnd_code;
+      // 본출고코드 생성
+      const poutbndCodeRes = await mariadb.queryConn(conn, "selectReleaseCodeForUpdate", [
+        out_req_code, out_req_code, out_req_code
+      ]);
+
+      const poutbnd_code = poutbndCodeRes[0].poutbnd_code;
 
       // 본출고 등록
       await mariadb.queryConn(conn, "insertRelease", [
@@ -374,7 +380,7 @@ const insertFinalRelease = async (release) => {
         item.delivery_date,
         stat,
         out_req_code,
-        lot_num,
+        null,
         item.prod_code,
         release.client_code,
         release.mcode ?? "EMP-10001"
@@ -412,7 +418,7 @@ const updateRelease = async (poutbnd_code, release) => {
     release.deadline,
     stat,
     release.outbound_request_code,
-    release.lot_num,
+    release.lot_num ?? null,
     release.prod_code,
     release.client_code,
     release.mcode ?? "EMP-10001",
@@ -442,10 +448,10 @@ const updateFinalRelease = async (releaseDetails) => {
       if (outbnd_qtt === req_qtt) stat = 'q3'; // 출고완료
       else if (outbnd_qtt > 0) stat = 'q2';   // 부분출고
       
-      const lot_num = await findAvailableLotByProduct(item.prod_code);
-      if (!lot_num) {
-        throw new Error(`제품 ${item.prod_name}의 유효한 LOT 번호가 없습니다.`);
-      };
+      // const lot_num = await findAvailableLotByProduct(item.prod_code);
+      // if (!lot_num) {
+      //   throw new Error(`제품 ${item.prod_name}의 유효한 LOT 번호가 없습니다.`);
+      // };
 
       const deadline = item.deadline || item.delivery_date || moment().format('YYYY-MM-DD');
 
@@ -455,7 +461,7 @@ const updateFinalRelease = async (releaseDetails) => {
         deadline,
         stat,
         item.outbound_request_code || '',
-        lot_num,
+        null,
         item.prod_code,
         item.client_code,
         item.mcode ?? "EMP-10001",
