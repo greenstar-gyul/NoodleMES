@@ -89,7 +89,7 @@ watch(() => props.data, (newData, oldData) => {
                 qio_date: parseDate(newData.qio_date) || new Date(),
                 insp_date: parseDate(newData.insp_date),
                 prdr_code: newData.prdr_code || '',
-                mpr_code: newData.mpr_code || '',
+                mpr_d_code: newData.mpr_code || '',
                 emp_name: newData.emp_name || '정품질'
             };
             
@@ -182,7 +182,7 @@ const loadSelectedPlan = async (value) => {
         qio_date: formatDateForDB(value.qio_date),
         insp_date: formatDateForDB(value.insp_date),
         prdr_code: value.prdr_code,
-        mpr_code: value.mpr_code,
+        mpr_d_code: value.mpr_code,
         emp_name: value.emp_name
     });
 
@@ -208,7 +208,7 @@ const qioPopupVisibil = ref(false);
 const qios = ref([]);
 </script>
 
-<template>1
+<template>
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <div class="grid grid-cols-1 gap-4">
             <div class="flex justify-between">

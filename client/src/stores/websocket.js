@@ -2,6 +2,11 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { NoodleClient } from '@/service/noodle_client.js';
 
+// 서버 설정
+const HOST = '223.130.135.17';
+const PORT = '3721';
+const server = `ws://${HOST}:${PORT}`;
+
 export const useWebSocketStore = defineStore('websocket', () => {
   // State
   const client = new NoodleClient();
@@ -26,11 +31,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
   })
 
   const nowPage = ref(''); // 현재 페이지 상태 관리
-  
-  // 서버 설정
-  const HOST = 'localhost';
-  const PORT = '3721';
-  const server = `ws://${HOST}:${PORT}`;
   
   // Getters
   const getStatusText = computed(() => {

@@ -105,7 +105,7 @@ const findProductList = async () => {
 // 제품명으로 검색
 const findProductByName = async (name) => {
   // 제품명에 특정 문자열이 포함된 제품들만 조회 (LIKE 검색)
-  const result = await mariadb.query("selectProductByName", [name])
+  const result = await mariadb.query("selectProductByNames", [name])
     .catch(err => console.log(err));
   return result;
 };

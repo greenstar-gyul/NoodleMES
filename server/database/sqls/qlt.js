@@ -4,7 +4,7 @@ SELECT
   a.qio_date,
   a.insp_date,
   IFNULL(a.prdr_code, '해당없음') AS prdr_code,
-  IFNULL(a.mpr_d_code, '해당없음') AS mpr_code,
+  IFNULL(a.mpr_d_code, '해당없음') AS mpr_d_code,
   b.emp_name
 FROM qio_tbl as a
 JOIN emp_tbl as b ON a.emp_code = b.emp_code
@@ -41,24 +41,26 @@ WHERE    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 `;
 
 //
-const selectList =
-    `SELECT
-    qio.qio_code,
-    qio.prod_name,
-    qio.qio_date,
-    qio.emp_code,
-    qi.note
-FROM
-    qio_tbl qio
-JOIN
-    qio_tbl qi ON qio.qi_code = qi.qi_code
+const selectList = `
+SELECT
+  a.qio_code,
+  a.qio_date,
+  a.insp_date,
+  IFNULL(a.prdr_code, '해당없음') AS prdr_code,
+  IFNULL(a.mpr_d_code, '해당없음') AS mpr_d_code,
+  b.emp_name
+FROM qio_tbl as a
+JOIN emp_tbl as b ON a.emp_code = b.emp_code
 WHERE 1=1
-    AND (? IS NULL OR qio_code LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR prod_name LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR qio_date >= ?)
-    AND (? IS NULL OR emp_code LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR note LIKE CONCAT('%', ?, '%'))
-ORDER BY prdp_date;
+    AND (? IS NULL OR a.qio_code LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR a.qio_date >= ?)
+    AND (? IS NULL OR a.qio_date <= ?)
+    AND (? IS NULL OR a.insp_date >= ?)
+    AND (? IS NULL OR a.insp_date <= ?)
+    AND (? IS NULL OR a.prdr_code LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR a.mpr_d_code LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR b.emp_name LIKE CONCAT('%', ?, '%'))
+ORDER BY a.qio_date DESC;
 `;
 
 // const selectQualityStandards = `
@@ -168,7 +170,7 @@ INSERT INTO qio_tbl (
     ,insp_date
     ,prdr_code
     ,po_code
-    ,purchase_code
+    ,mpr_d_code
     ,emp_code
 ) VALUES (?, ?, ?, ?, (SELECT po_code FROM po_tbl WHERE po_name = ?), ?, (SELECT emp_code FROM emp_tbl WHERE emp_name = ?));
 `;
@@ -181,7 +183,7 @@ SET
     insp_date = ?,
     prdr_code = ?,
     po_code = (SELECT po_code FROM po_tbl WHERE po_name = ?),
-    purchase_code = ?,
+    mpr_d_code = ?,
     emp_code = (SELECT emp_code FROM emp_tbl WHERE emp_name = ?)
 WHERE 
     qio_code = ?;
@@ -204,8 +206,10 @@ SELECT
     q.result,
     q.note,
     q.qio_code,
-    e.emp_name AS qir_emp_name,
-    qc.inspection_item
+    q.qir_emp_code,
+    (SELECT emp_name FROM emp_tbl WHERE emp_code = q.qir_emp_code) AS qir_emp_name,
+    qc.inspection_item,
+    q.qcr_code
 FROM qir_tbl AS q
 JOIN emp_tbl AS e ON q.qir_emp_code = e.emp_code
 JOIN qcr_tbl AS qc ON q.qcr_code = qc.qcr_code
@@ -225,7 +229,14 @@ INSERT INTO qir_tbl (
     qio_code,
     qir_emp_code,
     qcr_code
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT emp_code FROM emp_tbl WHERE emp_name = ?), (SELECT qcr_code FROM qcr_tbl WHERE inspection_item = ?));
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?,
+    CASE 
+        WHEN ? IS NULL THEN (SELECT emp_code FROM emp_tbl WHERE emp_name = ?)
+        ELSE ?
+    END,
+    (SELECT qcr_code FROM qcr_tbl WHERE inspection_item = ?)
+);
 `;
 
 const updateQir = `
@@ -239,7 +250,10 @@ SET
     result = ?,
     note = ?,
     qio_code = ?,
-    qir_emp_code = (SELECT emp_code FROM emp_tbl WHERE emp_name = ?),
+    qir_emp_code = CASE 
+        WHEN ? IS NULL THEN (SELECT emp_code FROM emp_tbl WHERE emp_name = ?)
+        ELSE ?
+    END,
     qcr_code = (SELECT qcr_code FROM qcr_tbl WHERE inspection_item = ?)
 WHERE 
     qir_code = ?;
@@ -264,12 +278,10 @@ FOR UPDATE
 
 const selectSimpleQir = `
 SELECT qir.qir_code,
-        po.po_name,
         qir.result,
         qio.qio_date
 FROM qir_tbl AS qir
 JOIN qio_tbl AS qio ON qir.qio_code = qio.qio_code
-JOIN po_tbl AS po ON qio.po_code = po.po_code
 `;
 
 const selectQirCodesByQioCode = `
@@ -280,12 +292,20 @@ WHERE qio_code = ?
 
 const selectSimpleQirByQioCode = `
 SELECT qir.qir_code,
-        po.po_name,
         qir.result,
-        qio.qio_date
+        qio.qio_date,
+        qir.start_date,
+        qir.end_date,
+        qir.unpass_qtt,
+        qir.pass_qtt,
+        qir.unpass_rate,
+        qir.qir_emp_code,
+        qir.qcr_code,
+        qc.inspection_item,
+        qir.note
 FROM qir_tbl AS qir
 JOIN qio_tbl AS qio ON qir.qio_code = qio.qio_code
-JOIN po_tbl AS po ON qio.po_code = po.po_code
+JOIN qcr_tbl AS qc ON qir.qcr_code = qc.qcr_code
 WHERE qir.qio_code = ?
 `;
 
@@ -307,7 +327,7 @@ JOIN emp_tbl AS e ON q.qir_emp_code = e.emp_code
 LEFT JOIN qcr_tbl AS qc ON q.qcr_code = qc.qcr_code
 WHERE q.qio_code = ?
 ORDER BY q.qir_code DESC
-`;
+`; 7
 
 // ✅ QIO 목록 조회용 (팝업에서 사용)
 const getQioListForPopup = `
@@ -329,7 +349,7 @@ ORDER BY a.qio_date DESC, a.qio_code DESC
 `;
 
 module.exports = {
-    getQioList: BASE_QUERY + ' ORDER BY qio_code',
+    getQioList: BASE_QUERY + ' ORDER BY a.qio_date DESC',
     searchQioListByCode: BASE_QUERY + ' WHERE a.qio_code = ?',
     fetchOrders,
     selectList,
