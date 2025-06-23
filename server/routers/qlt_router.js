@@ -33,6 +33,16 @@ router.get('/all', async (req, res) => {
   }
 });
 
+router.get(`/qio/qcr`, async (req, res) => {
+  try {
+    const qcrList = await qltService.getQcrList();
+    res.json({ success: true, data: qcrList });
+  } catch (error) {
+    console.error('품질 기준 조회 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
 // 품질 기준 등록
 router.post('/register', async (req, res) => {
   try {
@@ -85,6 +95,17 @@ router.get('/qio/prdr/:qioCode', async (req, res) => {
     const qioCode = req.params.qioCode;
     const prdrList = await qltService.searchPrdrListByQioCode(qioCode);
     res.json({ success: true, data: prdrList });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get(`/qio/mpr/:qioCode`, async (req, res) => {
+  try {
+    const qioCode = req.params.qioCode;
+    const mprList = await qltService.searchMprListByQioCode(qioCode);
+    res.json({ success: true, data: mprList });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, error: error.message });
