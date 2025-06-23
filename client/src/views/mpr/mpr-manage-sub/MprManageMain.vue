@@ -40,7 +40,8 @@ const mprStore = useMprStore();
 
 // 상태는 반응형으로 가져오기
 const { mprRows, mrpRows } = storeToRefs(mprStore);
-// 순서대로 목록데이터 저장, 초기화, 선택목록 저장
+
+// set: 목록데이터 저장,  reset: 초기화
 const { setMprRows, setMrpRows, resetMprRows, resetMrpRows, resetMatRows } = mprStore;
 
 /* ===== DATA ===== */ 
@@ -228,9 +229,9 @@ console.log('선택된 MRP:', selectedMRP);
   } catch (err) {
     console.error('mrp 상세 조회 실패:', err);
   }
-};
+}; // end of handleMRPConfirm
 
-// 최초 로딩 시 MPR 목록 조회
+// 최초 로딩시 MPR 목록 조회
 onMounted(async () => {
   try {
     // mpr 목록 조회
@@ -296,7 +297,7 @@ onMounted(async () => {
       <!-- 구매요청코드  -->
       <LabeledInput label="요청코드" v-model="mprs.mprCode.value" placeholder="구매요청코드" :disabled="true"/>
       <!-- 요청자 -->
-      <LabeledInput label="요청자" v-model="mprs.mCode.value" placeholder="로그인한사람으로 변경예정" readonly/>
+      <LabeledInput label="요청자" v-model="mprs.mCode.value" placeholder="로그인한 유저" readonly/>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- 요청일자 -->

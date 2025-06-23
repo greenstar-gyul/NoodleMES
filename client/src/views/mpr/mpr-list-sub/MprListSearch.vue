@@ -76,10 +76,10 @@ defineExpose({ resetSearchOption });
       />
 
       <!-- 거래처 -->
-      <SearchText v-model="searchOption.mrp_code" label="MRP 코드" placeholder="거래처 이름을 입력하세요" />
+      <SearchText v-model="searchOption.mrp_code" label="MRP 코드" placeholder="MRP 코드를 입력하세요" />
 
       <!-- 요청자 -->
-      <SearchText v-model="searchOption.mcode" label="요청자" placeholder="요청자 이름을 입력하세요" />
+      <SearchText v-model="searchOption.mcode" label="요청자" placeholder="요청자 ID 입력하세요" />
     </div>
 
     <!-- 조회/초기화 버튼 -->
