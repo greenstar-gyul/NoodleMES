@@ -154,7 +154,8 @@ const qirForm = ref({
     note: '',
     qio_code: '',
     qir_emp_name: '',
-    inspection_item: ''
+    inspection_item: '',
+    qcr_code: ''
 });
 
 // 🎯 품질기준항목 팝업 관련
@@ -183,7 +184,8 @@ const resetForm = async () => {
         note: '',
         qio_code: '',
         qir_emp_name: '',
-        inspection_item: ''
+        inspection_item: '',
+        qcr_code: ''
     };
     
     selectedQcrMethod.value = ''; // 검사방법도 초기화
@@ -215,7 +217,8 @@ watch(
                 note: newData.note || '',
                 qio_code: newData.qio_code || '',
                 qir_emp_name: newData.qir_emp_name || '',
-                inspection_item: newData.inspection_item || ''
+                inspection_item: newData.inspection_item || '',
+                qcr_code: newData.qcr_code || ''
             };
             
             // 🎯 검사방법도 복원 (기존 데이터에 있다면)
@@ -334,6 +337,7 @@ const loadSelectedQcr = (selectedItem) => {
     // 폼에 선택된 데이터 설정
     qirForm.value.inspection_item = selectedItem.inspection_item;
     selectedQcrMethod.value = selectedItem.check_method || '';
+    qirForm.value.qcr_code = selectedItem.qcr_code || ''; // QCR 코드도 저장
 
     // 팝업 닫기
     qcrPopupVisible.value = false;
@@ -365,6 +369,34 @@ const formatDateForDB = (date) => {
     const day = String(dateObj.getDate()).padStart(2, '0');
     
     return `${year}-${month}-${day}`;
+};
+
+const formatDateTimeForDB = (date) => {
+    if (!date) return null;
+    
+    let dateObj;
+    if (typeof date === 'string') {
+        dateObj = new Date(date);
+    } else if (date instanceof Date) {
+        dateObj = date;
+    } else {
+        return null;
+    }
+    
+    if (isNaN(dateObj.getTime())) {
+        console.warn('잘못된 날짜 형식:', date);
+        return null;
+    }
+    
+    // 🎯 날짜+시간! YYYY-MM-DD HH:mm:ss 형식
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const hours = String(dateObj.getHours()).padStart(2, '0');
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+    const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
 // 🎯 QIR 등록 함수 (메모리 전용)
@@ -399,8 +431,8 @@ const saveQir = async () => {
         const newQirData = {
             qir_code: tempQirCode,  // 임시 코드
             qio_code: qirForm.value.qio_code,
-            start_date: qirForm.value.start_date,
-            end_date: qirForm.value.end_date,
+            start_date: formatDateTimeForDB(qirForm.value.start_date),
+            end_date: formatDateTimeForDB(qirForm.value.end_date),
             unpass_qtt: parseInt(qirForm.value.unpass_qtt) || 0,
             pass_qtt: parseInt(qirForm.value.pass_qtt) || 0,
             unpass_rate: parseFloat(qirForm.value.unpass_rate) || 0,
@@ -410,7 +442,8 @@ const saveQir = async () => {
             inspection_item: qirForm.value.inspection_item,
             check_method: selectedQcrMethod.value || '', // 검사방법도 저장
             po_name: '임시',  // BottomTbl 표시용
-            qio_date: new Date().toISOString().split('T')[0]  // 오늘 날짜
+            qio_date: new Date().toISOString().split('T')[0],  // 오늘 날짜
+            qcr_code: qirForm.value.qcr_code || ''  // QCR 코드도 저장
         };
 
         console.log('📤 메모리에 추가할 QIR 데이터:', newQirData);
@@ -456,8 +489,8 @@ const updateQir = async () => {
         const updatedQirData = {
             qir_code: qirForm.value.qir_code,  // 기존 코드 유지
             qio_code: qirForm.value.qio_code,
-            start_date: qirForm.value.start_date,
-            end_date: qirForm.value.end_date,
+            start_date: formatDateTimeForDB(qirForm.value.start_date),
+            end_date: formatDateTimeForDB(qirForm.value.end_date),
             unpass_qtt: parseInt(qirForm.value.unpass_qtt) || 0,
             pass_qtt: parseInt(qirForm.value.pass_qtt) || 0,
             unpass_rate: parseFloat(qirForm.value.unpass_rate) || 0,
@@ -467,7 +500,8 @@ const updateQir = async () => {
             inspection_item: qirForm.value.inspection_item,
             check_method: selectedQcrMethod.value || '', // 검사방법도 저장
             po_name: '수정됨',  // BottomTbl 표시용
-            qio_date: new Date().toISOString().split('T')[0]  // 오늘 날짜
+            qio_date: new Date().toISOString().split('T')[0],  // 오늘 날짜
+            qcr_code: qirForm.value.qcr_code || ''  // QCR 코드도 저장
         };
 
         console.log('📤 메모리에서 수정할 QIR 데이터:', updatedQirData);
