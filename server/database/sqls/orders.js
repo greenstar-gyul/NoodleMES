@@ -29,13 +29,18 @@ const selectOrderDetailList = `
        , od.ord_priority
        , od.total_price
        , p.prod_name
+       , p.unit AS unit_code
        , comm_name(p.unit) AS unit
+       , p.spec AS spec_code
        , comm_name(p.spec) AS spec
        , p.note
        , comm_name(p.com_value) AS com_value
        , p.com_value AS com_value_code
+       , ps.cur_qtt AS stock_qtt
+       , ps.unit AS stock_unit
   FROM ord_d_tbl od
   JOIN prod_tbl p ON od.prod_code = p.prod_code
+  JOIN prod_stock_v ps ON od.prod_code = ps.prod_code
   WHERE od.ord_code = ?
 `;
 
@@ -105,15 +110,17 @@ const selectOrderStatuses = `
 // 제품 전체 조회
 const selectProductList = `
   SELECT prod_code,
-        prod_name,
-        comm_name(com_value) as com_value,
-        comm_name(unit) as unit,
-        comm_name(spec) as spec,
-        note
+          prod_name,
+          com_value AS com_value_code,
+          comm_name(com_value) AS com_value,
+          unit AS unit_code,
+          comm_name(unit) AS unit,
+          spec AS spec_code,
+          comm_name(spec) AS spec,
+          note
   FROM prod_tbl
   WHERE prod_type = 'i1'
   ORDER BY prod_name
-  
 `;
 
 // 제품명 검색 조회
@@ -455,7 +462,7 @@ const selectRProdByOutReqCode = `
 const releaseDataForLists = `
   SELECT d.out_req_d_code,
          prod.prod_name,
-         IFNULL(p.outbnd_qtt, 0) AS outbnd_qtt,
+         p.outbnd_qtt AS outbnd_qtt,
          r.out_req_date,
          e.emp_name,
          c.client_name,
@@ -472,6 +479,8 @@ const releaseDataForLists = `
       ON r.mcode = e.emp_code
     JOIN client_tbl c 
       ON r.client_code = c.client_code
+    WHERE p.outbnd_qtt IS NOT NULL
+     AND  p.outbnd_qtt > 0
    ORDER BY d.out_req_d_code
 `;
 
@@ -479,7 +488,7 @@ const releaseDataForLists = `
 const findReleaseDataForList = `
   SELECT d.out_req_d_code,
          prod.prod_name,
-         IFNULL(p.outbnd_qtt, 0) AS outbnd_qtt,
+         p.outbnd_qtt,
          r.out_req_date,
          e.emp_name,
          c.client_name,
@@ -505,6 +514,8 @@ const findReleaseDataForList = `
      AND (? IS NULL OR r.out_req_date <= ?)
      AND (? IS NULL OR c.client_name LIKE CONCAT('%', ?, '%'))
      AND (? IS NULL OR e.emp_name LIKE CONCAT('%', ?, '%'))
+     AND p.outbnd_qtt IS NOT NULL
+     AND p.outbnd_qtt > 0
    ORDER BY d.out_req_d_code
 `;
 
