@@ -19,7 +19,7 @@ const handleRowClick = (row) => {
     :data="props.data"
     :mapper="props.mapper"
     :dataKey="'prdr_code'"
-    title="검색결과"
+    title="생산실적조회"
     class="mt-5"
     @row-click="handleRowClick"
   />

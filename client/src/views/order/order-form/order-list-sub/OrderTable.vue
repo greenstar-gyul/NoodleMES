@@ -32,5 +32,5 @@ onMounted(async () => {
 </script>
 
 <template>
-  <TableWithExcel title="검색결과" :data="orders" :dataKey="'ord_code'" :mapper="orderMapper"/>
+  <TableWithExcel title="주문서조회" :data="orders" :dataKey="'ord_code'" :mapper="orderMapper"/>
 </template>

@@ -241,9 +241,12 @@ onMounted(() => {
         </div> -->
     </div>
     <div class="card mt-6">
-
+        <div>
+            <div class="font-semibold text-2xl mb-3">작업지시서 조회</div>
+        </div>
         <!-- 결과 요약 -->
         <div class="flex justify-between items-center mb-3">
+            
             <span class="text-sm text-gray-600">
                 총 {{ wkoList.length }}건의 작업지시서가 조회되었습니다.
             </span>

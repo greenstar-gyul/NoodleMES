@@ -136,7 +136,7 @@ defineProps({
   <div class="space-y-4" style="width: 60%">
     <!-- 제품 검색 결과 (고정 영역) -->
   <TableWithDelExcelFix :data="data" :dataKey="'prod_proc_code'" :mapper="processMapping"
-      :columns="['prod_proc_code', 'po_name', 'prod_code', 'prod_name', 'reg_date','note']" title="검색결과" scrollHeight="200px"
+      :columns="['prod_proc_code', 'po_name', 'prod_code', 'prod_name', 'reg_date','note']" title="공정흐름도" scrollHeight="200px"
        @row-click="handleProcessRowClick" />
 
     <!-- 자재 입력 테이블 -->

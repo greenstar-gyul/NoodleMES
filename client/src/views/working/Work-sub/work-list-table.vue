@@ -21,7 +21,7 @@ const handleRowClick = (row) => {
     :data="props.data"
     :mapper="props.mapper"
     :dataKey="'wko_code'"
-    title="검색결과"
+    title="작업진행목록"
     class="mt-5"
     @row-click="handleRowClick"
   />
