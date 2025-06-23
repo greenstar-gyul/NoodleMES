@@ -478,6 +478,12 @@ module.exports = {
     DELETE FROM eq_ma_tbl 
     WHERE eqir_code = ?
   `,
+
+  checkLineUsage: `
+    SELECT DISTINCT eq_code 
+    FROM line_d_tbl 
+    WHERE eq_code = ?
+  `,
   
   searchEqii: searchEqii,
   searchEqMa: searchEqMa,
