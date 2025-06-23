@@ -31,16 +31,28 @@ const fetchQcrList = async () => {
 
 // 🔍 검색 기능 (/search)
 const searchQcrList = async (searchParams) => {
-  console.log('🔍 검색 조건:', searchParams)
   try {
     const res = await axios.get('/api/qcr/search', {
       params: searchParams
     })
-    console.log('✅ 검색 결과:', res.data)
-    bomList.value = res.data
+    // ✅ com_value를 라벨로 가공
+    bomList.value = res.data.map(item => ({
+      ...item,
+      com_value: convertComValue(item.com_value)
+    }))
   } catch (err) {
     console.error('품질기준정보 조건 검색 실패:', err)
   }
+}
+
+// 🔁 변환 함수
+const convertComValue = (code) => {
+  const map = {
+    i1: '완제품',
+    i3: '부자재',
+    i4: '원자재'
+  }
+  return map[code] || code
 }
 
 // 빈문자열 null로 변경
@@ -110,8 +122,14 @@ const handleRowSelected = async (row) => {
 
 // 초기화 버튼 클릭시
 const handleReset = async () => {
-  await fetchQcrList(); // 전체 목록 다시 불러오기
-};
+  searchRef.value.resetSearch?.()
+
+  tableRef.value.clearSelection?.()
+
+  formRef.value.resetForm?.()
+
+  await fetchQcrList()
+}
 </script>
 
 <template>
