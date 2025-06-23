@@ -33,6 +33,7 @@ const saveData = async () => {
         console.log(result);
         if (result.result_code === "SUCCESS") {
             alert('저장에 성공했습니다.');
+            resetData();
         }
         else {
             alert('저장에 실패했습니다. 다시 시도해주세요.');
@@ -44,10 +45,11 @@ const saveData = async () => {
         const result = response.data;
         console.log(result);
         if (result.result_code === "SUCCESS") {
-            alert('저장에 성공했습니다.');
+            alert('수정에 성공했습니다.');
+            resetData();
         }
         else {
-            alert('저장에 실패했습니다. 다시 시도해주세요.');
+            alert('수정에 실패했습니다. 다시 시도해주세요.');
         }
     }
 }

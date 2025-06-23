@@ -116,21 +116,112 @@ VALUES (?, ?, ?, ?, ?)
 `
 
 // BOM에서 자재 목록 가져와서 자재 목록 추가하기
+// const selectBOMbyprdpcode = `
+// SELECT   bm.mat_code,
+//          bm.mat_name,
+//          SUM(bm.req_qtt * pd.planned_qtt) AS "req_qtt",
+//          comm_name(bm.unit) AS "unit",
+//          mstock.cur_qtt,
+//          comm_name(mstock.unit) AS "stock_unit"
+// FROM     bom_mat bm JOIN bom_tbl bt 
+//                       ON bm.bom_code = bt.bom_code
+//                     JOIN prdp_d_tbl pd 
+//                       ON bt.prod_code = pd.prod_code
+//                     JOIN mat_stock_v mstock 
+//                       ON bm.mat_code = mstock.mat_code
+// WHERE    pd.prdp_code = ?
+// GROUP BY bm.mat_code, bm.mat_name, mstock.cur_qtt, unit
+// `;
 const selectBOMbyprdpcode = `
-SELECT   bm.mat_code,
+WITH RECURSIVE bom_explosion(mat_code, mat_name, mat_type, req_qtt, unit, level) AS (
+  -- 1단계: 직접 자재
+  SELECT bm.mat_code, 
          bm.mat_name,
-         SUM(bm.req_qtt * pd.planned_qtt) AS "req_qtt",
-         comm_name(bm.unit) AS "unit",
-         mstock.cur_qtt,
-         comm_name(mstock.unit) AS "stock_unit"
-FROM     bom_mat bm JOIN bom_tbl bt 
-                      ON bm.bom_code = bt.bom_code
-                    JOIN prdp_d_tbl pd 
-                      ON bt.prod_code = pd.prod_code
-                    JOIN mat_stock_v mstock 
-                      ON bm.mat_code = mstock.mat_code
-WHERE    pd.prdp_code = ?
-GROUP BY bm.mat_code, bm.mat_name, mstock.cur_qtt, unit
+         bm.mat_type,
+         bm.req_qtt * pd.planned_qtt AS req_qtt,
+         bm.unit,
+         1 AS level
+  FROM   bom_mat bm 
+         JOIN bom_tbl bt ON bm.bom_code = bt.bom_code 
+         JOIN prdp_d_tbl pd ON bt.prod_code = pd.prod_code 
+  WHERE  pd.prdp_code = ?  -- ✅ 파라미터로 변경
+  
+  UNION ALL
+  
+  -- 2단계: 반제품의 하위 자재들
+  SELECT sub_bm.mat_code,
+         sub_bm.mat_name,
+         sub_bm.mat_type,
+         sub_bm.req_qtt * be.req_qtt AS req_qtt,
+         sub_bm.unit,
+         be.level + 1
+  FROM   bom_explosion be
+         JOIN bom_tbl sub_bt ON be.mat_code = sub_bt.prod_code
+         JOIN bom_mat sub_bm ON sub_bt.bom_code = sub_bm.bom_code
+  WHERE  be.mat_type = 'i2'
+    AND  be.level < 5
+)
+SELECT   be.mat_code,
+         be.mat_name,
+         -- ✅ 소요량 단위 변환 (kg/L 통일)
+         SUM(
+           CASE 
+             WHEN be.unit = 'h1' THEN be.req_qtt                    -- kg → kg
+             WHEN be.unit = 'h2' THEN be.req_qtt * 1000             -- t → kg
+             WHEN be.unit = 'h6' THEN be.req_qtt / 1000             -- g → kg
+             WHEN be.unit = 'hb' THEN be.req_qtt / 1000000          -- mg → kg
+             WHEN be.unit = 'h3' THEN be.req_qtt                    -- L → L
+             WHEN be.unit = 'hc' THEN be.req_qtt / 1000             -- ml → L
+             ELSE be.req_qtt
+           END
+         ) AS req_qtt,
+         -- ✅ 통일된 단위 표시
+         CASE 
+           WHEN be.unit IN ('h1', 'h2', 'h6', 'hb') THEN 'kg'
+           WHEN be.unit IN ('h3', 'hc') THEN 'L'
+           ELSE comm_name(be.unit)
+         END AS unit,
+         -- ✅ 재고량 단위 변환
+         CASE 
+           WHEN mstock.unit = 'h1' THEN mstock.cur_qtt                -- kg → kg
+           WHEN mstock.unit = 'h2' THEN mstock.cur_qtt * 1000         -- t → kg
+           WHEN mstock.unit = 'h6' THEN mstock.cur_qtt / 1000         -- g → kg
+           WHEN mstock.unit = 'hb' THEN mstock.cur_qtt / 1000000      -- mg → kg
+           WHEN mstock.unit = 'h3' THEN mstock.cur_qtt                -- L → L
+           WHEN mstock.unit = 'hc' THEN mstock.cur_qtt / 1000         -- ml → L
+           ELSE mstock.cur_qtt
+         END AS cur_qtt,
+         -- ✅ 재고 통일 단위
+         CASE 
+           WHEN mstock.unit IN ('h1', 'h2', 'h6', 'hb') THEN 'kg'
+           WHEN mstock.unit IN ('h3', 'hc') THEN 'L'
+           ELSE comm_name(mstock.unit)
+         END AS stock_unit
+FROM     bom_explosion be
+         JOIN mat_stock_v mstock ON be.mat_code = mstock.mat_code
+WHERE    be.mat_type != 'i2'  -- 반제품 제외, 최종 원자재/부자재만
+GROUP BY be.mat_code, 
+         be.mat_name, 
+         CASE 
+           WHEN be.unit IN ('h1', 'h2', 'h6', 'hb') THEN 'kg'
+           WHEN be.unit IN ('h3', 'hc') THEN 'L'
+           ELSE comm_name(be.unit)
+         END,
+         CASE 
+           WHEN mstock.unit = 'h1' THEN mstock.cur_qtt
+           WHEN mstock.unit = 'h2' THEN mstock.cur_qtt * 1000
+           WHEN mstock.unit = 'h6' THEN mstock.cur_qtt / 1000
+           WHEN mstock.unit = 'hb' THEN mstock.cur_qtt / 1000000
+           WHEN mstock.unit = 'h3' THEN mstock.cur_qtt
+           WHEN mstock.unit = 'hc' THEN mstock.cur_qtt / 1000
+           ELSE mstock.cur_qtt
+         END,
+         CASE 
+           WHEN mstock.unit IN ('h1', 'h2', 'h6', 'hb') THEN 'kg'
+           WHEN mstock.unit IN ('h3', 'hc') THEN 'L'
+           ELSE comm_name(mstock.unit)
+         END
+ORDER BY be.mat_code;
 `;
 
 // 전체 자재 목록 가져오기
