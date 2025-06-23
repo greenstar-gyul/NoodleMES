@@ -4,7 +4,7 @@ SELECT
   a.qio_date,
   a.insp_date,
   IFNULL(a.prdr_code, '해당없음') AS prdr_code,
-  IFNULL(a.mpr_d_code, '해당없음') AS mpr_code,
+  IFNULL(a.mpr_d_code, '해당없음') AS mpr_d_code,
   b.emp_name
 FROM qio_tbl as a
 JOIN emp_tbl as b ON a.emp_code = b.emp_code
@@ -41,24 +41,26 @@ WHERE    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 `;
 
 //
-const selectList =
-    `SELECT
-    qio.qio_code,
-    qio.prod_name,
-    qio.qio_date,
-    qio.emp_code,
-    qi.note
-FROM
-    qio_tbl qio
-JOIN
-    qio_tbl qi ON qio.qi_code = qi.qi_code
+const selectList = `
+SELECT
+  a.qio_code,
+  a.qio_date,
+  a.insp_date,
+  IFNULL(a.prdr_code, '해당없음') AS prdr_code,
+  IFNULL(a.mpr_d_code, '해당없음') AS mpr_d_code,
+  b.emp_name
+FROM qio_tbl as a
+JOIN emp_tbl as b ON a.emp_code = b.emp_code
 WHERE 1=1
-    AND (? IS NULL OR qio_code LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR prod_name LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR qio_date >= ?)
-    AND (? IS NULL OR emp_code LIKE CONCAT('%', ?, '%'))
-    AND (? IS NULL OR note LIKE CONCAT('%', ?, '%'))
-ORDER BY prdp_date;
+    AND (? IS NULL OR a.qio_code LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR a.qio_date >= ?)
+    AND (? IS NULL OR a.qio_date <= ?)
+    AND (? IS NULL OR a.insp_date >= ?)
+    AND (? IS NULL OR a.insp_date <= ?)
+    AND (? IS NULL OR a.prdr_code LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR a.mpr_d_code LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR b.emp_name LIKE CONCAT('%', ?, '%'))
+ORDER BY a.qio_date DESC;
 `;
 
 // const selectQualityStandards = `
@@ -325,7 +327,7 @@ JOIN emp_tbl AS e ON q.qir_emp_code = e.emp_code
 LEFT JOIN qcr_tbl AS qc ON q.qcr_code = qc.qcr_code
 WHERE q.qio_code = ?
 ORDER BY q.qir_code DESC
-`;7
+`; 7
 
 // ✅ QIO 목록 조회용 (팝업에서 사용)
 const getQioListForPopup = `
@@ -347,7 +349,7 @@ ORDER BY a.qio_date DESC, a.qio_code DESC
 `;
 
 module.exports = {
-    getQioList: BASE_QUERY + ' ORDER BY qio_code',
+    getQioList: BASE_QUERY + ' ORDER BY a.qio_date DESC',
     searchQioListByCode: BASE_QUERY + ' WHERE a.qio_code = ?',
     fetchOrders,
     selectList,
