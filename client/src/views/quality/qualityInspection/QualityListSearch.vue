@@ -34,7 +34,7 @@ const fetchSearch = () => {
       moment(searchOption.value.insp_end_date).format('YYYY-MM-DD') : null
   };
 
-  console.log('🔍 검색 조건 전송:', searchParams);
+  console.log('검색 조건 전송:', searchParams);
   emit('search', searchParams);
 };
 

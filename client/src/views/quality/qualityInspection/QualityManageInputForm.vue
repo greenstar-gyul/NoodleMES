@@ -506,8 +506,6 @@ const updateQir = async () => {
         // 부모에게 메모리 수정 요청
         emit('update-in-memory', updatedQirData);
         
-        alert('QIR이 목록에서 수정되었어! 저장하려면 "저장" 버튼을 눌러줘!');
-        
         // 폼 초기화 (QIO 코드는 유지)
         await resetFormKeepQio();
         
