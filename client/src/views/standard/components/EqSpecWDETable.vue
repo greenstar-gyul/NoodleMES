@@ -46,14 +46,14 @@ watch(
 );
 
 const onRowSelect = (event) => {
-    console.log('행 선택됨:', event.data);
-    console.log('현재 선택된 항목들:', selectedWDE.value);
+    // console.log('행 선택됨:', event.data);
+    // console.log('현재 선택된 항목들:', selectedWDE.value);
     emit('selection-change', selectedWDE.value);  // 전체 선택 배열 보내기
 };
 
 const onRowUnselect = (event) => {
-    console.log('행 선택 해제:', event.data);
-    console.log('현재 선택된 항목들:', selectedWDE.value);
+//     console.log('행 선택 해제:', event.data);
+//     console.log('현재 선택된 항목들:', selectedWDE.value);
     emit('selection-change', selectedWDE.value);  // 전체 선택 배열 보내기
 };
 
@@ -65,7 +65,7 @@ const clearSelection = () => {
 
 const deleteSelected = () => {
     if (selectedWDE.value) {
-        console.log('삭제 요청:', selectedWDE.value);
+        // console.log('삭제 요청:', selectedWDE.value);
         emit('delete', selectedWDE.value);
     }
 };
@@ -75,7 +75,7 @@ defineExpose({
 });
 
 const exportToExcel = () => {
-    console.log('엑셀 다운로드 요청');
+    // console.log('엑셀 다운로드 요청');
     emit('export', props.data);
 };
 

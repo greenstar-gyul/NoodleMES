@@ -70,7 +70,6 @@ const loadEqir = async () => {
         emit('update:subData', data);
         selectedWAD.value = [];
     } catch (err) {
-        console.error(err);
         alert('데이터 불러오기에 실패했습니다.');
     }
 };

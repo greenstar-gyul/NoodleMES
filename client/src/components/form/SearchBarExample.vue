@@ -137,7 +137,7 @@ const orderStatusOptions = [
 
 // 조회 버튼 기능 (API 호출 자리)
 const fetchOrders = () => {
-    console.log('조회 실행:', search.value);
+    // console.log('조회 실행:', search.value);
     // TODO: 실제 API 호출로 데이터 갱신
 };
 

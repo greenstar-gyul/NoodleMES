@@ -20,7 +20,6 @@ const dataKey = ref('id');
 
 const prdrCode = ref('');
 
-console.log(wkoCode);
 
 // 공정 목록을 불러오는 함수
 const loadProcess = async () => {
@@ -43,14 +42,12 @@ const loadProcess = async () => {
             }));
             
             data.value = processedData;
-            console.log('공정 목록 불러오기 성공:', data.value);
             
         } else {
-            console.error('공정 목록 불러오기 실패:', result.message);
             data.value = [];
         }
     } catch (error) {
-        console.error('공정 목록 불러오기 중 오류 발생:', error);
+        alert('오류가 발생했습니다. 다시 시도해주세요.');
         data.value = [];
     }
 }
@@ -84,32 +81,21 @@ watch(() => wsStore.messages, (messages) => {
     const latest = messages[messages.length - 1];
     
     if (latest?.type === 'PROCESS_UPDATE') {
-        console.log('🔄 PROCESS_UPDATE 수신:', latest);
         
         const updatedProcess = updateProcessData(latest.processId, {
             proc_rate: latest.progress,
             make_qtt: latest.makeQtt || latest.make_qtt // 둘 다 체크
         });
-        
-        if (updatedProcess) {
-            console.log(`🔄 ${updatedProcess.po_name} 진행률: ${latest.progress}%, 생산량: ${updatedProcess.make_qtt}`);
-        }
     }
     else if (latest?.type === 'PROCESS_COMPLETED') {
-        console.log('✅ PROCESS_COMPLETED 수신:', latest);
         
         const updatedProcess = updateProcessData(latest.processId, {
             proc_rate: latest.progress,
             end_date: moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'),
             make_qtt: latest.makeQtt || latest.make_qtt
         });
-        
-        if (updatedProcess) {
-            console.log(`✅ ${updatedProcess.po_name} 공정 완료, 생산량: ${updatedProcess.make_qtt}`);
-        }
     }
     else if (latest?.type === 'PROCESS_STARTED') {
-        console.log('▶️ PROCESS_STARTED 수신:', latest);
         
         const updatedProcess = updateProcessData(latest.processId, {
             start_date: moment(latest.timestamp).format('YYYY-MM-DD HH:mm:ss'),
@@ -118,18 +104,12 @@ watch(() => wsStore.messages, (messages) => {
         });
         
         if (updatedProcess) {
-            console.log(`▶️ ${updatedProcess.po_name} 공정 시작`);
+            alert(`${updatedProcess.po_name} 공정 시작`);
         }
     }
 }, { deep: true });
 
-// 디버깅을 위한 데이터 변화 감지
-watch(() => data.value, (newData) => {
-    console.log('📊 데이터 변경됨:', newData);
-}, { deep: true });
-
 onMounted(() => {
-    console.log('🚀 컴포넌트 마운트됨');
     if (wkoCode) {
         loadProcess();
     } else {

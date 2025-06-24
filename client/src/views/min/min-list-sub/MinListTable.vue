@@ -9,10 +9,10 @@ import TableWithExcel from '@/components/form/TableWithExcel.vue';
 const minStore = useMinStore();
 
 const { mins } = storeToRefs(minStore);
-const { fetchMinsSearch,  } = minStore;
+const { fetchMinsSearch, fetchAllMins } = minStore;
 
 onMounted(async () => {
-  fetchMinsSearch();
+  fetchAllMins();
 })
 
 </script>

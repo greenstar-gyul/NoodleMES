@@ -14,7 +14,9 @@ router.get('/all', async (req, res)=>{
     // 해당 엔드포인트(URL+METHOD)로 접속할 경우 제공되는 서비스를 실행
     // -> 서비스가 DB에 접속하므로 비동기 작업, await/async를 활용해서 동기식으로 동작하도록 진행
     let minList = await minService.findAllMin()
-                                    .catch(err => console.log(err));
+                                    .catch(err => 
+                                        alert('오류 발생')
+                                    );
 
     // res(Http Response에 대응되는 변수)의 응답메소드를 호출해 데이터를 반환하거나 통신을 종료함 
     // 주의사항) res(Http Response에 대응되는 변수)의 응답메소드를 호출하지 않으면 통신이 종료되지 않음                   
@@ -32,7 +34,6 @@ router.get('/min', async (req, res) => {
             data: result
         });
     } catch (err) {
-        console.error("mrp 목록 조회 실패:", err);
         res.status(500).json({
             result_code: "FAIL",
             message: "실패",
@@ -43,18 +44,18 @@ router.get('/min', async (req, res) => {
 
 // 구간 날짜에 맞는 자재입고 목록 조회
 router.get('/minDate', async (req, res) => {
-    const { min_date_from, min_date_to } = req.query;
+    const { inbndDateFrom, inbndDateTo } = req.query;
     try {
         // 둘 다 존재하는 경우에만 진행
-        if (!min_date_from || !min_date_to) {
+        if (!inbndDateFrom || !inbndDateTo) {
             return res.status(400).json({
                 result_code: "FAIL",
                 message: "실패",
-                error: "min_date_from 또는 min_date_to 누락되었습니다."
+                error: "inbndDateFrom 또는 inbndDateTo 누락되었습니다."
             });
         }
 
-        const result = await orderService.findMinsWithDate(min_date_from, min_date_to);
+        const result = await minService.findMinsWithDate(inbndDateFrom, inbndDateTo);
 
         res.json({
             result_code: "SUCCESS",
@@ -62,7 +63,6 @@ router.get('/minDate', async (req, res) => {
             data: result
         });
     } catch (err) {
-        // console.error("조회 실패:", err);
         res.status(500).json({
             result_code: "FAIL",
             message: "실패",
@@ -81,7 +81,7 @@ router.get('/mat', async (req, res) => {
             data: result
         });
     } catch (err) {
-        console.error("mrp 목록 조회 실패:", err);
+        alert('오류 발생');
         res.status(500).json({
             result_code: "FAIL",
             message: "실패",
@@ -92,9 +92,6 @@ router.get('/mat', async (req, res) => {
 
 // 선택 자재 정보 조회
 router.get('/selmat', async (req, res) => {
-    // console.log('테스트');
-    // console.log(req.query);
-    // console.log(req.query.mat_code);
     const mat = req.query.mat_code;
     try {
         const result = await minService.findSelMat(mat);
@@ -104,7 +101,6 @@ router.get('/selmat', async (req, res) => {
             data: result
         });
     } catch (err) {
-        console.error("mrp 목록 조회 실패:", err);
         res.status(500).json({
             result_code: "FAIL",
             message: "실패",
@@ -123,7 +119,6 @@ router.get('/qio', async (req, res) => {
             data: result
         });
     } catch (err) {
-        console.error("mrp 목록 조회 실패:", err);
         res.status(500).json({
             result_code: "FAIL",
             message: "실패",
@@ -134,8 +129,6 @@ router.get('/qio', async (req, res) => {
 
 // 등록
 router.post('/insert', async (req, res) => {
-  console.log('등록 데이터 확인');
-  console.log(req.body);
   const min = req.body;
 
   try {
@@ -146,7 +139,6 @@ router.post('/insert', async (req, res) => {
       data: result
     });
   } catch (err) {
-      console.error("등록 실패 : ", err);
       res.status(500).json({
       result_code: "FAIL",
       message: "실패",
@@ -166,7 +158,6 @@ router.delete('/:mprCode', async (req, res) => {
             data: result
         });
     } catch (err) {
-        console.error("MPR 삭제 실패:", err);
         res.status(500).json({
             result_code: "FAIL",
             message: "실패",

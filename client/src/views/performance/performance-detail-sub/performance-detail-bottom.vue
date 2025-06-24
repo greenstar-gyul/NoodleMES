@@ -17,9 +17,8 @@ onMounted(async () => {
       params: { prdr_code: props.detail.prdr_code }
     });
     equipmentList.value = res.data;
-    console.log('✅ 사용 설비 목록:', equipmentList.value);
   } catch (err) {
-    console.error('❌ 설비 조회 실패:', err);
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
   }
 });
 </script>

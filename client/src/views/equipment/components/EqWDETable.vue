@@ -46,11 +46,11 @@ watch(
 );
 
 const onRowSelect = (event) => {
-    emit('selection-change', selectedWDEeiqchk.value);  // 전체 선택 배열 보내기
+    emit('selection-change', selectedWDEeiqchk.value);
 };
 
 const onRowUnselect = (event) => {
-    emit('selection-change', selectedWDEeiqchk.value);  // 전체 선택 배열 보내기
+    emit('selection-change', selectedWDEeiqchk.value);
 };
 
 // 선택 초기화 메서드
@@ -71,7 +71,6 @@ const StatusOptions = [
     { label: '전체', value: '' }
 ];
 
-// 상태 라벨 변환 함수만 추가
 const getStatusLabel = (value) => {
     const option = StatusOptions.find(opt => opt.value === value);
     return option ? option.label : value || '-';

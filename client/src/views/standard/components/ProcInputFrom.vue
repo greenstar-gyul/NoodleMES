@@ -34,7 +34,7 @@ const reg = ref('EMP-10001')
 const reg_date = ref(today)
 const note = ref('')
 
-// ✅ 외부에서 set할 수 있게
+// 외부에서 set할 수 있게
 const setFormData = (data) => {
   if (!data) return;
 
@@ -48,7 +48,7 @@ const setFormData = (data) => {
   note.value = data.note ?? ''
 }
 
-// ✅ 외부에서 get할 수 있게
+// 외부에서 get할 수 있게
 const getFormData = () => ({
   prod_proc_code: prod_proc_code.value,
   po_name: po_name.value,
@@ -72,14 +72,14 @@ const resetForm = () => {
   note.value = ''
 }
 
-// 👉 제품 목록 조회 (팝업 열릴 때)
+// 제품 목록 조회 (팝업 열릴 때)
 watch(prodVisible, async (visible) => {
   if (visible) {
     try {
       const response = await axios.get('/api/proc/product')
       products.value = response.data
     } catch (error) {
-      console.error('❌ 제품 목록 조회 실패:', error)
+      alert('오류가 발생했습니다. 다시 시도해주세요.');
     }
   }
 })

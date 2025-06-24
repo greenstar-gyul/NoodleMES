@@ -15,17 +15,17 @@ const minStore = useMinStore();
 // 상태
 const { selectedMin, } = storeToRefs(minStore);
 
-const { fetchMinsSearch, resetSearch,  } = minStore;
+const { fetchMinsSearch, resetSearch, fetchAllMins } = minStore;
 
 // 컴포넌트 초기화
 onMounted(() => {
-  fetchMinsSearch();
+  fetchAllMins();
 });
 
 // 검색 초기화 함수
 const onReset = () => {
   resetSearch();
-  fetchMinsSearch(); // 초기화 후 기본 날짜로 조회
+  // fetchMinsSearch(); // 초기화 후 기본 날짜로 조회
 };
 
 // 검색 실행 함수
@@ -63,14 +63,12 @@ const clientMap = {
   '예담마트': 'CLIENT-011',
 };
 
-
-
 // 최초 로딩시 자재입고 정보 조회
 onMounted(() => {
   try {
     fetchMinsSearch();
   } catch(err){
-    console.error('데이터 로딩 실패:', err);
+    throw err;
   }
 });
 
@@ -81,10 +79,10 @@ onMounted(() => {
   <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
       <!-- 자재명 -->
-      <SearchText v-model="selectedMin.matType.value" label="자재이름" />
+      <SearchText v-model="selectedMin.matName" label="자재이름" />
       
       <!-- 자재유형 -->
-      <SearchText v-model="selectedMin.matType.value" label="자재유형" />
+      <SearchText v-model="selectedMin.matType" label="자재유형" />
 
       <!-- 입고일자 -->
       <SearchDateBetween
@@ -96,10 +94,10 @@ onMounted(() => {
       />
 
       <!-- 공급업체  -->
-      <SearchText v-model="selectedMin.supName.value" label="공급업체" />
+      <SearchText v-model="selectedMin.supName" label="공급업체" />
 
       <!-- 입고담당자  -->
-      <SearchText v-model="selectedMin.mName.value" label=" 입고담당자" />
+      <SearchText v-model="selectedMin.mName" label=" 입고담당자" />
     </div>
 
     <!-- 조회/초기화 버튼 -->

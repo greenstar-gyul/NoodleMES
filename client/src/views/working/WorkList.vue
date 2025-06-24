@@ -9,20 +9,13 @@ import workMapping from '@/service/WorkMapping.js';
 import { useWebSocketStore } from '../../stores/websocket';
 
 const wsStore = useWebSocketStore();
-
-console.log('🚀 컴포넌트 마운트됨');
-
 const tableData = ref([]);
-
 const router = useRouter();
-
 const start = moment().startOf('month').format('YYYY-MM-DD 00:00:00');
 const end = moment().endOf('month').format('YYYY-MM-DD 23:59:59');
 
 // 초기 리스트 조회
 const loadTableData = async () => {
-  console.log('📡 loadTableData 시작'); // ✅ 확인 로그 1
-
   try {
     const res = await axios.get('/api/work/month', {
       params: {
@@ -30,10 +23,9 @@ const loadTableData = async () => {
         end
       }
     });
-    console.log('📦 원본 응답 데이터:', res.data); // ✅ 확인 로그 2
     tableData.value = formatDateFields(res.data);
   } catch (err) {
-    console.error('❌ axios 요청 실패:', err); // ✅ 반드시 찍히는 로그
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
   }
 };
 
@@ -49,7 +41,6 @@ const formatDateFields = (list) => {
 
 onMounted(() => {
   loadTableData();
-  console.log(wsStore.getStatusText );
 });
 
 // 검색 초기화
@@ -62,24 +53,19 @@ const handleSearch = async (searchParams) => {
   const cleanParams = Object.fromEntries(
     Object.entries(searchParams).map(([key, val]) => [key, val === '' ? null : val])
   );
-
   // 날짜 가공
   if (cleanParams.reg_date_from) cleanParams.reg_date_from += ' 00:00:00';
   if (cleanParams.reg_date_to) cleanParams.reg_date_to += ' 23:59:59';
-
-  console.log('👉 정제된 검색 파라미터:', cleanParams);
-
   try {
     const response = await axios.post('/api/work/search', cleanParams);
 
     if (response.data.result_code === 'SUCCESS' && Array.isArray(response.data.data)) {
       tableData.value = formatDateFields(response.data.data);
     } else {
-      console.error('📛 예상치 못한 응답:', response.data);
       tableData.value = [];
     }
   } catch (error) {
-    console.error('❌ 검색 API 호출 실패:', error);
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
     tableData.value = [];
   }
 };

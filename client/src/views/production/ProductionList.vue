@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import moment from 'moment'; // ✅ moment 추가
+import moment from 'moment'; 
 import ProductionSearchBar from './production-list-sub/Production-searchBar.vue';
 import ProductionTable from './production-list-sub/Production-Table.vue';
 import ProductMapper from '@/service/ProductionMapping';
@@ -27,48 +27,39 @@ const formatDateFields = (data) => {
 const loadTableData = async () => {
   try {
     const res = await axios.get('/api/prdp/selectMonth');
-    console.log('📦 받은 데이터:', res.data);
-
     if (!Array.isArray(res.data)) {
-      console.error('❌ 배열 아님:', res.data);
       return;
     }
-
     tableData.value = formatDateFields(res.data);  // 여기에 출력됨
   } catch (err) {
-    console.error('❌ 리스트 조회 실패:', err);
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
   }
 };
 
 
-// ✅ 검색 기능
+// 검색 기능
 const handleSearch = async (searchParams) => {
   const cleanParams = Object.fromEntries(
     Object.entries(searchParams).map(([key, val]) => [key, val === '' ? null : val])
   );
-
-  console.log('👉 정제된 검색 파라미터:', cleanParams);
-
   try {
     const response = await axios.get('/api/prdp/search', {
       params: cleanParams,
     });
-
     if (response.data && response.data.success) {
       tableData.value = formatDateFields(response.data.data || []);
     } else if (Array.isArray(response.data)) {
       tableData.value = formatDateFields(response.data);
     } else {
-      console.error('검색 실패:', response.data);
       tableData.value = [];
     }
   } catch (error) {
-    console.error('검색 API 호출 실패:', error);
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
     tableData.value = [];
   }
 };
 
-// ✅ 검색 초기화
+// 검색 초기화
 const resetSearch = async () => {
   await loadTableData();
 };

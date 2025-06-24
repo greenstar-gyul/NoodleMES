@@ -19,23 +19,23 @@ const processPopupVisible = ref(false);
 const eqTypePopupVisible = ref(false);
 const currentEditingRow = ref(null);
 
-// ✔ 공정 목록 
+// 공정 목록 
 const processList = ref([]);
 // 설비 유형 목록
 const eqTypeList = ref([]);
 
 
-// ✔ 외부에서 form 데이터 넣기
+// 외부에서 form 데이터 넣기
 const setFormData = (rows) => {
   processRows.value = rows.map(row => ({ ...row, id: row.id ?? Date.now() + Math.random() }));
 };
 
-// ✔ 외부에서 form 데이터 꺼내기
+// 외부에서 form 데이터 꺼내기
 const getFormData = () => {
   return processRows.value;
 };
 
-// ✅ 외부에서 자재 목록 가져오기
+// 외부에서 자재 목록 가져오기
 const getDetailRows = () => {
   return processRows.value;
 };
@@ -57,7 +57,6 @@ const addRow = () => {
 const deleteSelected = () => {
   processRows.value = processRows.value.filter(row => !selectedProducts.value.includes(row));
   selectedProducts.value = [];
-  // ✅ 공정순서 다시 1부터 재정렬
   processRows.value.forEach((row, idx) => {
     row.no = idx + 1;
   });
@@ -65,8 +64,7 @@ const deleteSelected = () => {
 
 // 제품공정흐름도 목록 테이블 클릭 시
 const handleProcessRowClick  = (row) => {
-  emit('rowSelected', row); // ✅ 반드시 rowSelected로 통일
-  console.log('✅ row 클릭:', row)
+  emit('rowSelected', row);
 };
 
 // 흐름도 상세 테이블 선택 시
@@ -108,7 +106,7 @@ const handleProcessConfirm = (selectedItem) => {
 
   currentEditingRow.value.po_code = selectedItem.po_code;
   currentEditingRow.value.po_name = selectedItem.po_name;
-  currentEditingRow.value.pp_code = selectedItem.pp_code; // ✅ 추가
+  currentEditingRow.value.pp_code = selectedItem.pp_code;
 
   processPopupVisible.value = false;
 };
