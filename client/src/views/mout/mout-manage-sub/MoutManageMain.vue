@@ -163,10 +163,8 @@ const handleSave = async () => {
   mat_sup: clientMap[mins.supName.value], 
   mcode: mins.mCode.value,
   };
-  // console.log('왜안나옴');
-  // console.log(mins.commMatType.value);
-  // console.log('왜안나옴2');
-  // console.log(mat_type);
+  // console.log('입력값 확인');
+  // console.log(mins.commUnit);
   try {
     await axios.post('/api/min/insert', min)
     alert('자재입고 정보가 등록되었습니다.');
@@ -257,26 +255,12 @@ const handleqioConfirm = async (selectedQio) => {
     // 전체 자재입고정보 조회
     const qioRes = await axios.get(`/api/min/qio`);
     const qioList = qioRes.data.data;//store 함수 사용
-
+    
     // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
     qioList.forEach((item, idx) => {
       item.qio_num_code = item.qio_num_code || `row-${idx}`;
     });
     
-    console.log('출력값확인')
-    console.log(selectedQio.mat_code)
-
-    const matRes = await axios.get('/api/min/selmat', {
-      params: { mat_code: selectedQio.mat_code }
-    });
-    // const selmat = matRes;//store 함수 사용
-    // console.log(matRes.data.data[0].mat_code);
-
-    mins.matCode.value = matRes.data.data[0].mat_code;
-    mins.commUnit.value = matRes.data.data[0].unit;
-    mins.commMatType.value = matRes.data.data[0].mat_type;
-    mins.supName.value = matRes.data.data[0].sup_name;
-
     // 자재입고 정보 초기 설정
     mins.qioCode.value = selectedQio.qio_code;
   } catch (err){
@@ -285,13 +269,13 @@ const handleqioConfirm = async (selectedQio) => {
 
 }; // end of handleMinConfirm
 
-// 최초 로딩시 자재입고 정보, 자재기본정보, 품질검사정보 조회
+// 최초 로딩시 자재입고 정보, 자재기본정보 조회
 onMounted(async () => {
   try {
     // 전체 자재입고정보 조회
     const MinRes = await axios.get('/api/min/all');
-    // console.log('자재입고정보')
-    // console.log(MinRes)
+    console.log('자재입고정보')
+    console.log(MinRes)
     minRef.value = MinRes.data.map(min => ({
       //기존  객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...min,
@@ -300,8 +284,8 @@ onMounted(async () => {
     
     // 자재기준정보 조회
     const MatRes = await axios.get('/api/min/mat');
-    // console.log('자재기준정보')
-    // console.log(MatRes);
+    console.log('자재기준정보')
+    console.log(MatRes);
     matRef.value = MatRes.data.data.map(mat => ({
       //기존 객체를 그대로 복사
       ...mat,
@@ -309,8 +293,8 @@ onMounted(async () => {
 
     // 품질검사정보 조회
     const QioRes = await axios.get('/api/min/qio');
-    // console.log('품질검사정보')
-    // console.log(QioRes);
+    console.log('품질검사정보')
+    console.log(QioRes);
     qioRef.value = QioRes.data.data.map(qio => ({
     //기존 객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...qio,
@@ -349,7 +333,7 @@ onMounted(async () => {
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="자재입고코드" v-model="mins.mInBndCode.value" :disabled="true" placeholder="등록 시 생성" />
-      <LabeledInput label="자재코드" v-model="mins.matCode.value"  placeholder="자재정보" readonly/>
+      <LabeledInputIcon label="자재코드" v-model="mins.matCode.value" @click="matPopupVisible = true" placeholder="자재정보선택" readonly/>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

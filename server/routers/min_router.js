@@ -61,6 +61,29 @@ router.get('/mat', async (req, res) => {
     }
 });
 
+// 선택 자재 정보 조회
+router.get('/selmat', async (req, res) => {
+    // console.log('테스트');
+    // console.log(req.query);
+    // console.log(req.query.mat_code);
+    const mat = req.query.mat_code;
+    try {
+        const result = await minService.findSelMat(mat);
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        console.error("mrp 목록 조회 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
+
 // 전체 품질검사 정보 조회
 router.get('/qio', async (req, res) => {
     try {

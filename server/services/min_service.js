@@ -22,6 +22,13 @@ const findAllMat = async () => {
   return result;
 };
 
+// 선택 자재 조회
+const findSelMat = async (mat) => {
+  const result = await mariadb.query("selectSearchMat", mat)
+    .catch(err => console.log(err));
+  return result;
+};
+
 // 품질검사정보 전체 조회
 const findAllQio = async () => {
   const result = await mariadb.query("selectAllQioList")
@@ -70,7 +77,7 @@ const insertMinAll = async (data) => {
     } 
 
     console.log('lot값 체크');
-    // console.log(newLotNum[0].lot_num);
+    console.log(newLotNum[0].lot_num);
 
     // console.log(newMinCode[0].minbnd_code);
     // console.log(newLotNum[0].lot_num);
@@ -92,7 +99,7 @@ const insertMinAll = async (data) => {
 
     await conn.commit();
     console.log('자재입고정보 등록 성공');
-    // return result;
+    return result;
   } catch (err){
     await conn.rollback();
     // console.log('오류발생');
@@ -127,6 +134,7 @@ module.exports ={
     findAllMin,
     findAllQio,
     findAllMat,
+    findSelMat,
 
     /* 등록 */
     insertMin,
