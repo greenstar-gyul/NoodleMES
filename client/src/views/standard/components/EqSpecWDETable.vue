@@ -26,6 +26,10 @@ const props = defineProps({
     columns: {
         type: Array,
         default: () => []
+    },
+    unitOptions: {
+        type: Array,
+        default: () => []
     }
 });
 // 테이블에 보여줄 제품 데이터
@@ -52,8 +56,8 @@ const onRowSelect = (event) => {
 };
 
 const onRowUnselect = (event) => {
-//     console.log('행 선택 해제:', event.data);
-//     console.log('현재 선택된 항목들:', selectedWDE.value);
+    //     console.log('행 선택 해제:', event.data);
+    //     console.log('현재 선택된 항목들:', selectedWDE.value);
     emit('selection-change', selectedWDE.value);  // 전체 선택 배열 보내기
 };
 
@@ -79,6 +83,11 @@ const exportToExcel = () => {
     emit('export', props.data);
 };
 
+const getUnitLabel = (unitValue) => {
+    const unit = props.unitOptions.find(option => option.value === unitValue);
+    return unit ? unit.label : unitValue;
+};
+
 </script>
 
 <template>
@@ -92,10 +101,10 @@ const exportToExcel = () => {
                     <div class="text-sm text-gray-500 mt-1">총 {{ data.length }}건</div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" 
-                            @click="deleteSelected" :disabled="!selectedWDE || selectedWDE.length == 0" />
-                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" 
-                            outlined @click="exportToExcel" />
+                    <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" @click="deleteSelected"
+                        :disabled="!selectedWDE || selectedWDE.length == 0" />
+                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined
+                        @click="exportToExcel" />
                 </div>
             </div>
         </div>
@@ -107,42 +116,31 @@ const exportToExcel = () => {
         </div>
 
         <!-- DataTable (PrimeVue) -->
-        <DataTable
-            v-else
-            v-model:selection="selectedWDE"
-            :value="data"
-            :dataKey="dataKey"
-            showGridlines
-            scrollable
-            scrollHeight="400px"
-            tableStyle="min-width: 50rem"
-            selectionMode="multiple"
-            @row-select="onRowSelect"
-            @row-unselect="onRowUnselect"
-        >   
+        <DataTable v-else v-model:selection="selectedWDE" :value="data" :dataKey="dataKey" showGridlines scrollable
+            scrollHeight="400px" tableStyle="min-width: 50rem" selectionMode="multiple" @row-select="onRowSelect"
+            @row-unselect="onRowUnselect">
             <!-- 다중 선택 컬럼 -->
             <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
-            <!-- 고정 컬럼들 (props.columns가 있으면 사용) -->
-            <Column
-                v-if="columns && columns.length > 0"
-                v-for="col in columns"
-                :key="col"
-                :field="col"
-                :header="mapper[col] ?? col"
-                sortable
-            />
+            <!-- 🎯 고정 컬럼들 (props.columns가 있으면 사용) -->
+            <Column v-if="columns && columns.length > 0" v-for="col in columns" :key="col" :field="col"
+                :header="mapper[col] ?? col" sortable>
+                <!-- unit 컬럼만 특별 처리! -->
+                <template v-if="col === 'unit'" #body="slotProps">
+                    {{ getUnitLabel(slotProps.data[col]) }}
+                </template>
+            </Column>
 
-            <!-- 동적 컬럼 생성 (columns가 없으면 자동 생성) -->
-            <Column
-                v-if="!columns || columns.length === 0"
-                v-for="item in dynamicColumns"
-                :key="item"
-                :field="item"
-                :header="mapper[item] ?? item"
-                sortable
-            />
+            <!-- 🎯 동적 컬럼 생성 (columns가 없으면 자동 생성) -->
+            <Column v-if="!columns || columns.length === 0" v-for="item in dynamicColumns" :key="item" :field="item"
+                :header="mapper[item] ?? item" sortable>
+                <!-- unit 컬럼 특별 처리 -->
+                <template v-if="item === 'unit'" #body="slotProps">
+                    {{ getUnitLabel(slotProps.data[item]) }}
+                </template>
+            </Column>
         </DataTable>
+
         <!-- 선택된 행 정보 표시 -->
         <div v-if="selectedWDE && selectedWDE.length > 0" class="mt-4 p-3 bg-blue-50 rounded">
             <p class="text-sm text-blue-600">
