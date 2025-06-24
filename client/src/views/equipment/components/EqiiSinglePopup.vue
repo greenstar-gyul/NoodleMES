@@ -1,7 +1,6 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 
-// Props & Emits
 const props = defineProps({
   visible: Boolean,
   items: {
@@ -36,12 +35,10 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'confirm']);
 
-// 내부 상태
 const selectedItem = ref(null);
 const searchKeyword = ref('');
 const visibleFields = ref([]);
 
-// 검색 기능 추가! - 모든 필드에서 검색어 찾기
 const filteredItems = computed(() => {
   if (!searchKeyword.value.trim()) {
     return props.items;
@@ -50,7 +47,6 @@ const filteredItems = computed(() => {
   const keyword = searchKeyword.value.toLowerCase();
   
   return props.items.filter(item => {
-    // 객체의 모든 값들을 문자열로 변환해서 검색어 포함 여부 체크
     return Object.values(item).some(value => {
       if (value == null) return false;
       return String(value).toLowerCase().includes(keyword);
@@ -58,11 +54,10 @@ const filteredItems = computed(() => {
   });
 });
 
-// 테이블 컬럼 자동 추출
 watch(
   () => props.items,
   (newVal) => {
-    if (props.selectedHeader.length > 0) return; // selectedHeader가 있을 경우 watch 종료.
+    if (props.selectedHeader.length > 0) return;
 
     if (Array.isArray(newVal) && newVal.length > 0) {
       visibleFields.value = Object.keys(newVal[0]);
@@ -110,12 +105,6 @@ const confirm = () => {
   }
 };
 
-// 검색 버튼은 이제 필요없지만 혹시 몰라서 남겨둠
-const searchOrders = () => {
-  // 실시간 검색
-  console.log('검색어:', searchKeyword.value);
-};
-
 const rowClass = (data) => {
   return data.disabled ? 'p-disabled-row' : '';
 };
@@ -135,15 +124,14 @@ const handleRowSelect = (event) => {
     <div class="flex items-center gap-2 mb-4">
       <InputText v-model="searchKeyword" :placeholder="props.placeholder || '검색어를 입력하세요.'" class="flex-1" 
         @input="selectedItem = null" />
-      <Button label="검색" severity="info" @click="searchOrders" />
     </div>
 
     <!-- 검색 결과 표시 -->
     <div v-if="searchKeyword.trim() && filteredItems.length === 0" class="text-center py-4 text-gray-500">
-      검색 결과가 없어요 ㅠㅠ
+      검색 결과가 없습니다.
     </div>
 
-    <!-- 데이터 테이블 - filteredItems 사용! -->
+    <!-- 데이터 테이블 -->
     <DataTable :value="filteredItems" v-model:selection="selectedItem" selectionMode="single" :dataKey="dataKey" showGridlines
       scrollable scrollHeight="300px" :rowClass="rowClass" @rowSelect="handleRowSelect">
       <Column selectionMode="single" headerStyle="width: 3rem" />
