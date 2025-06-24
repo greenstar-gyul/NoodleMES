@@ -38,19 +38,23 @@ const formatNumber = (value) => {
     return new Intl.NumberFormat().format(value);
 };
 
-// 출고요청수량 변화에 따라 남은수량 계산
+// 출고 수량 변화를 감지해서, 출고 수량이 재고 수량이나 주문 수량을 초과하지 않도록 처리
 watch(productRows, (rows) => {
   rows.forEach(row => {
     const ordered = Number(row.ord_amount) || 0;
+    const stock = Number(row.stock_qtt) || 0;
     let requested = Number(row.outbnd_qtt) || 0;
 
-    // 초과 방지
-    if (requested > ordered) {
-      row.outbnd_qtt = ordered;
-      requested = ordered;
+    // 주문 수량과 재고 수량을 비교해서 더 작은 값을 가지도록 하기
+    let minQtt = Math.min(ordered, stock);
+
+    // 출고 수량이 주문 수량이나 재고 수량을 초과하지 않도록 조정
+    if (requested > minQtt) {
+        row.outbnd_qtt = minQtt; // 출고 수량을 주문 수량이나 재고 수량으로 조정
+        requested = minQtt; // 요청된 수량도 조정
     }
 
-    row.remain_amount = ordered - requested;
+    row.remain_amount = ordered - requested; // 남은 수량 계산
   });
 }, { deep: true });
 
@@ -110,21 +114,22 @@ onMounted(async () => {
 
             <Column field="outbnd_qtt" header="출고수량" style="width: 130px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <template v-if="!isReleaseLoaded">
-                        <InputNumber v-model="slotProps.data.outbnd_qtt" :min="0" :max="slotProps.data.outbnd_qtt" showButtons :inputStyle="{ width: '100%' }"/>
-                    </template>
-                    <template v-else>
-                        <InputText :value="formatNumber(slotProps.data.outbnd_qtt)" readonly style="width: 100%"/>
-                    </template>
+                    <!-- <InputNumber v-model="slotProps.data.outbnd_qtt" :min="0" :max="slotProps.data.ord_amount" showButtons :inputStyle="{ width: '100%' }"/> -->
+                    <InputNumber v-model="slotProps.data.outbnd_qtt" :min="0" :max="Math.min(slotProps.data.ord_amount, slotProps.data.stock_qtt)" showButtons :inputStyle="{ width: '100%' }"/>
                 </template>
-            </Column>
+            </Column>            
             
             <Column field="remain_amount" header="남은수량" style="width: 130px" bodyStyle="width: 130px">
                 <template #body="slotProps">
                     <InputText :value="formatNumber(slotProps.data.remain_amount)" readonly style="width: 100%" />
                 </template>
             </Column>
-            
+
+            <Column field="stock_qtt" header="현 재고" style="width: 130px" bodyStyle="width: 130px">
+                <template #body="slotProps">
+                    <InputText v-model="slotProps.data.stock_qtt" style="width: 100%" readonly/>
+                </template>
+            </Column>            
 
             <Column field="delivery_date" header="납기일" style="width: 140px" bodyStyle="width: 140px">
                 <template #body="slotProps">

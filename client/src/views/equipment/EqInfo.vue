@@ -61,10 +61,6 @@
         <!-- 우측: 설비 등록 영역 (45%) -->
         <EqInputForm :selectedData="selectedEquipment" @data-updated="onDataUpdated" />
     </div>
-
-    <!-- <MultiplePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></MultiplePopup> -->
-    <!-- <SinglePopup v-model:visible="dialogVisible" :items="clients" @confirm="handleConfirm" :mapper="clientMapper"
-        :dataKey="'client_code'"></SinglePopup> -->
 </template>
 
 <script setup>
@@ -87,15 +83,10 @@ const search = ref({
     is_used: ''
 });
 
-const openPopup = () => {
-    dialogVisible.value = true;
-}
-
 const eqs = ref([]);
 const tableColumns = ['eq_code', 'eq_name', 'eq_maker', 'is_used'];
 
 // 팝업
-const dialogVisible = ref(false);
 const selectedEquipment = ref(null);
 
 // 주문상태 옵션 (예시 데이터)
@@ -107,14 +98,10 @@ const StatusOptions = [
 
 // 선택된 ㅎ
 const onSelectionChange = (selectedItems) => {
-    console.log('선택 변경:', selectedItems);
-
     if (selectedItems.length === 1) {
         selectedEquipment.value = selectedItems[0];
-        console.log('수정 모드:', selectedItems[0]);
     } else {
         selectedEquipment.value = null;
-        console.log('등록 모드');
     }
 };
 
@@ -130,11 +117,9 @@ const fetchEquipment = async () => {
             // 서버가 배열 형태로 직접 반환하는 경우
             eqs.value = response.data;
         } else {
-            console.error('검색 실패:', response.data);
             eqs.value = [];
         }
     } catch (error) {
-        console.error('검색 API 호출 실패:', error);
         eqs.value = [];
     }
 };
@@ -153,7 +138,6 @@ const loadAll = async () => {
             eqs.value = [];
         }
     } catch (error) {
-        console.error('전체 데이터 로드 실패:', error);
         eqs.value = [];
     }
 };
@@ -175,6 +159,7 @@ const resetSearch = async (selectedItems) => {
     await loadAll();
 };
 
+
 const handleDelete = async (selectedItems) => {
     const confirmDelete = confirm(`정말로 ${selectedItems.length}개의 설비를 삭제하시겠습니까?`);
     if (!confirmDelete) return;
@@ -182,13 +167,26 @@ const handleDelete = async (selectedItems) => {
     try {
         const codes = selectedItems.map(item => item.eq_code);
 
-        const response = await axios.delete('/api/eq/multiple/delete', {
+        // 🔍 1단계: 라인 사용 여부 미리 체크
+        const checkResponse = await axios.post('/api/eq/check-line-usage', {
+            codes: codes
+        });
+
+        // 라인에서 사용 중인 설비가 있으면 삭제 중단
+        if (!checkResponse.data.canDelete) {
+            alert(checkResponse.data.message);
+            return; // 여기서 끝!
+        }
+
+        // 🗑️ 2단계: 문제없으면 삭제 진행
+        const deleteResponse = await axios.delete('/api/eq/multiple/delete', {
             data: { codes }
         });
 
-        if (response.data && response.data.success) {
+        if (deleteResponse.data && deleteResponse.data.success) {
             alert(`${selectedItems.length}개의 설비가 모두 삭제되었습니다.`);
-            await loadAll(); // 목록 새로고침
+            eqTableRef.value.clearSelection();
+            await loadAll();
         }
     } catch (error) {
         alert('삭제 중 오류가 발생했습니다.');
@@ -198,10 +196,6 @@ const handleDelete = async (selectedItems) => {
 onMounted(async () => {
     await loadAll();
 })
-
-const onRowSelect = (rowData) => {
-    selectedEquipment.value = rowData;
-};
 
 const onDataUpdated = async () => {
     await loadAll();

@@ -6,6 +6,7 @@ import prodRoutes from './production';
 import eqRoutes from './equipment';
 import mprRoutes from './mpr';
 import minRoutes from './min';
+import moutRoutes from './mout';
 import qaRoutes from './quality';
 import stdRoutes from './standard';
 import auth from './auth';
@@ -119,8 +120,13 @@ const router = createRouter({
                 ...mrpRoutes,
                 ...prodRoutes,
                 ...eqRoutes,
+
+                /* 자재 시작 */ 
                 ...mprRoutes,
                 ...minRoutes,
+                ...moutRoutes,
+                /* 자재 끝 */ 
+
                 ...qaRoutes,
                 ...stdRoutes,
                 ...test_router,

@@ -1,5 +1,5 @@
 <template>
-    <div class="card space-y-4 p-6" style="width: 50%">
+    <div class="card space-y-4 p-6" >
         <!-- 제목 -->
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">

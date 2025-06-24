@@ -61,7 +61,7 @@
                 <InputText v-model="ectForm.unit" type="text" class="w-full" />
             </div>
             <div>
-                <LabeledDatePicker v-model="ectForm.regdate" label="등록일자" placeholder="날짜를 선택" :disabled="false" />
+                <LabeledDatePicker v-model="ectForm.regdate" label="등록일자" placeholder="날짜를 선택" :disabled="true" />
             </div>
         </div>
 
@@ -75,7 +75,7 @@
         <!-- 비고 -->
         <div>
             <label class="font-semibold text-xl block mb-2">비고</label>
-            <Textarea placeholder="특이사항 입력" :autoResize="true" rows="4" class="w-full" />
+            <Textarea v-model="ectForm.note" placeholder="특이사항 입력" :autoResize="true" rows="4" class="w-full" />
         </div>
     </div>
     <!-- <SinglePopup v-model:visible="dialogVisible" :items="clients" @confirm="handleConfirm" :mapper="clientMapper" -->
@@ -111,7 +111,7 @@ const ectForm = ref({
     range_bot: '',
     unit: '',
     jdg_mth: '',
-    regdate: '',
+    regdate: new Date(),
     crrdate: '',
     note: ''
 });
@@ -151,7 +151,7 @@ const resetForm = async () => {
         range_bot: '',
         unit: '',
         jdg_mth: '',
-        regdate: null,
+        regdate: new Date(),
         note: ''
     };
 
@@ -211,7 +211,7 @@ const saveEqiChkType = async () => {
             ...ectForm.value,
             range_top: ectForm.value.range_top ? parseFloat(ectForm.value.range_top) : null,  // 숫자 변환
             range_bot: ectForm.value.range_bot ? parseFloat(ectForm.value.range_bot) : null,
-            regdate: formatDateForDB(ectForm.value.regdate) || formatDateForDB(new Date())
+            regdate: formatDateForDB(new Date())
         };
 
 
@@ -248,7 +248,7 @@ const updateEqChkType = async () => {
             range_top: ectForm.value.range_top ? parseFloat(ectForm.value.range_top) : null,  // 숫자 변환
             range_bot: ectForm.value.range_bot ? parseFloat(ectForm.value.range_bot) : null,
             regdate: formatDateForDB(ectForm.value.regdate) || formatDateForDB(new Date()),
-            crrdate: formatDateForDB(ectForm.value.regdate) || formatDateForDB(new Date())
+            crrdate: formatDateForDB(new Date())
         };
 
 
@@ -274,6 +274,16 @@ const cancelEdit = () => {
     console.log('수정 취소');
     emit('data-updated'); // 부모에서 선택 해제하도록 알림
 };
+
+const handleReset = async () => {
+    console.log('🔄 부모로부터 초기화 신호 받음!');
+    await resetForm();
+};
+
+defineExpose({
+    resetForm: handleReset
+});
+
 </script>
 
 <style scoped>

@@ -1,52 +1,78 @@
 <script setup>
 // import axios from 'axios';
-// import { onMounted, ref } from 'vue';
-// import Button from 'primevue/button';
-// import SearchText from '@/components/search-bar/SearchText.vue';
-// import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
+import { onMounted, ref } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useMinStore } from '@/stores/minStore.js';
+import axios from 'axios';
+import moment from 'moment';
+import Button from 'primevue/button';
+import SearchText from '@/components/search-bar/SearchText.vue';
+import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
+
+// pinia
+const minStore = useMinStore();
+
+// 상태
+const { selectedMin, } = storeToRefs(minStore);
+
+const { fetchMinsSearch, resetSearch,  } = minStore;
+
+// 컴포넌트 초기화
+onMounted(() => {
+  fetchMinsSearch();
+});
+
+// 검색 초기화 함수
+const onReset = () => {
+  resetSearch();
+  fetchMinsSearch(); // 초기화 후 기본 날짜로 조회
+};
+
+// 검색 실행 함수
+const onSearch = () => {
+    fetchMinsSearch();
+};
+
+// 단위 코드 매핑 (단방향: 값 → 코드)
+const unitCodeMap = {
+  'kg': 'h1',
+  'L': 'h3',
+  'ea': 'h4',
+};
+
+// 자재유형 매핑 (양방향: 코드 → 분류명)
+const matTypeMap = {
+  '원자재': 't1',
+  '원자재': 'i4',
+  '부자재': 't2',
+  '부자재': 'i3',
+};
+
+// 거래처 코드 매핑 (CLIENT-001 ~ CLIENT-011)
+const clientMap = {
+  '대형마트A': 'CLIENT-001',
+  '대형마트B': 'CLIENT-002',
+  '편의점체인A': 'CLIENT-003',
+  '온라인쇼핑몰A': 'CLIENT-004',
+  '밀가루공급사': 'CLIENT-005',
+  '팜유공급사': 'CLIENT-006',
+  '포장재공급사': 'CLIENT-007',
+  '야채공급사': 'CLIENT-008',
+  '조미료공급사': 'CLIENT-009',
+  '컵용기공급사': 'CLIENT-010',
+  '예담마트': 'CLIENT-011',
+};
 
 
 
-// // 데이터 및 옵션
-// // const mprdata = ref(MprData);
-
-// const searchmprdate = ref([])
-
-// // 검색 조건 초기값
-// const searchOption = ref({
-//   mpr_code: '',         // 구매요청코드
-//   req_date_from: null,  // 요청일자(시작값)
-//   req_date_to: null,    // 요청일자(마지막값)
-//   deadline_from: null,  // 납기일자(시작값)
-//   deadline_to: null,    // 납기일자(마지막값)
-//   mrp_code: '',         // MRP 코드
-//   mcode: '',            // 요청자
-// });
-
-// const emit = defineEmits(['searchOption', 'resetSearch']);
-// const fetchSearch = () => {
-//   emit('searchOption', searchOption.value); // 조건을 상위로 emit
-// };
-
-// // 초기화
-// const resetSearchOption  = () => {
-//   searchOption.value = {
-//     mpr_code: '',
-//     req_date_from: null,
-//     req_date_to: null,
-//     deadline_from: null,
-//     deadline_to: null,
-//     mrp_code: '',
-//     mcode: '',
-//   };
-// };
-
-// const handleReset = () => {
-//   resetSearchOption();               // 검색 조건 초기화
-//   emit('resetSearch');              // 부모에게 "초기화했어"라고 알림
-// };
-
-// defineExpose({ resetSearchOption }); 
+// 최초 로딩시 자재입고 정보 조회
+onMounted(() => {
+  try {
+    fetchMinsSearch();
+  } catch(err){
+    console.error('데이터 로딩 실패:', err);
+  }
+});
 
 </script>
 
@@ -54,38 +80,32 @@
   <!-- 검색바 영역 -->
   <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-      <!-- 구매요청코드 -->
-      <SearchText v-model="searchOption.mpr_code" label="구매요청코드" placeholder="구매요청코드를 입력하세요" />
+      <!-- 자재명 -->
+      <SearchText v-model="selectedMin.matType.value" label="자재이름" />
       
-      <!-- 요청일자 -->
+      <!-- 자재유형 -->
+      <SearchText v-model="selectedMin.matType.value" label="자재유형" />
+
+      <!-- 입고일자 -->
       <SearchDateBetween
-        label="요청일자"
-        :from="searchOption.req_date_from"
-        :to="searchOption.req_date_to"
-        @update:from="searchOption.req_date_from = $event"
-        @update:to="searchOption.req_date_to = $event"
+        label="입고일자"
+        :from="selectedMin.inbndDateFrom"
+        :to="selectedMin.inbndDateTo"
+        @update:from="selectedMin.inbndDateFrom = $event"
+        @update:to="selectedMin.inbndDateTo = $event"
       />
 
-      <!-- 납기일자 -->
-      <SearchDateBetween
-        label="납기일자"
-        :from="searchOption.deadline_from"
-        :to="searchOption.deadline_to"
-        @update:from="searchOption.deadline_from = $event"
-        @update:to="searchOption.deadline_to = $event"
-      />
+      <!-- 공급업체  -->
+      <SearchText v-model="selectedMin.supName.value" label="공급업체" />
 
-      <!-- 거래처 -->
-      <SearchText v-model="searchOption.mrp_code" label="MRP 코드" placeholder="거래처 이름을 입력하세요" />
-
-      <!-- 요청자 -->
-      <SearchText v-model="searchOption.mcode" label="요청자" placeholder="요청자 이름을 입력하세요" />
+      <!-- 입고담당자  -->
+      <SearchText v-model="selectedMin.mName.value" label=" 입고담당자" />
     </div>
 
     <!-- 조회/초기화 버튼 -->
     <div class="flex justify-center gap-3 mt-4">
-      <Button label="초기화" severity="contrast" @click="handleReset" />
-      <Button label="조회" severity="info" @click="fetchSearch" />
+      <Button label="초기화" severity="contrast" @click="onReset" />
+      <Button label="조회" severity="info" @click="onSearch" />
     </div>
   </div>
 </template>

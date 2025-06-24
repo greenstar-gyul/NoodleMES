@@ -27,7 +27,7 @@ const props = defineProps({
 
 const formatDateForDB = (date) => {
     if (!date) return null;
-    return moment(date).format('YYYY-MM-DD HH:mm:ss');
+    return moment(date).format('YYYY-MM-DD HH:mm');
 };
 
 const parseDate = (dateString) => {
@@ -42,15 +42,15 @@ const parseDate = (dateString) => {
 const currentData = ref({
     eq_ma_code: '',
     eq_name: '',
-    fail_date: null,
+    fail_date: new Date(),
     fail_cause: '',
     act_detail: '',
     act_result: '',
-    start_date: null,
-    end_date: null,
-    re_chk_exp_date: null,
+    start_date: new Date(),
+    end_date: new Date(),
+    re_chk_exp_date: new Date(),
     eqir_code: '',
-    regdate: null,
+    regdate: new Date(),
     note: '',
     m_emp_name: 'EMP-10001',
     fix_emp_name: 'EMP-10001'
@@ -62,15 +62,15 @@ watch(() => props.data, (newData) => {
         currentData.value = {
             eq_ma_code: newData.eq_ma_code || '',
             eq_name: newData.eq_name || '',
-            fail_date: parseDate(newData.fail_date),
+            fail_date: newData.fail_date,
             fail_cause: newData.fail_cause || '',
             act_detail: newData.act_detail || '',
             act_result: newData.act_result || '',
-            start_date: parseDate(newData.start_date),
-            end_date: parseDate(newData.end_date),
-            re_chk_exp_date: parseDate(newData.re_chk_exp_date),
+            start_date: newData.start_date,
+            end_date: newData.end_date,
+            re_chk_exp_date: newData.re_chk_exp_date,
             eqir_code: newData.eqir_code || '',
-            regdate: parseDate(newData.regdate),
+            regdate: newData.regdate,
             note: newData.note || '',
             m_emp_name: newData.m_emp_name || '최설비',
             fix_emp_name: newData.fix_emp_name || '최설비'
@@ -78,20 +78,25 @@ watch(() => props.data, (newData) => {
     }
 }, { immediate: true, deep: true });
 
-// 필드별 업데이트 함수들
-const updateEqName = (newName) => {
-    isInternalUpdate.value = true;
-    const updatedData = {
-        ...props.data,
-        eq_name: newName
-    };
-    emit('update:data', updatedData);
-    nextTick(() => {
-        isInternalUpdate.value = false;
-    });
+
+// 날짜 비교 헬퍼 함수
+const isSameDateValue = (oldVal, newVal) => {
+    if (!oldVal && !newVal) return true;
+    if (!oldVal || !newVal) return false;
+
+    const oldStr = oldVal instanceof Date ? moment(oldVal).format('YYYY-MM-DD HH:mm') : oldVal;
+    const newStr = newVal instanceof Date ? moment(newVal).format('YYYY-MM-DD HH:mm') : newVal;
+    return oldStr === newStr;
 };
 
+// 각 업데이트 함수들 수정
 const updateFailDate = (newDate) => {
+    // 같은 값이면 업데이트 안 함!
+    if (isSameDateValue(props.data.fail_date, newDate)) {
+        console.log('fail_date 같음, 업데이트 건너뜀');
+        return;
+    }
+
     isInternalUpdate.value = true;
     const updatedData = {
         ...props.data,
@@ -103,31 +108,12 @@ const updateFailDate = (newDate) => {
     });
 };
 
-const updateFailCause = (newCause) => {
-    isInternalUpdate.value = true;
-    const updatedData = {
-        ...props.data,
-        fail_cause: newCause
-    };
-    emit('update:data', updatedData);
-    nextTick(() => {
-        isInternalUpdate.value = false;
-    });
-};
-
-const updateActDetail = (newDetail) => {
-    isInternalUpdate.value = true;
-    const updatedData = {
-        ...props.data,
-        act_detail: newDetail
-    };
-    emit('update:data', updatedData);
-    nextTick(() => {
-        isInternalUpdate.value = false;
-    });
-};
-
 const updateStartDate = (newDate) => {
+    if (isSameDateValue(props.data.start_date, newDate)) {
+        console.log('start_date 같음, 업데이트 건너뜀');
+        return;
+    }
+
     isInternalUpdate.value = true;
     const updatedData = {
         ...props.data,
@@ -140,6 +126,11 @@ const updateStartDate = (newDate) => {
 };
 
 const updateEndDate = (newDate) => {
+    if (isSameDateValue(props.data.end_date, newDate)) {
+        console.log('end_date 같음, 업데이트 건너뜀');
+        return;
+    }
+
     isInternalUpdate.value = true;
     const updatedData = {
         ...props.data,
@@ -152,6 +143,11 @@ const updateEndDate = (newDate) => {
 };
 
 const updateReChkExpDate = (newDate) => {
+    if (isSameDateValue(props.data.re_chk_exp_date, newDate)) {
+        console.log('re_chk_exp_date 같음, 업데이트 건너뜀');
+        return;
+    }
+
     isInternalUpdate.value = true;
     const updatedData = {
         ...props.data,
@@ -163,19 +159,12 @@ const updateReChkExpDate = (newDate) => {
     });
 };
 
-const updateEqirCode = (newCode) => {
-    isInternalUpdate.value = true;
-    const updatedData = {
-        ...props.data,
-        eqir_code: newCode
-    };
-    emit('update:data', updatedData);
-    nextTick(() => {
-        isInternalUpdate.value = false;
-    });
-};
-
 const updateRegDate = (newDate) => {
+    if (isSameDateValue(props.data.regdate, newDate)) {
+        console.log('regdate 같음, 업데이트 건너뜀');
+        return;
+    }
+
     isInternalUpdate.value = true;
     const updatedData = {
         ...props.data,
@@ -187,7 +176,64 @@ const updateRegDate = (newDate) => {
     });
 };
 
+// 일반 필드들도 체크 추가
+const updateEqName = (newName) => {
+    if (props.data.eq_name === newName) {
+        console.log('eq_name 같음, 업데이트 건너뜀');
+        return;
+    }
+
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        eq_name: newName
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
+const updateFailCause = (newCause) => {
+    if (props.data.fail_cause === newCause) {
+        console.log('fail_cause 같음, 업데이트 건너뜀');
+        return;
+    }
+    
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        fail_cause: newCause
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
+const updateActDetail = (newDetail) => {
+    if (props.data.act_detail === newDetail) {
+        console.log('act_detail 같음, 업데이트 건너뜀');
+        return;
+    }
+    
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        act_detail: newDetail
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
 const updateActResult = (newResult) => {
+    if (props.data.act_result === newResult) {
+        console.log('act_result 같음, 업데이트 건너뜀');
+        return;
+    }
+    
     isInternalUpdate.value = true;
     const updatedData = {
         ...props.data,
@@ -199,7 +245,29 @@ const updateActResult = (newResult) => {
     });
 };
 
+const updateEqirCode = (newCode) => {
+    if (props.data.eqir_code === newCode) {
+        console.log('eqir_code 같음, 업데이트 건너뜀');
+        return;
+    }
+    
+    isInternalUpdate.value = true;
+    const updatedData = {
+        ...props.data,
+        eqir_code: newCode
+    };
+    emit('update:data', updatedData);
+    nextTick(() => {
+        isInternalUpdate.value = false;
+    });
+};
+
 const updateNote = (newNote) => {
+    if (props.data.note === newNote) {
+        console.log('note 같음, 업데이트 건너뜀');
+        return;
+    }
+    
     isInternalUpdate.value = true;
     const updatedData = {
         ...props.data,
@@ -241,6 +309,11 @@ const statusOptions = [
     { label: '조치완료', value: 'g2' }
 ];
 
+const statusMapping = {
+    'g1': '조치중',
+    'g2': '조치완료'
+};
+
 const loadPlansData = async () => {
     try {
         const response = await axios.get(`/api/eq/eqirmg`);
@@ -249,10 +322,11 @@ const loadPlansData = async () => {
         eqirmgs.value = response.data.map(item => ({
             ...item,
             fail_date: item.fail_date ? moment(item.fail_date).format('YYYY-MM-DD') : null,
-            start_date: item.start_date ? moment(item.start_date).format('YYYY-MM-DD HH:mm:ss') : null,
-            end_date: item.end_date ? moment(item.end_date).format('YYYY-MM-DD HH:mm:ss') : null,
+            start_date: item.start_date ? moment(item.start_date).format('YYYY-MM-DD HH:mm') : null,
+            end_date: item.end_date ? moment(item.end_date).format('YYYY-MM-DD HH:mm') : null,
             re_chk_exp_date: item.re_chk_exp_date ? moment(item.re_chk_exp_date).format('YYYY-MM-DD') : null,
-            regdate: item.regdate ? moment(item.regdate).format('YYYY-MM-DD HH:mm:ss') : null
+            regdate: item.regdate ? moment(item.regdate).format('YYYY-MM-DD HH:mm') : null,
+            act_result: statusMapping[item.act_result] || item.act_result || '미정'
         }));
 
     } catch (err) {
@@ -289,11 +363,11 @@ const loadSelectedPlan = async (value) => {
     currentData.value = {
         ...currentData.value,
         ...newData,
-        fail_date: parseDate(newData.fail_date),
-        start_date: parseDate(newData.start_date),
-        end_date: parseDate(newData.end_date),
-        re_chk_exp_date: parseDate(newData.re_chk_exp_date),
-        regdate: parseDate(newData.regdate)
+        fail_date: formatDateForDB(newData.fail_date),
+        start_date: formatDateForDB(newData.start_date),
+        end_date: formatDateForDB(newData.end_date),
+        re_chk_exp_date: formatDateForDB(newData.re_chk_exp_date),
+        regdate: formatDateForDB(newData.regdate)
     };
 
     emit('update:data', newData);
@@ -314,14 +388,14 @@ const loadEqirData = async () => {
         if (Array.isArray(response.data)) {
             eqirss.value = response.data.map(item => ({
                 ...item,
-                chk_start_date: item.chk_start_date ? moment(item.chk_start_date).format('YYYY-MM-DD HH:mm:ss') : null,
-                chk_end_date: item.chk_end_date ? moment(item.chk_end_date).format('YYYY-MM-DD HH:mm:ss') : null
+                chk_start_date: item.chk_start_date ? moment(item.chk_start_date).format('YYYY-MM-DD HH:mm') : null,
+                chk_end_date: item.chk_end_date ? moment(item.chk_end_date).format('YYYY-MM-DD HH:mm') : null
             }));
         } else if (response.data && response.data.data) {
             eqirss.value = response.data.data.map(item => ({
                 ...item,
-                chk_start_date: item.chk_start_date ? moment(item.chk_start_date).format('YYYY-MM-DD HH:mm:ss') : null,
-                chk_end_date: item.chk_end_date ? moment(item.chk_end_date).format('YYYY-MM-DD HH:mm:ss') : null
+                chk_start_date: item.chk_start_date ? moment(item.chk_start_date).format('YYYY-MM-DD HH:mm') : null,
+                chk_end_date: item.chk_end_date ? moment(item.chk_end_date).format('YYYY-MM-DD HH:mm') : null
             }));
         }
 
@@ -346,7 +420,7 @@ const loadSelectedEqirPlan = async (value) => {
         eq_name: value.eq_name || ''
     };
 
-    currentData.value.eqir_code = value.eqir_code;  
+    currentData.value.eqir_code = value.eqir_code;
     currentData.value.eq_name = value.eq_name || '';
     emit('update:data', updatedData);
 
@@ -439,15 +513,13 @@ const eqirss = ref([]);
         :placeholder="'조치결과 불러오기'">
     </eqirmgsinglePopup>
     <EqirSinglePopup v-model:visible="eqirPopupVisibil" :items="eqirss" @confirm="loadSelectedEqirPlan"
-        :selectedHeader="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']"
-        :mapper="{
+        :selectedHeader="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']" :mapper="{
             eqir_code: '점검결과 코드',
             eq_name: '설비명',
             chk_start_date: '점검 시작일시',
             chk_end_date: '점검 종료일시',
             eqi_stat: '상태'
-        }"
-        :visibleFields="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']" :dataKey="'eqir_code'"
-        :placeholder="'점검결과 선택'">
+        }" :visibleFields="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']"
+        :dataKey="'eqir_code'" :placeholder="'점검결과 선택'">
     </EqirSinglePopup>
 </template>

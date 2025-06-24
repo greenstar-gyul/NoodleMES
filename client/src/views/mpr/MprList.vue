@@ -16,7 +16,7 @@ const mprdata = ref([]); // 화면에 표시할 원본 데이터
 const originalData = ref([]);   // 초기값으로 사용할 원본 데이터 (mprdata와 굳이 나눌 필요가 없나?) 
 const searchRef = ref(null); // 초기화 기능에 사용
 
-// 일단 초기 데이터 표시를 위한 코드
+// 초기 데이터 표시를 위한 코드
 const initData = async () => {
   try{
     let result = await axios.get('/api/mpr/all');

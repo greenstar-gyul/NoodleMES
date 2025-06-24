@@ -1,23 +1,23 @@
 <script setup>
-// // import axios from 'axios';
-// import { onMounted, defineProps, defineEmits } from 'vue';
-// import mprMapping from '@/service/MprMapping.js';
-// import TableWithExcel from '@/components/form/TableWithExcel.vue';
+// import axios from 'axios';
+import { onMounted, defineProps, defineEmits } from 'vue';
+import { useMinStore } from '@/stores/minStore.js';
+import { storeToRefs } from 'pinia';
+import minMapping from '@/service/MinMapping.js';
+import TableWithExcel from '@/components/form/TableWithExcel.vue';
 
-// // 상위에서 전달받은 데이터
-// defineProps({
-//   mprdata: Array,
-//   required: true,
-// });
+const minStore = useMinStore();
 
-// const emit = defineEmits(['initData']);
-// onMounted(() => {
-//   emit('initData');
-// });
+const { mins } = storeToRefs(minStore);
+const { fetchMinsSearch,  } = minStore;
+
+onMounted(async () => {
+  fetchMinsSearch();
+})
 
 </script>
 
 <template>
    <!-- 결과 테이블 -->
-  <TableWithExcel :data="mprdata" :dataKey="'mpr_code'" :mapper="mprMapping.MprMapper" title="검색결과" />
+  <TableWithExcel :data="mins" :dataKey="'min_code'" :mapper="minMapping.minbndMapping" title="검색결과" />
 </template>

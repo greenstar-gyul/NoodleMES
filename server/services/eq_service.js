@@ -1,6 +1,7 @@
 const mariadb = require("../database/mapper.js");
 const eqQueries = require('../database/sqls/eq.js');
 const { convertObjToAry } = require('../utils/converts.js');
+const { formatDatesInObject, formatDatesInArray } = require('../utils/dateFormatter.js');
 
 // 조건 없이 mrp 전체조회
 const findAll = async () => {
@@ -13,14 +14,14 @@ const findAll = async () => {
 const showEqii = async () => {
   let list = await mariadb.query("selectEqiiList")
     .catch(err => console.log(err));
-  return list;
+  return formatDatesInArray(list);
 };
 
 const simpleslectEqirList = async () => {
   let list = await mariadb.query("simpleslectEqirList")
     .catch(err => console.log(err));
-  return list;
-}
+  return formatDatesInArray(list);
+};
 
 // 설비 점검 기준 항목 전체 조회
 const showEqiType = async () => {
@@ -161,7 +162,9 @@ const insertEqii = async (eqiiData) => {
 const findEqiiByCode = async (eqiiCode) => {
   const result = await mariadb.query("selectEqiiByCode", [eqiiCode])
     .catch(err => console.log(err));
-  return result && result.length > 0 ? result[0] : null;
+  const formatted = result && result.length > 0 ? 
+    formatDatesInObject(result[0]) : null;
+  return formatted;
 };
 
 // 지시서 수정
@@ -185,7 +188,6 @@ const updateEqii = async (eqiiCode, eqiiData) => {
 };
 
 const searchEqii = async (params) => {
-  // 각 조건마다 [value, value] 패턴
   const bindParams = [
     params.eqii_code, params.eqii_code,
     params.stat, params.stat,  
@@ -196,7 +198,7 @@ const searchEqii = async (params) => {
 
   try {
     const list = await mariadb.query("searchEqii", bindParams);
-    return list;
+    return formatDatesInArray(list);
   } catch (err) {
     console.error('검색 오류:', err);
     return [];
@@ -403,6 +405,25 @@ const selectEqiiStatus = async (eqiiCode) => {
   return result && result.length > 0 ? result[0].stat : null;
 };
 
+const checkLineUsage = async (eqCodes) => {
+  try {
+    const usedCodes = [];
+    
+    // 각 설비코드별로 라인 사용 여부 체크
+    for (const eqCode of eqCodes) {
+      const result = await mariadb.query("checkLineUsage", [eqCode]);
+      if (result.length > 0) {
+        usedCodes.push(eqCode);
+      }
+    }
+    
+    return usedCodes;
+  } catch (err) {
+    console.log('라인 사용 체크 오류:', err);
+    throw err;
+  }
+};
+
 const deleteMultiple = async (eqCodes) => {
   const conn = await mariadb.connectionPool.getConnection();
 
@@ -411,16 +432,16 @@ const deleteMultiple = async (eqCodes) => {
 
     const results = [];
     for (const eqCode of eqCodes) {
-      const result = await mariadb.query("deleteEq", [eqCode])
-        .catch(err => console.log(err));
+      const result = await mariadb.queryConn(conn, "deleteEq", [eqCode]);
       results.push(result);
     }
+    
     await conn.commit();
     return results;
   }
   catch (err) {
     await conn.rollback();
-    console.error('트랜잭션 실패:', err);
+    console.error('삭제 실패:', err);
     throw err;
   }
   finally {
@@ -431,14 +452,16 @@ const deleteMultiple = async (eqCodes) => {
 const findEqirMgList = async () => {
   const result = await mariadb.query("selectEqirMgList")
     .catch(err => console.log(err));
-  return result;
-}
+  return formatDatesInArray(result);
+};
 
 const findEqirMgListByCode = async (eqMaCode) => {
   const result = await mariadb.query("selectEqirMgListByCode", [eqMaCode])
     .catch(err => console.log(err));
-  return result && result.length > 0 ? result[0] : null;
-};
+  const formatted = result && result.length > 0 ? 
+    formatDatesInObject(result[0]) : null;
+  return formatted;
+}
 
 const updateEqMa = async (eqMaCode, eqMaData) => {
   const eqMaValues = [
@@ -503,7 +526,6 @@ const deleteEqMa = async (eqMaCode) => {
 };
 
 const searchEqMa = async (params) => {
-  // 각 조건마다 [value, value] 패턴 (searchEqii 참고)
   const bindParams = [
     params.eq_ma_code, params.eq_ma_code,
     params.eq_name, params.eq_name,
@@ -517,7 +539,7 @@ const searchEqMa = async (params) => {
 
   try {
     const list = await mariadb.query("searchEqMa", bindParams);
-    return list;
+    return formatDatesInArray(list);
   } catch (err) {
     console.error('설비 유지보수 검색 오류:', err);
     return [];
@@ -555,5 +577,6 @@ module.exports = {
   findEqirMgListByCode,
   simpleslectEqirList,
   searchEqMa,
-  deleteEqMa
+  deleteEqMa,
+  checkLineUsage  
 };

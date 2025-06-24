@@ -50,6 +50,43 @@ router.put('/:code', async (req, res) => {
     }
 });
 
+router.post('/check-line-usage', async (req, res) => {
+    try {
+        const { codes } = req.body;
+        if (!codes || !Array.isArray(codes) || codes.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: '체크할 코드가 없습니다' 
+            });
+        }
+
+        const usedCodes = await eqService.checkLineUsage(codes);
+        
+        if (usedCodes.length > 0) {
+            return res.json({
+                success: false,
+                canDelete: false,
+                message: `다음 설비들이 라인에 배치되어 있어서 삭제할 수 없습니다: ${usedCodes.join(', ')}`,
+                usedCodes: usedCodes
+            });
+        }
+
+        res.json({
+            success: true,
+            canDelete: true,
+            message: '삭제 가능합니다.'
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ 
+            success: false, 
+            message: '체크 중 오류가 발생했습니다.',
+            error: error.message 
+        });
+    }
+});
+
 // 삭제
 router.delete('/:code', async (req, res) => {
     try {
