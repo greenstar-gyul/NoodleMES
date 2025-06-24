@@ -54,13 +54,13 @@ const handleSearch = async (searchParams) => {
         
         if (response.data.success) {
             qioData.value = response.data.data;
-            console.log('🎯 검색 완료:', response.data.count, '건');
+            console.log('검색 완료:', response.data.count, '건');
         } else {
             console.error('검색 실패:', response.data.message);
             qioData.value = [];
         }
     } catch (error) {
-        console.error('🚨 검색 오류:', error);
+        console.error('검색 오류:', error);
         qioData.value = [];
     }
 };

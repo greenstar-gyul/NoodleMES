@@ -301,7 +301,7 @@ const formatDateTimeForDB = (date) => {
         return null;
     }
 
-    // 🎯 날짜+시간! YYYY-MM-DD HH:mm:ss 형식
+    // 날짜+시간! YYYY-MM-DD HH:mm:ss 형식
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -346,10 +346,10 @@ const forcedDataReload = async (qioCode) => {
         currentQioCode.value = qioCode;
         lastProcessedQioCode.value = qioCode;
 
-        console.log('🎉 모든 데이터 새로고침 완료!');
+        console.log('모든 데이터 새로고침 완료!');
 
     } catch (error) {
-        console.error('❌ 데이터 새로고침 실패:', error);
+        console.error('데이터 새로고침 실패:', error);
     }
 };
 
