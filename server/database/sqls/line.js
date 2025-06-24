@@ -50,6 +50,9 @@ SELECT eq_code,
        eq_name,
        eq_type
 FROM eq_tbl
+WHERE is_used = 'f2'
+  AND stat = 'w1'
+  AND eq_type = ?
 `;
 
 // 라인 등록 
@@ -143,6 +146,13 @@ WHERE pp.prod_code = ?
 ORDER BY ppd.no;
 `;
 
+// 설비의 상태를 '사용중'으로 업데이트
+const updateEqStatus = `
+UPDATE eq_tbl
+SET stat = 'w2'
+WHERE eq_code = ?;
+`;
+
 module.exports = {
     selectLineList,
     searchLineList,
@@ -155,5 +165,6 @@ module.exports = {
     selectLineOne,
     selectLineDetail,
     selectProdList,
-    selectProdDetail
+    selectProdDetail,
+    updateEqStatus
 };
