@@ -8,7 +8,7 @@ const props = defineProps({
   required: true,
 });
 
-const pickedQio = ref(null); // 선택된 Qio 데이터
+const pickedQio = ref(null);
 const emit = defineEmits(['initData', 'update:data']);
 
 const formatDate = (dateString) => {
@@ -26,11 +26,10 @@ const formattedQioData = computed(() => {
   }));
 });
 
-// EqTableWithExcel에서 crctQio를 받아온 것을 부모로 전달하는 함수
 const handleQioSelect = (qio) => {
   pickedQio.value = qio;
   console.log('선택된 Qio:', qio);
-  emit('update:data', qio); // 부모 컴포넌트로 선택된 Qio 데이터 전달
+  emit('update:data', qio);
 };
 
 onMounted(() => {

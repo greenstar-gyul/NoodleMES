@@ -276,6 +276,51 @@ WHERE qir_code LIKE 'QIR-%'
 FOR UPDATE
 `;
 
+// 완제품 LOT 번호 생성
+const selectLotNumForUpdateThree =
+`
+SELECT CONCAT('LOT-400-', 
+           DATE_FORMAT(CURDATE(), '%Y%m%d'), '-', LPAD( IFNULL(MAX(SUBSTRING(lot_num, -3)), 0) + 1, 3,'0' )
+       ) AS next_lot_num
+FROM mat_lot_tbl  
+WHERE SUBSTRING(lot_num, 9, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
+FOR UPDATE;
+`;
+
+//IN-20250610-0001 -> pinbnd_code
+const selectPinbndCodeForUpdate = `
+SELECT CONCAT(
+    'IN-',
+    DATE_FORMAT(NOW(), '%Y%m%d'), '-',
+    LPAD(COALESCE(MAX(SUBSTR(pinbnd_code, -4)), 0) + 1, 4, '0')
+) AS next_pinbnd_code
+FROM pinbnd_tbl
+WHERE pinbnd_code LIKE CONCAT('IN-', DATE_FORMAT(NOW(), '%Y%m%d'), '-%')
+FOR UPDATE;
+`;
+
+const insertPinbnd = `
+INSERT INTO pinbnd_tbl (
+    pinbnd_code,
+    qtt,
+    pinbnd_date,
+    note,
+    qir_code,
+    mcode,
+    prod_code,
+    lot_num)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+`;
+
+const insertLot = `
+INSERT INTO lot_tbl (
+    lot_num,
+    issdate,
+    item_type_code,
+    prod_code)
+    VALUES (?, ?, 'i1', ?);
+`;
+
 const selectSimpleQir = `
 SELECT qir.qir_code,
         qir.result,
@@ -348,6 +393,18 @@ LEFT JOIN prod_tbl prod ON pr.prod_code = prod.prod_code
 ORDER BY a.qio_date DESC, a.qio_code DESC
 `;
 
+const getProdCodeByName = `
+SELECT prod_code
+FROM prod_tbl
+WHERE prod_name = ?
+`;
+
+const getEmpCodeByQirEmpCode = `
+SELECT emp_code
+FROM emp_tbl
+WHERE emp_name = ?
+`;
+
 module.exports = {
     getQioList: BASE_QUERY + ' ORDER BY a.qio_date DESC',
     searchQioListByCode: BASE_QUERY + ' WHERE a.qio_code = ?',
@@ -371,10 +428,17 @@ module.exports = {
     selectPrdrByQioCode,
     selectMprByQioCode,
     selectSimpleQir,
+    selectLotNumForUpdateThree,
+    selectPinbndCodeForUpdate,
+    insertPinbnd,
     selectSimpleQirByQioCode,
     selectQirCodesByQioCode,
+    getProdCodeByName,
+    getEmpCodeByQirEmpCode,
+    getProdCodeByName,
     selectQcrForPopup: getQcrForPopup,
     selectQir,
     selectQioCodeForUpdate: selectQioCodeForUpdate,
     selectQirCodeForUpdate: selectQirCodeForUpdate,
+    insertLot
 }
