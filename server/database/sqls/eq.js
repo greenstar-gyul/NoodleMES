@@ -380,8 +380,9 @@ INSERT INTO eqir_tbl (
 ) 
 SELECT 
    ?, ?, e.eq_code, t.chk_type_code, ?, ?, ?, ?, ?, ?
-FROM eq_tbl AS e, eqi_type_tbl AS t
-WHERE e.eq_name = ? 
+FROM eq_tbl e
+INNER JOIN eqi_type_tbl t ON 1=1
+WHERE e.eq_name = ?
 AND t.chk_text = ?;
 `;
 

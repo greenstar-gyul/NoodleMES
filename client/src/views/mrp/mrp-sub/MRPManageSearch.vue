@@ -140,6 +140,6 @@ const prodPlans = ref([]);
 
     <!-- <p>{{ testList }}</p> -->
 
-    <SinglePopup v-model:visible="mrpPopupVisible" :items="prodPlans" @confirm="prdpLoad" :mapper="prodPlanMapping"
+    <SinglePopup v-model:visible="mrpPopupVisible" :items="prodPlans" @confirm="prdpLoad" :mapper="prodPlanMapping" :selectedHeader="['prdp_code', 'prdp_name', 'prdp_date', 'start_date', 'end_date', 'due_date', 'reg', 'note']"
         :dataKey="'prdp_code'" :placeholder="'생산계획 불러오기'"></SinglePopup>
 </template>

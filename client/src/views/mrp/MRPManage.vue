@@ -30,7 +30,7 @@ const saveData = async () => {
         const result = response.data;
         if (result.result_code === "SUCCESS") {
             alert('저장에 성공했습니다.');
-            resetData();
+            await resetData();
         }
         else {
             alert('저장에 실패했습니다. 다시 시도해주세요.');
@@ -41,7 +41,7 @@ const saveData = async () => {
         const result = response.data;
         if (result.result_code === "SUCCESS") {
             alert('수정에 성공했습니다.');
-            resetData();
+            await resetData();
         }
         else {
             alert('수정에 실패했습니다. 다시 시도해주세요.');
@@ -53,7 +53,7 @@ const updatePrdpCode = (value) => {
     prdpCode.value = value;
 }
 
-const resetData = () => {
+const resetData = async () => {
     mrpDetailList.value = [];
     mrpInfo.value = {
         prdp_code: '',

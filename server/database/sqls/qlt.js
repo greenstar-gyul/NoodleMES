@@ -324,9 +324,11 @@ INSERT INTO lot_tbl (
 const selectSimpleQir = `
 SELECT qir.qir_code,
         qir.result,
+        qc.inspection_item,
         qio.qio_date
 FROM qir_tbl AS qir
 JOIN qio_tbl AS qio ON qir.qio_code = qio.qio_code
+JOIN qcr_tbl AS qc ON qir.qcr_code = qc.qcr_code
 `;
 
 const selectQirCodesByQioCode = `

@@ -228,7 +228,11 @@ watch(
 
             <Column field="chk_result" header="점검결과">
                 <template #body="{ data }">
-                    <input v-model="data.chk_result" class="w-full p-1 border-0" />
+                    <select v-model="data.chk_result" class="w-full p-1 border-0" >
+                        <option value="">선택하세요</option>
+                        <option value="g2">양호</option>
+                        <option value="g1">불량</option>
+                    </select>
                 </template>
             </Column>
 

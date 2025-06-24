@@ -40,6 +40,10 @@ const prdrList = ref({
     production_qtt: '0'
 });
 
+const getDefaultDateTime = () => {
+    return new Date(); // 현재 날짜와 시간!
+};
+
 const combinedMiddleData = computed(() => {
     return {
         qio_code: qioInfo.value.qio_code || '',
@@ -89,8 +93,8 @@ const handleQioCodeChange = async (newCode) => {
         qcr_code: '',
         result: '',
         qir_emp_name: '',
-        start_date: null,
-        end_date: null,
+        start_date: getDefaultDateTime(),
+        end_date: getDefaultDateTime(),
         unpass_qtt: '',
         pass_qtt: '',
         unpass_rate: '',
@@ -158,6 +162,23 @@ const formatDateForDB = (date) => {
     const day = String(dateObj.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+};
+
+const formatDisplayDate = (dateValue) => {
+    if (!dateValue) return '';
+    
+    try {
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return '';
+        
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}`;
+    } catch (error) {
+        return '';
+    }
 };
 
 // 데이터 유효성 검증
@@ -239,7 +260,13 @@ const saveData = async () => {
 
 const checkAndCreateFinishedProduct = async (qirList) => {
     try {
-        // 모든 QIR이 완료되었는지 확인
+        // 🎯 1단계: 제품 생산 검사인지 확인!
+        if (!prdrList.value.prod_name || prdrList.value.prod_name === '') {
+            console.log('🔍 자재 검사이므로 완제품 등록 스킵');
+            return; // 🚨 여기서 바로 리턴!
+        }
+        
+        // 🎯 2단계: 모든 QIR이 완료되었는지 확인
         const allCompleted = qirList.every(qir => 
             qir.end_date && qir.end_date !== '' && qir.pass_qtt > 0
         );
@@ -249,7 +276,7 @@ const checkAndCreateFinishedProduct = async (qirList) => {
             return;
         }
         
-        // 합격된 수량 계산
+        // 🎯 3단계: 합격된 수량 계산
         const totalPassQtt = qirList.reduce((sum, qir) => sum + (qir.pass_qtt || 0), 0);
         
         if (totalPassQtt === 0) {
@@ -257,30 +284,30 @@ const checkAndCreateFinishedProduct = async (qirList) => {
             return;
         }
         
-        // 완제품 등록 데이터 준비
+        // 🎯 4단계: 완제품 등록 (제품 생산 검사만!)
         const pinbndData = {
             qtt: totalPassQtt,
             pinbnd_date: new Date().toISOString().split('T')[0],
             note: `품질검사 완료 - QIO: ${qioInfo.value.qio_code}`,
             qir_code: qirList[0]?.qir_code || '',
             qir_emp_code: qirList[0]?.qir_emp_name || qioInfo.value.emp_name,
-            prod_name: prdrList.value.prod_name || '',
+            prod_name: prdrList.value.prod_name, // ✅ 이제 안전함!
         };
         
+        console.log('📦 완제품 등록 데이터:', pinbndData);
         
         // 완제품 등록 API 호출
         const pinbndResponse = await axios.post('/api/qlt/pinbnd', pinbndData);
         
         if (pinbndResponse.data.success) {
-            
-            alert(`완제품이 자동 등록되었습니다. \n완제품 코드: ${pinbndResponse.data.data.pinbnd_code}\nLOT 번호: ${pinbndResponse.data.data.lot_num}`);
+            alert(`완제품이 자동 등록되었습니다! ✨\n완제품 코드: ${pinbndResponse.data.data.pinbnd_code}\nLOT 번호: ${pinbndResponse.data.data.lot_num}`);
         } else {
-            alert('완제품 자동 등록에 실패했습니다.');
+            alert('완제품 자동 등록에 실패했습니다 ㅠㅠ');
         }
         
     } catch (error) {
-        console.error('완제품 자동 등록 중 오류:', error);
-        alert('완제품 자동 등록 중 오류가 발생했습니다.');
+        console.error('🚨 완제품 자동 등록 중 오류:', error);
+        alert('완제품 자동 등록 중 오류가 발생했습니다 ㅠㅠ');
     }
 };
 
@@ -499,8 +526,15 @@ const loadQirInfoByQioCode = async (qioCodeParam) => {
         const response = await axios.get(`/api/qlt/qir/simple/${qioCodeParam}`);
 
         if (response.data && response.data.success) {
-            qirList.value = response.data.data || [];
-            // QIR 목록을 qioList에도 복사 (BottomTbl 표시용)
+            // ✨ 날짜 포맷팅 적용!
+            qirList.value = (response.data.data || []).map(item => ({
+                ...item,
+                qio_date: formatDisplayDate(item.qio_date),
+                insp_date: formatDisplayDate(item.insp_date),
+                start_date: formatDisplayDate(item.start_date),
+                end_date: formatDisplayDate(item.end_date)
+            }));
+            
             qioList.value = [...qirList.value];
         } else {
             qirList.value = [];
@@ -592,7 +626,15 @@ const loadSimpleQirList = async () => {
         const response = await axios.get('/api/qlt/qir/simple');
 
         if (response.data && response.data.success) {
-            qirList.value = response.data.data || [];
+            // ✨ 여기도 날짜 포맷팅 적용!
+            qirList.value = (response.data.data || []).map(item => ({
+                ...item,
+                qio_date: formatDisplayDate(item.qio_date),
+                insp_date: formatDisplayDate(item.insp_date),
+                start_date: formatDisplayDate(item.start_date),
+                end_date: formatDisplayDate(item.end_date)
+            }));
+            
             qioList.value = [...qirList.value];
         } else {
             qirList.value = [];
@@ -668,8 +710,8 @@ const onSelectionChange = async (selectedItems) => {
                 qcr_code: '',
                 result: '',
                 qir_emp_name: '',
-                start_date: null,
-                end_date: null,
+                start_date: getDefaultDateTime(),
+                end_date: getDefaultDateTime(),
                 unpass_qtt: '',
                 pass_qtt: '',
                 unpass_rate: '',
@@ -705,8 +747,8 @@ const onDataUpdated = async () => {
             qcr_code: '',
             result: '',
             qir_emp_name: '',
-            start_date: null,
-            end_date: null,
+            start_date: getDefaultDateTime(),
+            end_date: getDefaultDateTime(),
             unpass_qtt: '',
             pass_qtt: '',
             unpass_rate: '',
@@ -793,12 +835,12 @@ const updateqioList = async (newList) => {
                 <QualityManageBottomTbl ref="bottomTblRef" :data="qioList" :dataKey="'qir_code'" :title="'품질검사결과 목록'"
                     :columns="[
                         'qir_code',
-                        'po_name',
+                        'inspection_item',
                         'result',
                         'qio_date',
                     ]" :mapper="{
                         qir_code: '검사코드',
-                        po_name: '발주명',
+                        inspection_item: '검사항목',
                         result: '검사결과',
                         qio_date: '지시일자'
                     }" @selection-change="onSelectionChange" @delete="deleteSelectedQir" @export="exportQirToExcel" />
