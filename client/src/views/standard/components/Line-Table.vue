@@ -17,14 +17,12 @@ const resetRows = () => {
 const selectedRow = ref(null);
 
 const onRowSelect  = (e) => {
-  // 자재 테이블 선택 시
 emit('materialRowSelected', e.data);
 };
 
 
 const handleLineRowClick  = (row) => {
-  // 라인 목록 테이블 클릭 시
-  emit('rowSelected', row); // ✅ 반드시 rowSelected로 통일
+  emit('rowSelected', row);
 };
 
 // ✔ 라인 테이블 데이터
@@ -33,25 +31,25 @@ const selectedLines = ref([]);
 
 const currentEditingRow = ref(null); 
 
-//  공정 팝업 세팅
+// 공정 팝업 세팅
 const processPopupVisible = ref(false);
 // 설비 팝업 세팅
 const facilitiePopupVisible = ref(false);
 
-// ✔ 공정 목록 
+// 공정 목록 
 const processList = ref([]);
 
-// ✔ 설비 목록 
+// 설비 목록 
 const facilitieList = ref([]);
 
 
 
-// ✔ 외부에서 form 데이터 넣기
+// 외부에서 form 데이터 넣기
 const setFormData = (rows) => {
   lineRows.value = rows.map(row => ({ ...row, id: row.id ?? Date.now() + Math.random() }));
 };
 
-// ✔ 외부에서 form 데이터 꺼내기
+// 외부에서 form 데이터 꺼내기
 const getFormData = () => {
   return lineRows.value;
 };
@@ -91,7 +89,6 @@ const openProcessPopup = async (row) => {
     processList.value = res.data;
     processPopupVisible.value = true; // 성공적으로 불러오면 팝업 열기
   } catch (err) {
-    console.error(' 프로세스 흐름 목록 불러오기 실패:', err);
     alert('프로세스 흐름 목록을 불러오지 못했습니다.');
   }
 };
@@ -100,14 +97,12 @@ const openProcessPopup = async (row) => {
 // 설비 팝업 열기 
 const openFacilitiePopup = async (row) => {
   currentEditingRow.value = row;
-
   try {
     const res = await axios.get('/api/line/facilitie-popup');
     facilitieList.value = res.data;
 
     facilitiePopupVisible.value = true; // 성공적으로 불러오면 팝업 열기
   } catch (err) {
-    console.error(' 프로세스 흐름 목록 불러오기 실패:', err);
     alert('프로세스 흐름 목록을 불러오지 못했습니다.');
   }
 };
@@ -115,7 +110,6 @@ const openFacilitiePopup = async (row) => {
 // 공정 팝업 확인 후 값 반영
 const handleProcessConfirm = (selectedItem) => {
   if (!currentEditingRow.value || !selectedItem) return;
-
 
   currentEditingRow.value.no = selectedItem.no;
   currentEditingRow.value.po_code = selectedItem.po_code;
@@ -145,7 +139,6 @@ const props = defineProps({
 
 // tableData 감지
 watch(() => props.tableData, (newData) => {
-  console.log('✅ 설비 구성 데이터 감지됨:', newData);
   if (newData && Array.isArray(newData)) {
     lineRows.value = newData.map(item => ({
       id: Date.now() + Math.random(),

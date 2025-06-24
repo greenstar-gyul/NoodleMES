@@ -6,20 +6,16 @@
   import productMapping from '@/service/ProductMapping.js';
   import lineMapping from '@/service/LineMapping.js';
   import axios from 'axios';
-
   // 부모에서 호출할 메서드 노출
   defineExpose({
     resetAll,
-    getDetails: () => productRows.value  // 하단에서 현재 상태 반환
+    getDetails: () => productRows.value
   });
-
   // 🔄 테이블 내용 초기화 함수 (부모에서 접근 가능)
   function resetAll() {
-    console.log('✅ [Bottomzone] resetAll 실행됨');
     productRows.value = [];
-    selectedProducts.value = []; // ✅ 추가
+    selectedProducts.value = [];
   }
-
   // 부모로부터 전달받은 props 정의 (생산계획 코드)
   const props = defineProps({
     prdp: {
@@ -27,7 +23,6 @@
       default: '',
     }
   });
-
   // 👀 props.prdp가 변경될 때마다 데이터 재조회
   watch(
     () => props.prdp,
@@ -36,29 +31,23 @@
       return newPrdp;
     }
   );
-
-  // ✅ 테이블에 표시할 제품 목록 (행 데이터)
+  // 테이블에 표시할 제품 목록 (행 데이터)
   const productRows = ref([]);
-
-  // ✅ 선택된 제품 행 목록 (체크박스 선택용)
+  // 선택된 제품 행 목록 (체크박스 선택용)
   const selectedProducts = ref([]);
-  
   // 라인 목록 
   const lines = ref([]);
   // 라인 목록 
   const products = ref([]);
+  // 팝업 열림 여부 상태
+  const productPopupVisible = ref(false);
+  const linePopupVisible = ref(false);
+  // 현재 팝업이 영향을 주는 행 정보
+  const currentProductRow = ref(null); 
+  const currentLineRow = ref(null);      
+  const tempNewRow = ref(null); 
 
-  // ✅ 팝업 열림 여부 상태
-  const productPopupVisible = ref(false);  // 제품 팝업
-  const linePopupVisible = ref(false);     // 라인 팝업
-
-  
-  // ✅ 현재 팝업이 영향을 주는 행 정보
-  const currentProductRow = ref(null);     // 제품 팝업 대상 행
-  const currentLineRow = ref(null);        // 라인 팝업 대상 행
-  const tempNewRow = ref(null); // 임시로 새 행 저장
-
-  // ✅ 라인 팝업에서 항목 선택 후 현재 행에 데이터 반영
+  // 라인 팝업에서 항목 선택 후 현재 행에 데이터 반영
   const handleLineConfirm = (selectedLine) => {
     if (currentLineRow.value && selectedLine) {
       currentLineRow.value.line_code = selectedLine.line_code;
@@ -124,13 +113,13 @@
     productPopupVisible.value = false;
   };
 
-  // 🗑️ 선택된 행 삭제
+  // 선택된 행 삭제
   const deleteSelected = () => {
     productRows.value = productRows.value.filter(row => !selectedProducts.value.includes(row));
     selectedProducts.value = [];
   };
 
-  // 🔍 제품 팝업 열기 (클릭한 행을 currentProductRow에 설정)
+  // 제품 팝업 열기 (클릭한 행을 currentProductRow에 설정)
   const openProductPopup = (row) => {
     tempNewRow.value = null;      // 새 행 추가 상태 초기화
     currentProductRow.value = row; // 수정 대상 행 지정
@@ -138,41 +127,35 @@
   };
 
   // 라인 팝업 열기
- const openlinePopup = async (row) => {
-  currentLineRow.value = row;
+  const openlinePopup = async (row) => {
+    currentLineRow.value = row;
 
-  const prodTypeKey = row.com_value;                    // 제품 유형: j1, j2, j3
-  const lineTypeCode = productTypeMap[prodTypeKey];     // → s1, s2로 매핑
-  const prodCode = row.prod_code;                       // ✅ 제품코드 추출
+    const prodTypeKey = row.com_value;                    // 제품 유형: j1, j2, j3
+    const lineTypeCode = productTypeMap[prodTypeKey];     // → s1, s2로 매핑
+    const prodCode = row.prod_code;                       // ✅ 제품코드 추출
 
-  if (!lineTypeCode || !prodCode) {
-    alert(`유효하지 않은 제품 정보입니다: type=${lineTypeCode}, code=${prodCode}`);
-    return;
-  }
-
-  try {
-    const response = await axios.get('/api/prdp/line', {
-      params: {
-        type: lineTypeCode,    // ex: s1
-        prodCode: prodCode     // ex: P001
-      }
-    });
-
-    lines.value = response.data;
-    linePopupVisible.value = true;
-  } catch (error) {
-    console.error('❌ 라인 조회 실패:', error);
-    alert('라인 정보를 불러오는 데 실패했습니다.');
-  }
-};
-
-
-  // 🔍 제품명 팝업 열릴 때 데이터 조회
+    if (!lineTypeCode || !prodCode) {
+      alert(`유효하지 않은 제품 정보입니다: type=${lineTypeCode}, code=${prodCode}`);
+      return;
+    }
+    try {
+      const response = await axios.get('/api/prdp/line', {
+        params: {
+          type: lineTypeCode,    // ex: s1
+          prodCode: prodCode     // ex: P001
+        }
+      });
+      lines.value = response.data;
+      linePopupVisible.value = true;
+    } catch (error) {
+      alert('라인 정보를 불러오는 데 실패했습니다.');
+    }
+  };
+  // 제품명 팝업 열릴 때 데이터 조회
  watch(productPopupVisible, async (visible) => {
   if (visible) {
     try {
       const response = await axios.get('/api/prdp/product');
-
       // disabled 플래그 추가하여 products 세팅
       products.value = response.data.map(item => ({
         prod_code: item.prod_code,
@@ -181,9 +164,8 @@
         unit: item.unit,
         spec: item.spec
       }));
-
     } catch (error) {
-      console.error('제품 목록 조회 실패:', error);
+      alert('오류가 발생했습니다. 다시 시도해주세요.');
     }
   } else {
     products.value = [];
@@ -193,20 +175,16 @@
   // 📡 생산계획 상세 데이터를 로드하는 함수
   const loadPlanDetails = async () => {
     try {
-      // ✅ 기존 데이터 초기화
+      // 기존 데이터 초기화
       productRows.value = [];
-
       const response = await axios.get(`/api/prdp/detail/one?prdp_code=${props.prdp}`);
-
       const detailData = response.data;
-
       // 실제 화면에 뿌릴 데이터 적용
       detailData.forEach(detail => {
         productRows.value.push(detail);
       });
-
     } catch (err) {
-      console.error('❌ 상세 데이터 조회 실패:', err);
+      alert('오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
