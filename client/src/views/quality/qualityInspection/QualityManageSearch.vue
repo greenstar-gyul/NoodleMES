@@ -1,13 +1,10 @@
 <script setup>
 import { ref, watch } from 'vue';
 import Button from 'primevue/button';
-import LabeledTextarea from '../../../components/registration-bar/LabeledTextarea.vue';
 import LabeledInput from '../../../components/registration-bar/LabeledInput.vue';
 import axios from 'axios';
-import EquipIIMapping from '../../../service/EquipIIMapping';
 import QualitySinglePopup from './QualitySinglePopup.vue';
 import LabeledDatePicker from '../../../components/registration-bar/LabeledDatePicker.vue';
-import LabeledSelect from '../../../components/registration-bar/LabeledSelect.vue';
 import moment from 'moment';
 
 const emit = defineEmits(['updateList', 'updatePrdp', 'resetList', 'saveData', 'update:data', 'loadPrdrByQio', 'loadQirByQio']);
@@ -39,7 +36,6 @@ const formatDateForDB = (date) => {
         return null;
     }
     
-    // 날짜만! YYYY-MM-DD 형식
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -50,7 +46,7 @@ const formatDateForDB = (date) => {
 const parseDate = (dateString) => {
     if (!dateString) return null;
     if (typeof dateString === 'string') {
-        // ✅ 문자열에서 날짜 부분만 추출
+        // 문자열에서 날짜 부분만 추출
         const dateOnly = dateString.split('T')[0]; // "2025-06-01"
         return moment(dateOnly).toDate();
     }
@@ -66,15 +62,15 @@ const currentData = ref({
     emp_name: '정품질'
 });
 
-// ✅ 무한루프 방지용 플래그
+// 무한루프 방지용 플래그
 const isInternalUpdate = ref(false);
 
-// ✅ watch 수정 - 스마트한 업데이트 감지
+// watch 수정 - 스마트한 업데이트 감지
 watch(() => props.data, (newData, oldData) => {
     if (newData) {
-        console.log('🔄 Search - props.data 변경 감지:', newData.qio_code);
+        console.log('Search - props.data 변경 감지:', newData.qio_code);
         
-        // ✅ 실제로 데이터가 바뀌었는지 체크
+        // 실제로 데이터가 바뀌었는지 체크
         const hasChanged = !oldData || 
             oldData.qio_code !== newData.qio_code ||
             oldData.qio_date !== newData.qio_date ||
@@ -82,7 +78,7 @@ watch(() => props.data, (newData, oldData) => {
             oldData.emp_name !== newData.emp_name;
 
         if (hasChanged) {
-            console.log('✅ Search - 실제 데이터 변경 확인, 업데이트 진행');
+            console.log('Search - 실제 데이터 변경 확인, 업데이트 진행');
             
             currentData.value = {
                 qio_code: newData.qio_code || '',
@@ -93,16 +89,16 @@ watch(() => props.data, (newData, oldData) => {
                 emp_name: newData.emp_name || '정품질'
             };
             
-            console.log('✨ Search - currentData 업데이트 완료!');
+            console.log('Search - currentData 업데이트 완료!');
         } else {
-            console.log('⏭️ Search - 동일한 데이터이므로 스킵');
+            console.log('Search - 동일한 데이터이므로 스킵');
         }
     }
 }, { immediate: true, deep: true });
 
-// ✅ 업데이트 함수들도 플래그 사용
+// 업데이트 함수들도 플래그 사용
 const updateInstDate = (newDate) => {
-    console.log('📅 검사예정일 업데이트:', newDate);
+    console.log('검사예정일 업데이트:', newDate);
     emit('update:data', {
         ...props.data,
         insp_date: formatDateForDB(newDate)
@@ -110,7 +106,7 @@ const updateInstDate = (newDate) => {
 };
 
 const updateQioDate = (newDate) => {
-    console.log('📅 지시일자 업데이트:', newDate);
+    console.log('지시일자 업데이트:', newDate);
     emit('update:data', {
         ...props.data,
         qio_date: formatDateForDB(newDate)
@@ -118,7 +114,7 @@ const updateQioDate = (newDate) => {
 };
 
 const updateEmp = (newEmp) => {
-    console.log('👤 지시자 업데이트:', newEmp);
+    console.log('지시자 업데이트:', newEmp);
     emit('update:data', {
         ...props.data,
         emp_name: newEmp
@@ -172,7 +168,7 @@ const loadSelectedPlan = async (value) => {
         return;
     }
 
-    // ✅ 내부 업데이트 플래그 설정
+    // 내부 업데이트 플래그 설정
     isInternalUpdate.value = true;
 
     // 부모에게 데이터 업데이트 알림
@@ -239,11 +235,11 @@ const qios = ref([]);
 
     <!-- 팝업 컴포넌트 -->
     <QualitySinglePopup v-model:visible="qioPopupVisibil" :items="qios" @confirm="loadSelectedPlan"
-        :selectedHeader="['qio_code', 'insp_date', 'prdr_code', 'mpr_code', 'emp_name']" :mapper="{
+        :selectedHeader="['qio_code', 'insp_date', 'prdr_code', 'mpr_d_code', 'emp_name']" :mapper="{
             qio_code: '품질검사지시 코드',
             insp_date: '지시일자',
             prdr_code: '공급업체 코드',
-            mpr_code: '구매 코드',
+            mpr_d_code: '구매 코드',
             emp_name: '지시자'
         }" :dataKey="'qio_code'" :placeholder="'지시서 불러오기'">
     </QualitySinglePopup>

@@ -73,7 +73,8 @@ export const useOrderListStore = defineStore('orderListStore', () => {
         delivery_date: formatDate(order.delivery_date)
       }));
     } catch (err) {
-      console.error('주문 목록 조회 실패:', err);
+      // console.error('주문 목록 조회 실패:', err);
+      alert('주문 목록 조회에 실패했습니다.');
     }
   }
 
@@ -95,7 +96,7 @@ export const useOrderListStore = defineStore('orderListStore', () => {
       delivery_date: formatDate(order.delivery_date)
     }));
     // console.log("🔍 검색 파라미터 전송 확인:", params);
-    console.log("🔍 [디버그] 검색 조건 원본:", search.value);
+    // console.log("🔍 [디버그] 검색 조건 원본:", search.value);
     // console.log("🧪 [디버그] 날짜 파싱 후 params:", {
     //   ord_date_from: formatDate(search.value.ord_date_from),
     //   ord_date_to: formatDate(search.value.ord_date_to),
@@ -103,7 +104,8 @@ export const useOrderListStore = defineStore('orderListStore', () => {
     //   delivery_date_to: formatDate(search.value.delivery_date_to),
     // });
   } catch (err) {
-    console.error('검색 조건 주문 조회 실패:', err);
+    // console.error('검색 조건 주문 조회 실패:', err);
+    alert('검색 조건 주문 조회에 실패했습니다.');
   }
 }
 
@@ -116,7 +118,8 @@ export const useOrderListStore = defineStore('orderListStore', () => {
         value: client.client_name
       }));
     } catch (err) {
-      console.error('거래처 조회 실패:', err);
+      // console.error('거래처 조회 실패:', err);
+      alert('거래처 목록 조회에 실패했습니다.');
     }
   }
 
@@ -129,7 +132,8 @@ export const useOrderListStore = defineStore('orderListStore', () => {
         value: stat.status_code
       }));
     } catch (err) {
-      console.error('주문상태 조회 실패:', err);
+      // console.error('주문상태 조회 실패:', err);
+      alert('주문 상태 목록 조회에 실패했습니다.');
     }
   }
 

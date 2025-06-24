@@ -113,6 +113,15 @@ watch(() => wsStore.messages, (messages) => {
       make_qtt: latest.makeQtt || latest.make_qtt
     });
   }
+  else if (latest?.type === 'MATERIAL_SHORTAGE') {
+    console.warn('⚠️ 자재 부족 메시지 수신:', latest.message);
+    // 자재 부족 처리 로직 추가 가능
+    alert(`생산에 필요한 자재가 부족합니다.\n${latest.message}`);
+  }
+  else if (latest?.type === 'ERROR') {
+    console.error('❌ 오류 메시지 수신:', latest.message);
+    // 오류 처리 로직 추가 가능
+  }
   else {
     console.warn('❓ 알 수 없는 메시지 타입:', latest.type);
   }

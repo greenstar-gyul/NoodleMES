@@ -434,4 +434,44 @@ router.post('/qir', async (req, res) => {
     });
   }
 });
+
+// insertPinbnd의 라우터
+
+router.post('/pinbnd', async (req, res) => {
+  try {
+    const pinbndData = req.body;
+
+    console.log('📦 받은 데이터:', pinbndData);
+
+    // 필수 값 검증
+    if (!pinbndData.qtt || !pinbndData.pinbnd_date || !pinbndData.qir_code || !pinbndData.qir_emp_code || !pinbndData.prod_name) {
+      return res.status(400).json({ success: false, message: '필수 값이 누락되었습니다.' });
+    }
+
+    // 품목 코드 조회
+    const prodCode = await qltService.getProdCodeByName(pinbndData.prod_name);
+    if (!prodCode) {
+      return res.status(400).json({ success: false, message: '존재하지 않는 품목명입니다.' });
+    }
+
+    // 직원 코드 조회
+    const empCode = await qltService.getEmpCodeByQirEmpCode(pinbndData.qir_emp_code);
+    if (!empCode) {
+      return res.status(400).json({ success: false, message: '존재하지 않는 직원 코드입니다.' });
+    }
+
+    // 완제품 등록
+    const result = await qltService.insertPinbnd({
+      ...pinbndData,
+      mcode: empCode,
+      prod_code: prodCode
+    });
+
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    console.error('❌ 완제품 등록 실패:', error);
+    res.status(500).json({ success: false, message: '서버 오류가 발생했습니다.' });
+  }
+});
+
 module.exports = router;

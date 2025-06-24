@@ -11,22 +11,18 @@ made by KMS
 const selectAllMatInList =
 `
 SELECT min.minbnd_code
-	    ,min.mat_code
-      ,mat.material_type_code
-      ,comm_name(mat.material_type_code) as 'comm_mat_type'
-      ,mat.unit
-      ,comm_name(mat.unit) as 'comm_unit'
+	  ,mat.mat_name
+      ,comm_name(min.mat_type) as 'mat_type'
+      ,comm_name(min.unit) as 'unit'
       ,min.inbnd_qtt
       ,min.inbnd_date
       ,min.ord_qtt
       ,min.qio_code
       ,min.lot_num
-      ,min.mat_sup
-      ,cli.client_name AS 'sup_name'
-      ,emp.emp_code
-      ,emp.emp_name as 'emp_name'
+      ,cli.client_name
+      ,emp.emp_name
 FROM   minbnd_tbl min
-LEFT OUTER JOIN mat_tbl mat
+LEFT JOIN mat_tbl mat
 	ON mat.mat_code = min.mat_code
 LEFT JOIN client_tbl cli
 	ON cli.client_code = min.mat_sup
@@ -63,6 +59,23 @@ LEFT JOIN emp_tbl emp
 WHERE  min.minbnd_code LIKE '%?%'
 `;
 
+// 날짜 조건 반영을 위한 주문 조회
+const selectMinListWithDate = `
+  SELECT DISTINCT o.ord_code,
+         o.ord_name,
+         o.ord_date,
+         o.note,
+         c.client_name,
+         comm_name(o.ord_stat) AS ord_stat,
+         d.ord_amount,
+         d.delivery_date
+  FROM ord_tbl o
+  INNER JOIN ord_d_tbl d ON o.ord_code = d.ord_code
+  LEFT JOIN client_tbl c ON o.client_code = c.client_code
+  WHERE o.ord_date BETWEEN ? AND ?
+  ORDER BY o.ord_code
+`;
+
 // 전체 자재기준정보 조회
 const selectAllMatList =
 `
@@ -76,14 +89,32 @@ FROM   mat_tbl mat
      ON  mat.sup = cl.client_code
 `;
 
+// 선택 자재정보 조회
+const selectSearchMat =
+`
+SELECT mat.mat_code
+	    ,mat.mat_name
+      ,comm_name(mat.unit) as 'unit'
+      ,comm_name(mat.material_type_code) as 'mat_type'
+      ,cl.client_name as 'sup_name'
+FROM   mat_tbl mat
+	 LEFT OUTER JOIN client_tbl cl
+     ON  mat.sup = cl.client_code
+WHERE mat_code = ?
+`;
+
 // 품질검사지시정보 전체 조회
 const selectAllQioList =
 `
-SELECT qio_code
-	    ,qio_date
-      ,prdr_code
-      ,po_code
-FROM   qio_tbl
+SELECT qio.qio_code,
+       mprd.mat_code,
+       mat.mat_name, 
+       qio.qio_date
+FROM   qio_tbl qio
+INNER JOIN mpr_d_tbl mprd
+        ON qio.mpr_d_code = mprd.mpr_d_code
+INNER JOIN mat_tbl mat
+        ON mprd.mat_code = mat.mat_code
 `
 ;
 
@@ -212,8 +243,11 @@ module.exports = {
   /* 조회*/ 
   selectAllMatInList,
   selectSearchMatInList,
+  selectMinListWithDate,
   selectAllMatList,
+  selectSearchMat,
   selectAllQioList,
+  
 
 
   /* 등록 */

@@ -24,7 +24,7 @@ const props = defineProps({
 
 const formatDateForDB = (date) => {
     if (!date) return null;
-    return moment(date).format('YYYY-MM-DD HH:mm:ss'); // KST 문자열 확정!
+    return moment(date).format('YYYY-MM-DD HH:mm:ss');
 };
 
 
@@ -56,7 +56,6 @@ watch(() => props.data, (newData) => {
             inst_emp_name: newData.inst_emp_name || 'EMP-10001'
         };
     }
-    console.log('props.data 변경 감지:', currentData.value);
 }, { immediate: true, deep: true });
 
 const updateInstDate = (newDate) => {
@@ -107,7 +106,6 @@ const deletePlan = async () => {
             alert('삭제에 실패했습니다.');
         }
     } catch (error) {
-        console.error('삭제 중 오류:', error);
         alert('삭제 중 오류가 발생했습니다.');
     }
 };
@@ -122,21 +120,25 @@ const statusOptions = [
 const loadPlansData = async () => {
     try {
         const response = await axios.get(`/api/eq/eqiiall`);
-        console.log('Plans data loaded:', response.data);
 
-        eqiis.value = response.data.map(item => ({
-            ...item,
-            inst_date: item.inst_date ? moment(item.inst_date).format('YYYY-MM-DD HH:mm:ss') : null,
-            chk_exp_date: item.chk_exp_date ? moment(item.chk_exp_date).format('YYYY-MM-DD HH:mm:ss') : null
-        }));
+        eqiis.value = response.data.map(item => {
+            const { stat, ...itemWithoutStat } = item;
+            
+            return {
+                ...itemWithoutStat,
+                inst_date: item.inst_date ? moment(item.inst_date).format('YYYY-MM-DD HH:mm:ss') : null,
+                chk_exp_date: item.chk_exp_date ? moment(item.chk_exp_date).format('YYYY-MM-DD HH:mm:ss') : null,
+                stat_display: getStatusLabel(item.stat),
+                original_stat: item.stat
+            };
+        });
 
     } catch (err) {
-        console.error('데이터 로딩 에러:', err);
+        alert('지시서 데이터를 불러오는 데 실패했습니다.');
     }
 };
 
 const loadSelectedPlan = async (value) => {
-    console.log('선택된 지시서:', value);
     if (!value || !value.eqii_code) {
         alert('지시서를 선택해주세요.');
         return;
@@ -146,7 +148,7 @@ const loadSelectedPlan = async (value) => {
         eqii_code: value.eqii_code,
         inst_date: formatDateForDB(value.inst_date),
         chk_exp_date: formatDateForDB(value.chk_exp_date),
-        stat: value.stat || '',
+        stat: value.original_stat || '',
         note: value.note || '',
         inst_emp_name: value.inst_emp_name || 'EMP-10001',
         inst_emp_code: value.inst_emp_code
@@ -163,6 +165,11 @@ const openPopup = async () => {
 const saveMRP = async () => {
     emit('saveData');
 }
+
+const getStatusLabel = (value) => {
+    const option = statusOptions.find(opt => opt.value === value);
+    return option ? option.label : value || '-';
+};
 
 const eqiiPopupVisibil = ref(false);
 const eqiis = ref([]);
@@ -201,7 +208,6 @@ const eqiis = ref([]);
         </div>
     </div>
 
-    <!-- 팝업 컴포넌트 -->
     <EqiiSinglePopup v-model:visible="eqiiPopupVisibil" :items="eqiis" @confirm="loadSelectedPlan"
         :mapper="EquipIIMapping" :dataKey="'eqii_code'" :placeholder="'지시서 불러오기'">
     </EqiiSinglePopup>

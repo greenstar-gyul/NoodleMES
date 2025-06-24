@@ -2,14 +2,13 @@
 import { onMounted, defineProps, defineEmits, computed, ref } from 'vue';
 import moment from 'moment';
 import EqTableWithExcel from '../components/EqTableWithExcel.vue';
-import eqiiMapping from '../../../service/EquipIIMapping';
 
 const props = defineProps({
   eqiidata: Array,
   required: true,
 });
 
-const pickedEqii = ref(null); // 선택된 Eqii 데이터
+const pickedEqii = ref(null);
 const emit = defineEmits(['initData', 'update:data']);
 
 const eqiiOption = [
@@ -22,7 +21,7 @@ const eqiiOption = [
 const getStatLabel = (statValue) => {
   if (!statValue) return '';
   const option = eqiiOption.find(opt => opt.value === statValue);
-  return option ? option.label : statValue; // 못 찾으면 원본 값 반환
+  return option ? option.label : statValue;
 };
 
 const formatDate = (dateString) => {
@@ -41,11 +40,9 @@ const formattedEqiiData = computed(() => {
   }));
 });
 
-// EqTableWithExcel에서 crctEqii을 받아온 것을 부모로 전달하는 함수
 const handleEqiiSelect = (eqii) => {
   pickedEqii.value = eqii;
-  console.log('선택된 Eqii:', eqii);
-  emit('update:data', eqii); // 부모 컴포넌트로 선택된 Eqii 데이터 전달
+  emit('update:data', eqii);
 };
 
 onMounted(() => {

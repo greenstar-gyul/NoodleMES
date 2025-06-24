@@ -22,7 +22,7 @@ export class NoodleClient {
         
         this.socket.onopen = () => {
           this.isConnected = true;
-          console.log('🔌 웹소켓 연결 성공!');
+          // console.log('웹소켓 연결 성공!');
           if (this.onConnect) this.onConnect();
           resolve(true);
         };
@@ -50,18 +50,19 @@ export class NoodleClient {
           this.isConnected = false;
           this.clientId = '';
           this.socket = null;
-          console.log(`🔌 연결 종료 (코드: ${event.code})`);
+          // console.log(`🔌 연결 종료 (코드: ${event.code})`);
           if (this.onDisconnect) this.onDisconnect(event);
         };
         
         this.socket.onerror = (error) => {
-          console.error('🚨 웹소켓 오류:', error);
+          // console.error('웹소켓 오류:', error);
           if (this.onError) this.onError(error);
           reject(error);
         };
         
       } catch (error) {
-        console.error('🚨 연결 실패:', error);
+        // console.error('연결 실패:', error);
+        alert('웹소켓 연결 실패! 서버가 실행 중인지 확인하세요.');
         if (this.onError) this.onError(error);
         reject(error);
       }
@@ -79,17 +80,18 @@ export class NoodleClient {
   // 메시지 전송
   send(message) {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      console.error('🚨 웹소켓이 연결되지 않았습니다!');
+      // console.error('웹소켓이 연결되지 않았습니다!');
+      alert('웹소켓이 연결되지 않았습니다! 서버가 실행 중인지 확인하세요.');
       return false;
     }
 
     try {
       const messageStr = typeof message === 'string' ? message : JSON.stringify(message);
       this.socket.send(messageStr);
-      console.log('📤 메시지 전송:', message);
+      // console.log('메시지 전송:', message);
       return true;
     } catch (error) {
-      console.error('🚨 메시지 전송 실패:', error);
+      // console.error('메시지 전송 실패:', error);
       return false;
     }
   }
@@ -99,7 +101,8 @@ export class NoodleClient {
   // 5초 Hello 테스트
   startHelloTest() {
     if (!this.isConnected) {
-      console.error('🚨 연결되지 않음!');
+      // console.error('연결되지 않음!');
+      alert('웹소켓이 연결되지 않았습니다! 서버가 실행 중인지 확인하세요.');
       return false;
     }
 
@@ -118,7 +121,7 @@ export class NoodleClient {
 
       if (count >= maxCount) {
         clearInterval(testInterval);
-        console.log('✅ Hello 테스트 완료!');
+        // console.log('Hello 테스트 완료!');
       }
     }, 1000);
 

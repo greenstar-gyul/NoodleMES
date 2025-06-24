@@ -8,7 +8,7 @@
                     <div class="font-semibold text-2xl">{{ title }}</div>
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
-                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined />
+                    <!-- <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined /> -->
                 </div>
             </div>
         </div>
@@ -23,7 +23,7 @@
             scrollHeight="400px"
             tableStyle="min-width: 50rem"
         >
-            <Column selectionMode="multiple" headerStyle="width: 3rem" />
+            <!-- <Column selectionMode="multiple" headerStyle="width: 3rem" /> -->
 
             <!-- 동적 컬럼 생성 -->
             <Column

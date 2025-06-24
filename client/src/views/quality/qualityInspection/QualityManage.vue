@@ -5,7 +5,6 @@ import QualityManageSearch from './QualityManageSearch.vue';
 import QualityManageMiddleTbl from './QualityManageMiddleTbl.vue';
 import QualityManageBottomTbl from './QualityManageBottomTbl.vue';
 import axios from 'axios';
-import moment from 'moment';
 import QualityManageInputForm from './QualityManageInputForm.vue';
 
 const currentQioCode = ref('');
@@ -43,17 +42,14 @@ const prdrList = ref({
 
 const combinedMiddleData = computed(() => {
     return {
-        // 기본 정보
         qio_code: qioInfo.value.qio_code || '',
 
-        // PRDR 필드들
         prdr_code: prdrList.value.prdr_code || '',
         po_name: prdrList.value.po_name || null,
         prod_name: prdrList.value.prod_name || '',
         end_date: prdrList.value.end_date || null,
         production_qtt: prdrList.value.production_qtt || '0',
 
-        // MPR 필드들
         mpr_code: mprList.value.mpr_code || '',
         mpr_d_code: mprList.value.mpr_d_code || '',
         mat_name: mprList.value.mat_name || '',
@@ -63,33 +59,25 @@ const combinedMiddleData = computed(() => {
     };
 });
 
-// 라우트 파라미터에서 qio_code 가져오기
 const getqioCodeFromRoute = () => {
     const qioCodeParam = route.params.qioCode;
-    console.log('라우트에서 가져온 qio_code:', qioCodeParam);
     return qioCodeParam || '';
 };
 
-// ✅ QIO 코드 변경 시 데이터 로딩 (watch 대신 직접 호출)
 const handleQioCodeChange = async (newCode) => {
-    console.log('QIO 코드 변경 처리:', newCode);
 
     if (!newCode || newCode === lastProcessedQioCode.value) {
-        console.log('중복 처리 방지:', newCode);
         return;
     }
 
     lastProcessedQioCode.value = newCode;
-    console.log('데이터 로딩 시작:', newCode);
 
-    // 병렬 처리
     try {
         await loadQioInfo(newCode);
         await loadPrdrInfoByQioCode(newCode);
         await loadMprInfoByQioCode(newCode);
         await loadQirInfoByQioCode(newCode);
     } catch (error) {
-        console.error('데이터 로딩 중 오류:', error);
     }
 
     selectedQir.value = {
@@ -108,11 +96,9 @@ const handleQioCodeChange = async (newCode) => {
         unpass_rate: '',
         note: ''
     };
-
-    console.log('🎯 InputForm에 QIO 기본 데이터 전달:', selectedQir.value);
 };
 
-// ✅ 특정 QIO 코드로 데이터 로딩
+// 특정 QIO 코드로 데이터 로딩
 const loadQioDataByCode = async (qioCodeParam) => {
     if (!qioCodeParam) return;
 
@@ -126,28 +112,25 @@ const loadQioDataByCode = async (qioCodeParam) => {
                 insp_date: response.data.data.insp_date ? new Date(response.data.data.insp_date) : null
             };
 
-            // 단순 할당만
             const qioCode = qioInfo.value.qio_code;
             currentQioCode.value = qioCode;
 
             // 데이터 로딩은 별도 호출
             await handleQioCodeChange(qioCode);
 
-            console.log('로딩된 qio_code:', qioCode);
         }
     } catch (error) {
-        console.error('데이터 로딩 실패:', error);
+        alert('지시서 정보를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.');
     }
 };
 
-// ✅ 컴포넌트 마운트 시 초기화
+// 컴포넌트 마운트 시 초기화
 onMounted(async () => {
     const qioCodeFromRoute = getqioCodeFromRoute();
 
     if (qioCodeFromRoute) {
         await loadQioDataByCode(qioCodeFromRoute);
     } else {
-        // 빈페이지일 때 QIR 전체 조회
         await loadSimpleQirList();
     }
 });
@@ -166,11 +149,10 @@ const formatDateForDB = (date) => {
     }
 
     if (isNaN(dateObj.getTime())) {
-        console.warn('잘못된 날짜 형식:', date);
+        alert('잘못된 날짜 형식입니다. 올바른 날짜를 입력해주세요.');
         return null;
     }
 
-    // 날짜만! YYYY-MM-DD 형식
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -183,44 +165,33 @@ const validateData = () => {
 
 };
 
-// ✅ 데이터 저장
+// 데이터 저장
 const saveData = async () => {
     const isNewQio = !qioInfo.value.qio_code || qioInfo.value.qio_code === '';
     try {
-        console.log('💾 저장 시작...');
-
-        // 📝 데이터 유효성 검증
+        // 데이터 유효성 검증
         if (!qioInfo.value.qio_date) {
-            alert('지시일자를 입력해줘! ㅠㅠ');
+            alert('지시일자를 입력해주세요.');
             return;
         }
 
         if (!qioInfo.value.insp_date) {
-            alert('검사예정일을 입력해줘! 😅');
+            alert('검사예정일을 입력해주세요.');
             return;
         }
 
         if (!qioInfo.value.emp_name) {
-            alert('지시자를 입력해줘! 🤔');
+            alert('지시자를 입력해주세요.');
             return;
         }
 
-        // 🎯 QIR 데이터 포맷팅 처리
+        // QIR 데이터 포맷팅 처리
         const formattedQirList = qioList.value.map(qir => {
-            console.log('🔄 QIR 포맷팅 중:', qir.qir_code);
-            console.log('- 원본 start_date:', qir.start_date);
-            console.log('- 원본 end_date:', qir.end_date);
-
-            console.log('🔍 원본 QIR 데이터 전체:', qir);
-            console.log('🔍 원본 inspection_item:', qir.inspection_item);
-            console.log('🔍 원본 qcr_code:', qir.qcr_code);
 
             const formattedQir = {
                 ...qir,
-                // 🎯 날짜+시간 포맷팅 (start_date, end_date)
                 start_date: formatDateTimeForDB(qir.start_date),
                 end_date: formatDateTimeForDB(qir.end_date),
-                // 숫자 필드들도 안전하게 변환
                 unpass_qtt: parseInt(qir.unpass_qtt) || 0,
                 pass_qtt: parseInt(qir.pass_qtt) || 0,
                 unpass_rate: parseFloat(qir.unpass_rate) || 0,
@@ -228,19 +199,13 @@ const saveData = async () => {
                 inspection_item: qir.inspection_item || '',
                 qcr_code: qir.qcr_code || '',
             };
-
-            console.log('✅ 포맷팅 완료:');
-            console.log('- 변환된 start_date:', formattedQir.start_date);
-            console.log('- 변환된 end_date:', formattedQir.end_date);
-
             return formattedQir;
         });
 
-        // 🔄 저장 API 호출
+        // 저장 API 호출
         const savePayload = {
             qioData: {
                 qio_code: qioInfo.value.qio_code || '',
-                // 🎯 QIO는 날짜만 (기존 함수 사용)
                 qio_date: formatDateForDB(qioInfo.value.qio_date),
                 insp_date: formatDateForDB(qioInfo.value.insp_date),
                 prdr_code: prdrList.value.prdr_code || null,
@@ -248,26 +213,74 @@ const saveData = async () => {
                 mpr_d_code: mprList.value.mpr_d_code || null,
                 emp_name: qioInfo.value.emp_name || '정품질'
             },
-            detailData: isNewQio ? [] : formattedQirList  // 🎯 포맷팅된 QIR 데이터!
+            // 포맷팅된 QIR 데이터!
+            detailData: isNewQio ? [] : formattedQirList
         };
 
-        console.log('📤 최종 저장 데이터:', savePayload);
+        console.log('최종 저장 데이터:', savePayload);
 
         const response = await axios.post('/api/qlt/qio/save-all', savePayload);
 
         if (response.data.success) {
-            alert('저장이 완료되었어! 🎉');
+            alert('저장이 완료되었습니다.');
 
             const newQioCode = response.data.data.qio_code;
             if (newQioCode) {
                 await forcedDataReload(newQioCode);
             }
+            await checkAndCreateFinishedProduct(formattedQirList);
         } else {
-            alert('저장에 실패했어 ㅠㅠ');
+            alert('저장에 실패했습니다.');
         }
     } catch (error) {
-        console.error('💥 저장 실패:', error);
-        alert('저장 중 오류가 발생했어! 😭\n' + (error.response?.data?.message || error.message));
+        alert('저장 중 오류가 발생했습니다.\n' + (error.response?.data?.message || error.message));
+    }
+};
+
+const checkAndCreateFinishedProduct = async (qirList) => {
+    try {
+        // 모든 QIR이 완료되었는지 확인
+        const allCompleted = qirList.every(qir => 
+            qir.end_date && qir.end_date !== '' && qir.pass_qtt > 0
+        );
+        
+        if (!allCompleted) {
+            alert('모든 품질검사가 완료되지 않았습니다. 검사를 모두 완료한 후 다시 시도해주세요.');
+            return;
+        }
+        
+        // 합격된 수량 계산
+        const totalPassQtt = qirList.reduce((sum, qir) => sum + (qir.pass_qtt || 0), 0);
+        
+        if (totalPassQtt === 0) {
+            alert('합격된 수량이 0이므로 완제품을 등록하지 않습니다.');
+            return;
+        }
+        
+        // 완제품 등록 데이터 준비
+        const pinbndData = {
+            qtt: totalPassQtt,
+            pinbnd_date: new Date().toISOString().split('T')[0],
+            note: `품질검사 완료 - QIO: ${qioInfo.value.qio_code}`,
+            qir_code: qirList[0]?.qir_code || '',
+            qir_emp_code: qirList[0]?.qir_emp_name || qioInfo.value.emp_name,
+            prod_name: prdrList.value.prod_name || '',
+        };
+        
+        
+        // 완제품 등록 API 호출
+        const pinbndResponse = await axios.post('/api/qlt/pinbnd', pinbndData);
+        
+        if (pinbndResponse.data.success) {
+            
+            alert(`완제품이 자동 등록되었습니다. \n완제품 코드: ${pinbndResponse.data.data.pinbnd_code}\nLOT 번호: ${pinbndResponse.data.data.lot_num}`);
+        } else {
+            alert('완제품 자동 등록에 실패했습니다.');
+        }
+        
+    } catch (error) {
+        console.error('완제품 자동 등록 중 오류:', error);
+        alert('완제품 자동 등록 중 오류가 발생했습니다.');
     }
 };
 
@@ -301,9 +314,9 @@ const formatDateTimeForDB = (date) => {
 
 const forcedDataReload = async (qioCode) => {
     try {
-        console.log('🔄 강제 데이터 새로고침 시작:', qioCode);
+        console.log('강제 데이터 새로고침 시작:', qioCode);
 
-        // 1️⃣ QIO 정보 다시 로드
+        // QIO 정보 다시 로드
         const qioResponse = await axios.get(`/api/qlt/qio/${qioCode}`);
         if (qioResponse.data && qioResponse.data.data) {
             const freshQioData = qioResponse.data.data;
@@ -318,18 +331,18 @@ const forcedDataReload = async (qioCode) => {
                 emp_name: freshQioData.emp_name || '정품질'
             };
 
-            console.log('✅ QIO 정보 새로고침 완료');
+            console.log('QIO 정보 새로고침 완료');
         }
 
-        // 2️⃣ QIR 목록 다시 로드 (DB에서)
+        // QIR 목록 다시 로드 (DB에서)
         await loadQirInfoByQioCode(qioCode);
 
-        // 3️⃣ 생산실적 정보 다시 로드
+        // 생산실적 정보 다시 로드
         await loadPrdrInfoByQioCode(qioCode);
 
         await loadMprInfoByQioCode(qioCode);
 
-        // 4️⃣ currentQioCode 업데이트
+        // currentQioCode 업데이트
         currentQioCode.value = qioCode;
         lastProcessedQioCode.value = qioCode;
 
@@ -340,7 +353,7 @@ const forcedDataReload = async (qioCode) => {
     }
 };
 
-// ✅ 데이터 초기화
+// 데이터 초기화
 const resetData = () => {
     qioList.value = [];
     qioInfo.value = {
@@ -376,7 +389,7 @@ const resetData = () => {
     selectedQir.value = null;
 };
 
-// ✅ QIO 목록 로딩 (실제로는 QIR 목록을 qioList에 로딩)
+// QIO 목록 로딩 (실제로는 QIR 목록을 qioList에 로딩)
 const loadQioInfo = async (qioCodeParam) => {
     if (qioCodeParam && qioCodeParam !== '') {
         try {
@@ -391,7 +404,7 @@ const loadQioInfo = async (qioCodeParam) => {
     }
 };
 
-// ✅ 생산실적 정보 로딩
+// 생산실적 정보 로딩
 const loadPrdrInfoByQioCode = async (qioCodeParam) => {
     console.log('검사지시에 연결된 생산실적 자동 로딩:', qioCodeParam);
 
@@ -502,14 +515,14 @@ const loadQirInfoByQioCode = async (qioCodeParam) => {
     }
 };
 
-// 🎯 새로운 메모리 관리 함수들
+// 새로운 메모리 관리 함수들
 const addQirToMemory = (newQirData) => {
-    console.log('📥 메모리에 QIR 추가:', newQirData);
+    console.log('메모리에 QIR 추가:', newQirData);
 
     // qioList에 추가 (이게 BottomTbl에 표시됨)
     qioList.value.push(newQirData);
 
-    console.log('✅ 메모리 추가 완료, 현재 목록:', qioList.value.length, '건');
+    console.log('메모리 추가 완료, 현재 목록:', qioList.value.length, '건');
 
     // BottomTbl 선택 해제
     if (bottomTblRef.value && bottomTblRef.value.clearSelection) {
@@ -518,21 +531,21 @@ const addQirToMemory = (newQirData) => {
 };
 
 const updateQirInMemory = (updatedQirData) => {
-    console.log('📝 메모리에서 QIR 수정:', updatedQirData);
+    console.log('메모리에서 QIR 수정:', updatedQirData);
 
     // qioList에서 해당 QIR 찾아서 수정
     const index = qioList.value.findIndex(item => item.qir_code === updatedQirData.qir_code);
 
     if (index !== -1) {
         qioList.value[index] = { ...updatedQirData };
-        console.log('✅ 메모리 수정 완료');
+        console.log('메모리 수정 완료');
 
         // BottomTbl 선택 해제
         if (bottomTblRef.value && bottomTblRef.value.clearSelection) {
             bottomTblRef.value.clearSelection();
         }
     } else {
-        console.warn('❌ 수정할 QIR을 찾을 수 없음');
+        console.warn('수정할 QIR을 찾을 수 없음');
     }
 };
 
@@ -541,7 +554,7 @@ const deleteSelectedQir = (selectedItems) => {
     console.log('QIR 삭제 요청:', selectedItems);
 
     if (!selectedItems || selectedItems.length === 0) {
-        alert('삭제할 QIR을 선택해주세요! 🤔');
+        alert('삭제할 QIR을 선택해주세요.');
         return;
     }
 
@@ -549,11 +562,11 @@ const deleteSelectedQir = (selectedItems) => {
         return;
     }
 
-    // ✅ 진짜 삭제 처리!
+    // 진짜 삭제 처리!
     selectedItems.forEach(selectedItem => {
         const index = qioList.value.findIndex(qir => qir.qir_code === selectedItem.qir_code);
         if (index !== -1) {
-            console.log('🗑️ 메모리에서 QIR 삭제:', qioList.value[index].qir_code);
+            console.log('메모리에서 QIR 삭제:', qioList.value[index].qir_code);
             qioList.value.splice(index, 1);
         }
     });
@@ -563,7 +576,7 @@ const deleteSelectedQir = (selectedItems) => {
         bottomTblRef.value.clearSelection();
     }
 
-    alert(`${selectedItems.length}개의 QIR이 삭제 예정 목록에 추가되었어! 저장하면 완전히 삭제돼! 🎉`);
+    alert(`${selectedItems.length}개의 QIR이 삭제 예정 목록에 추가되었습니다. 저장하면 완전히 삭제됩니다.`);
 };
 
 // QIR 엑셀 다운로드
@@ -580,7 +593,7 @@ const loadSimpleQirList = async () => {
 
         if (response.data && response.data.success) {
             qirList.value = response.data.data || [];
-            qioList.value = [...qirList.value];  // 복사
+            qioList.value = [...qirList.value];
         } else {
             qirList.value = [];
             qioList.value = [];
@@ -619,7 +632,7 @@ const onSelectionChange = async (selectedItems) => {
     if (selectedItems && selectedItems.length === 1) {
         const selectedItem = selectedItems[0];
 
-        // 🎯 선택된 QIR의 상세 정보 로딩 (수정 모드)
+        // 선택된 QIR의 상세 정보 로딩 (수정 모드)
         if (selectedItem.qir_code && !selectedItem.qir_code.startsWith('QIR-TEMP-')) {
             // DB에서 상세 정보 로딩
             try {
@@ -643,7 +656,7 @@ const onSelectionChange = async (selectedItems) => {
             selectedQir.value = selectedItem;
         }
     } else {
-        // 🔄 선택 해제 시 - QIO 코드가 있으면 기본 모드로 유지!
+        // 선택 해제 시 - QIO 코드가 있으면 기본 모드로 유지!
         if (currentQioCode.value) {
             selectedQir.value = {
                 qio_code: currentQioCode.value,
@@ -663,11 +676,11 @@ const onSelectionChange = async (selectedItems) => {
                 note: ''
 
             };
-            console.log('🎯 QIR 선택 해제, QIO 기본 모드 유지:', selectedQir.value);
+            console.log('QIR 선택 해제, QIO 기본 모드 유지:', selectedQir.value);
         } else {
             // QIO 코드가 없으면 완전히 초기화
             selectedQir.value = null;
-            console.log('🚫 QIO 코드 없음, 완전 초기화');
+            console.log('QIO 코드 없음, 완전 초기화');
         }
     }
 };
@@ -704,7 +717,7 @@ const onDataUpdated = async () => {
     }
 };
 
-// ✅ qioInfo 업데이트 함수 (무한루프 방지)
+// qioInfo 업데이트 함수 (무한루프 방지)
 const updateqioInfo = async (newData) => {
     console.log('qioInfo 업데이트:', newData);
 
@@ -766,7 +779,7 @@ const updateqioList = async (newList) => {
 
 <template>
     <div>
-        <div class="flex flex-col lg:flex-row gap-6 mt-4">
+        <div class="grid grid-cols-2 gap-4 mt-4">
             <QualityManageSearch :data="qioInfo" @loadPrdrByQio="loadPrdrInfoByQioCode"
                 @loadQirByQio="loadQirListByQioCode" @update:data="updateqioInfo" @reset-list="resetData"
                 @save-data="saveData">
@@ -775,9 +788,8 @@ const updateqioList = async (newList) => {
                 @reset-list="resetData" @save-data="saveData">
             </QualityManageMiddleTbl>
         </div>
-
-        <div class="flex flex-col lg:flex-row gap-6 mt-6">
-            <div class="space-y-6" style="width: 43%">
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <!-- <div class="space-y-6" style="width: 43%"> -->
                 <QualityManageBottomTbl ref="bottomTblRef" :data="qioList" :dataKey="'qir_code'" :title="'품질검사결과 목록'"
                     :columns="[
                         'qir_code',
@@ -790,7 +802,7 @@ const updateqioList = async (newList) => {
                         result: '검사결과',
                         qio_date: '지시일자'
                     }" @selection-change="onSelectionChange" @delete="deleteSelectedQir" @export="exportQirToExcel" />
-            </div>
+            <!-- </div> -->
             <QualityManageInputForm :selectedData="selectedQir" @data-updated="onDataUpdated"
                 @add-to-memory="addQirToMemory" @update-in-memory="updateQirInMemory" />
         </div>

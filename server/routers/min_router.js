@@ -41,11 +41,65 @@ router.get('/min', async (req, res) => {
     }
 });
 
+// 구간 날짜에 맞는 자재입고 목록 조회
+router.get('/minDate', async (req, res) => {
+    const { inbndDateFrom, inbndDateTo } = req.query;
+    // console.log(inbndDateFrom);
+    // console.log(inbndDateTo);
+    try {
+        // 둘 다 존재하는 경우에만 진행
+        if (!inbndDateFrom || !inbndDateTo) {
+            return res.status(400).json({
+                result_code: "FAIL",
+                message: "실패",
+                error: "inbndDateFrom 또는 inbndDateTo 누락되었습니다."
+            });
+        }
+
+        const result = await minService.findMinsWithDate(inbndDateFrom, inbndDateTo);
+
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        // console.error("조회 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
 
 // 전체 자재기본 정보 조회
 router.get('/mat', async (req, res) => {
     try {
         const result = await minService.findAllMat();
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        console.error("mrp 목록 조회 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
+
+// 선택 자재 정보 조회
+router.get('/selmat', async (req, res) => {
+    // console.log('테스트');
+    // console.log(req.query);
+    // console.log(req.query.mat_code);
+    const mat = req.query.mat_code;
+    try {
+        const result = await minService.findSelMat(mat);
         res.json({
             result_code: "SUCCESS",
             message: "성공",

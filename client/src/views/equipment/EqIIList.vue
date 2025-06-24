@@ -19,49 +19,37 @@ const initData = async () => {
     const result = await axios.get('/api/eq/eqiiall');
     originalData.value = result.data;
     eqiiData.value = result.data; 
-    console.log('초기 데이터 로드 완료:', result.data.length, '건');
   } catch (err) {
-    console.error('초기 데이터 로드 실패:', err);
+    alert('초기 데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.');
   } 
 }
 
-// update:data 이벤트 핸들러
 const updateData = (selectedEqii) => {
   
   if (selectedEqii && selectedEqii[0].eqii_code) {
     router.push({
-      name: 'eqiilist',  // 실제 라우터 이름으로 변경
+      name: 'eqiilist',
       params: { eqiiCode: selectedEqii[0].eqii_code }
     });
     
   } else {
-    console.warn('선택된 Eqii 데이터가 잘못되었습니다.');
+    alert('선택된 Eqii 데이터가 잘못되었습니다. 다시 시도해주세요.');
   }
 };
 
-// moveToEqiilist 함수
-// 해당 페이지 내에서 내부 컴포넌트를 통해 조회하므로 주소에 {eqCode} 형식이 아니라, 직접 인수를 전달해야할듯?
-// 따라서 거기로 보낼 emit 작성
+
 const moveToEqiilist = (eqCode) => {
-  console.log('이동할 eqCode:', eqCode);
-  // 검색 조건 초기화
   searchRef.value.resetSearch();
   
-  // eqiiData를 초기 데이터로 설정
   eqiiData.value = originalData.value.filter(item => item.eq_code === eqCode);
   
-  // 검색 컴포넌트에 eqCode 전달
   searchRef.value.setEqCode(eqCode);
 };
 
 const handleSearch = async (searchParams) => {
     try {
-        console.log('🔍 검색 조건:', searchParams);
-        
-        // 검색 API 호출
         const params = new URLSearchParams();
         
-        // null이나 빈 값이 아닌 경우만 파라미터에 추가
         if (searchParams.eqii_code) params.append('eqii_code', searchParams.eqii_code);
         if (searchParams.stat) params.append('stat', searchParams.stat);
         if (searchParams.inst_emp_name) params.append('inst_emp_name', searchParams.inst_emp_name);
@@ -73,16 +61,15 @@ const handleSearch = async (searchParams) => {
         if (response.data.success) {
             eqiiData.value = response.data.data;
         } else {
-            console.error('검색 실패:', response.data.error);
+            alert('검색 결과가 없습니다.');
             eqiiData.value = [];
         }
     } catch (error) {
-        console.error('🚨 검색 오류:', error);
+        alert('검색 중 오류가 발생했습니다. 다시 시도해주세요.');
         eqiiData.value = [];
     }
 };
 
-// 검색 조건 초기화
 const resetSearch = () => {
   eqiiData.value = [...originalData.value];
 };
@@ -107,7 +94,6 @@ onMounted(() => {
     @update:data="updateData"
   />
  
-  <!-- 조건 미일치 메시지 -->
   <div v-if="eqiiData.length === 0" class="text-center text-gray-500 mt-4">
     조건에 맞는 데이터가 없습니다.
   </div>

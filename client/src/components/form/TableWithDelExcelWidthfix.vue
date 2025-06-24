@@ -12,7 +12,7 @@ const selectedWDE = ref([]); // single일 경우
 
 watch(selectedWDE, (newVal) => {
   if (newVal) {
-    console.log('✅ 선택된 제품:', newVal);
+    // console.log('✅ 선택된 제품:', newVal);
     emit('row-click', newVal);
   }
 });
@@ -107,7 +107,7 @@ const prdrCodeTemplate = (rowData) => {
                 </div>
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" />
-                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined />
+                    <!-- <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined /> -->
                 </div>
             </div>
         </div>

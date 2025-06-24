@@ -7,20 +7,12 @@ import axios from 'axios';
 import moment from 'moment';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import orderMapping from '@/service/OrderMapping';
-import productMapping from '@/service/ProductMapping.js';
 import clientMapping from '@/service/ClientMapping.js';
 
 import LabeledInput from '@/components/registration-bar/LabeledInput.vue';
 import LabeledInputIcon from '@/components/registration-bar/LabeledInputIcon.vue';
 import LabeledTextarea from '@/components/registration-bar/LabeledTextarea.vue';
-import LabeledSelect from '@/components/registration-bar/LabeledSelect.vue';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
 import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import InputNumber from 'primevue/inputnumber';
-import Calendar from 'primevue/calendar';
-import { Select } from 'primevue';
 
 // 상위 컴포넌트에서 전달받은 props
 const props = defineProps({
@@ -79,7 +71,7 @@ const handleReset = () => {
 
     // 제품 목록 초기화, store 함수 사용
     resetProductRows();
-    console.log('초기화 완료 (주문 + 제품 목록)');
+    // console.log('초기화 완료 (주문 + 제품 목록)');
 };
 
 //삭제
@@ -98,14 +90,13 @@ const handleDelete = async () => {
       handleReset(); // 초기화 함수 호출
       alert('주문이 삭제되었습니다.');
     } catch (error) {
-      console.error('주문 삭제 실패:', error);
+      // console.error('주문 삭제 실패:', error);
       alert('주문 삭제 중 오류가 발생했습니다.');
     }
 };
 
 //저장
 const handleSave = async () => {
-  console.log("등록자 코드 (mcode):", props.empCode.value);
   
   if (!props.ordName.value || !props.selectedClient.value) {
     alert('주문명과 거래처는 필수입니다.');
@@ -127,8 +118,8 @@ const handleSave = async () => {
   };
 
   const details = productRows.value.map(item => ({
-    unit: item.unit,
-    spec: item.spec,
+    unit: item.unit_code,
+    spec: item.spec_code,
     ord_amount: item.ord_amount,
     prod_price: item.prod_price,
     delivery_date:moment(item.delivery_date).format("YYYY-MM-DD"),
@@ -151,7 +142,7 @@ const handleSave = async () => {
     await loadOrders(); // 주문 목록 재조회
     handleReset();
   } catch (err) {
-    console.error('주문 저장 실패:', err);
+    // console.error('주문 저장 실패:', err);
     alert('주문 저장 중 오류 발생');
   }
 };
@@ -171,13 +162,14 @@ const loadOrders = async () => {
       ord_date: moment(order.ord_date).format('YYYY-MM-DD')
     }));
   } catch (err) {
-    console.error('주문 목록 로딩 실패:', err);
+    // console.error('주문 목록 로딩 실패:', err);
+    alert('주문 목록 로딩 중 오류 발생');
   }
 };
 
 // 주문정보 팝업 Confirm 핸들러
 const handleConfirm = async (selectedOrder) => {
-  console.log('선택된 주문:', selectedOrder);
+  // console.log('선택된 주문:', selectedOrder);
 
   try {
     // 주문 상세 조회
@@ -202,7 +194,8 @@ const handleConfirm = async (selectedOrder) => {
     props.selectedClient.value = selectedOrder.client_code;
     props.empCode.value= selectedOrder.mcode;
   } catch (err) {
-    console.error('주문 상세 조회 실패:', err);
+    // console.error('주문 상세 조회 실패:', err);
+    alert('주문 상세 조회 중 오류 발생');
   }
 };
 
@@ -222,7 +215,8 @@ onMounted(async () => {
     // 전체 목록 저장
     allClients.value = clientList;
   } catch (err) {
-    console.error('데이터 로딩 실패:', err);
+    // console.error('데이터 로딩 실패:', err);
+    alert('거래처 목록을 불러오는 데 실패했습니다.');
   }
 });
 

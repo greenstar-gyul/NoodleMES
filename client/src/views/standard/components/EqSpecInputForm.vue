@@ -61,7 +61,7 @@
                 <InputText v-model="ectForm.unit" type="text" class="w-full" />
             </div>
             <div>
-                <LabeledDatePicker v-model="ectForm.regdate" label="등록일자" placeholder="날짜를 선택" :disabled="false" />
+                <LabeledDatePicker v-model="ectForm.regdate" label="등록일자" placeholder="날짜를 선택" :disabled="true" />
             </div>
         </div>
 
@@ -75,7 +75,7 @@
         <!-- 비고 -->
         <div>
             <label class="font-semibold text-xl block mb-2">비고</label>
-            <Textarea placeholder="특이사항 입력" :autoResize="true" rows="4" class="w-full" />
+            <Textarea v-model="ectForm.note" placeholder="특이사항 입력" :autoResize="true" rows="4" class="w-full" />
         </div>
     </div>
     <!-- <SinglePopup v-model:visible="dialogVisible" :items="clients" @confirm="handleConfirm" :mapper="clientMapper" -->
@@ -111,7 +111,7 @@ const ectForm = ref({
     range_bot: '',
     unit: '',
     jdg_mth: '',
-    regdate: '',
+    regdate: new Date(),
     crrdate: '',
     note: ''
 });
@@ -151,7 +151,7 @@ const resetForm = async () => {
         range_bot: '',
         unit: '',
         jdg_mth: '',
-        regdate: null,
+        regdate: new Date(),
         note: ''
     };
 
@@ -163,7 +163,7 @@ watch(
     () => props.selectedData,
     (newData) => {
         if (newData) {
-            console.log('📝 선택된 데이터를 폼에 설정:', newData);
+            // console.log('📝 선택된 데이터를 폼에 설정:', newData);
             // 선택된 데이터를 폼에 채우기
             ectForm.value = {
                 chk_type_code: newData.chk_type_code || '',
@@ -199,7 +199,7 @@ const formatDateForDB = (date) => {
 // 설비 등록 함수
 const saveEqiChkType = async () => {
     try {
-        console.log('설비점검항목 등록:', ectForm.value);
+        // console.log('설비점검항목 등록:', ectForm.value);
 
         // 필수 필드 검증
         if (!ectForm.value.eq_type || !ectForm.value.chk_text) {
@@ -211,23 +211,23 @@ const saveEqiChkType = async () => {
             ...ectForm.value,
             range_top: ectForm.value.range_top ? parseFloat(ectForm.value.range_top) : null,  // 숫자 변환
             range_bot: ectForm.value.range_bot ? parseFloat(ectForm.value.range_bot) : null,
-            regdate: formatDateForDB(ectForm.value.regdate) || formatDateForDB(new Date())
+            regdate: formatDateForDB(new Date())
         };
 
 
         const response = await axios.post('/api/eqichk', submitData);
 
         if (response.data.success) {
-            console.log('점검항목 등록 완료');
+            // console.log('점검항목 등록 완료');
             alert('점검항목가 성공적으로 등록되었습니다.');
             await resetForm();
             emit('data-updated'); // 부모에게 데이터 업데이트 알림
         } else {
-            console.error('등록 실패:', response.data.error);
+            // console.error('등록 실패:', response.data.error);
             alert('점검항목 등록에 실패했습니다.');
         }
     } catch (error) {
-        console.error('점검항목 등록 실패:', error);
+        // console.error('점검항목 등록 실패:', error);
         alert('점검항목 등록 중 오류가 발생했습니다.');
     }
 };
@@ -235,7 +235,7 @@ const saveEqiChkType = async () => {
 // 점검항목 수정 함수
 const updateEqChkType = async () => {
     try {
-        console.log('점검항목 수정:', ectForm.value);
+        // console.log('점검항목 수정:', ectForm.value);
 
         // 필수 필드 검증
         if (!ectForm.value.chk_text) {
@@ -248,32 +248,42 @@ const updateEqChkType = async () => {
             range_top: ectForm.value.range_top ? parseFloat(ectForm.value.range_top) : null,  // 숫자 변환
             range_bot: ectForm.value.range_bot ? parseFloat(ectForm.value.range_bot) : null,
             regdate: formatDateForDB(ectForm.value.regdate) || formatDateForDB(new Date()),
-            crrdate: formatDateForDB(ectForm.value.regdate) || formatDateForDB(new Date())
+            crrdate: formatDateForDB(new Date())
         };
 
 
         const response = await axios.put(`/api/eqichk/${ectForm.value.chk_type_code}`, submitData);
 
         if (response.data.success) {
-            console.log('점검항목 수정 완료');
+            // console.log('점검항목 수정 완료');
             alert('점검항목이 성공적으로 수정되었습니다.');
             await resetForm();
             emit('data-updated'); // 부모에게 데이터 업데이트 알림
         } else {
-            console.error('수정 실패:', response.data.error);
+            // console.error('수정 실패:', response.data.error);
             alert('점검항목 수정에 실패했습니다.');
         }
     } catch (error) {
-        console.error('점검항목 수정 실패:', error);
+        // console.error('점검항목 수정 실패:', error);
         alert('점검항목 수정 중 오류가 발생했습니다.');
     }
 };
 
 // 수정 취소 함수
 const cancelEdit = () => {
-    console.log('수정 취소');
+    // console.log('수정 취소');
     emit('data-updated'); // 부모에서 선택 해제하도록 알림
 };
+
+const handleReset = async () => {
+    // console.log('🔄 부모로부터 초기화 신호 받음!');
+    await resetForm();
+};
+
+defineExpose({
+    resetForm: handleReset
+});
+
 </script>
 
 <style scoped>

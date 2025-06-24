@@ -15,9 +15,27 @@ const findAllMin = async () => {
   return list;
 }; // end of findAllMin
 
+// 자재입고 조회
+const findMinsWithDate = async (fromDate, toDate) => {
+  try {
+    const result = await mariadb.query("selectAllMatInList", [fromDate, toDate]);
+    return result;
+  } catch (err) {
+    console.error("조회 실패:", err);
+    throw err;
+  }
+};
+
 // 자재 전체 조회
 const findAllMat = async () => {
   const result = await mariadb.query("selectAllMatList")
+    .catch(err => console.log(err));
+  return result;
+};
+
+// 선택 자재 조회
+const findSelMat = async (mat) => {
+  const result = await mariadb.query("selectSearchMat", mat)
     .catch(err => console.log(err));
   return result;
 };
@@ -70,7 +88,7 @@ const insertMinAll = async (data) => {
     } 
 
     console.log('lot값 체크');
-    // console.log(newLotNum[0].lot_num);
+    console.log(newLotNum[0].lot_num);
 
     // console.log(newMinCode[0].minbnd_code);
     // console.log(newLotNum[0].lot_num);
@@ -92,7 +110,7 @@ const insertMinAll = async (data) => {
 
     await conn.commit();
     console.log('자재입고정보 등록 성공');
-    // return result;
+    return result;
   } catch (err){
     await conn.rollback();
     // console.log('오류발생');
@@ -125,8 +143,10 @@ const deleteMpr = async (mprCode) => {
 module.exports ={
     /* 조회 */ 
     findAllMin,
+    findMinsWithDate,
     findAllQio,
     findAllMat,
+    findSelMat,
 
     /* 등록 */
     insertMin,

@@ -141,7 +141,7 @@ const handleRowSelect = (event) => {
 
     <!-- 검색 결과 표시 -->
     <div v-if="searchKeyword.trim() && filteredItems.length === 0" class="text-center py-4 text-gray-500">
-      검색 결과가 없어요 ㅠㅠ
+      검색 결과가 없습니다.
     </div>
 
     <!-- 데이터 테이블 - filteredItems 사용! -->

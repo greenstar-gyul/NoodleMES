@@ -1,5 +1,5 @@
 <template>
-    <!-- 우측: 설비 등록/수정 영역 (45%) -->
+    <!-- 우측: 설비 등록/수정 영역 -->
     <div class="card space-y-6 p-6" style="width: 45%">
         <!-- 버튼 영역 -->
         <div class="grid grid-cols-1 gap-4 mb-4">
@@ -98,7 +98,6 @@ import Button from 'primevue/button';
 import LabeledDatePicker from '../../../components/common/LabeledDatePicker.vue';
 import axios from 'axios';
 
-// Props 정의 (부모에서 선택된 데이터 받기)
 const props = defineProps({
     selectedData: {
         type: Object,
@@ -106,10 +105,9 @@ const props = defineProps({
     }
 });
 
-// Emits 정의 (부모에게 이벤트 전달)
 const emit = defineEmits(['data-updated']);
 
-// 설비 폼 데이터
+// 설비 등록/수정 폼 데이터
 const eqForm = ref({
     eq_code: '',
     eq_name: '',
@@ -118,9 +116,9 @@ const eqForm = ref({
     capacity: '',
     stat: '',
     chk_cycle: '',
-    eq_make_date: '',
-    bring_date: '',
-    take_date: '',
+    eq_make_date: new Date(),
+    bring_date: new Date(),
+    take_date: new Date(),
     eq_pos: '',
     eq_type: '',
     is_used: ''
@@ -134,12 +132,9 @@ const isEditMode = computed(() => {
 // checkbox
 const isUnused = computed({
     get() {
-        // is_used가 'f1'이면 체크박스가 선택됨 (미사용)
         return eqForm.value.is_used === 'f1';
     },
     set(value) {
-        // 체크박스가 선택되면(true) is_used는 'f1' (미사용)
-        // 체크박스가 해제되면(false) is_used는 'f2' (사용)
         eqForm.value.is_used = value ? 'f1' : 'f2';
     }
 });
@@ -174,9 +169,9 @@ const resetForm = async () => {
         eq_maker: '',
         capacity: '',
         stat: '',
-        eq_make_date: null,
-        bring_date: null,
-        take_date: null,
+        eq_make_date: new Date(),
+        bring_date: new Date(),
+        take_date: new Date(),
         chk_cycle: '',
         eq_pos: '',
         eq_type: '',
@@ -200,9 +195,9 @@ watch(
                 capacity: newData.capacity || '',
                 stat: newData.stat || '',
                 chk_cycle: newData.chk_cycle || '',
-                eq_make_date: newData.eq_make_date ? new Date(newData.eq_make_date) : null,
-                bring_date: newData.bring_date ? new Date(newData.bring_date) : null,
-                take_date: newData.take_date ? new Date(newData.take_date) : null,
+                eq_make_date: newData.eq_make_date ? new Date(newData.eq_make_date) : new Date(),
+                bring_date: newData.bring_date ? new Date(newData.bring_date) : new Date(),
+                take_date: newData.take_date ? new Date(newData.take_date) : new Date(),
                 eq_pos: newData.eq_pos || '',
                 eq_type: newData.eq_type || '',
                 is_used: newData.is_used || 'f2'
@@ -229,8 +224,6 @@ const formatDateForDB = (date) => {
 // 설비 등록 함수
 const saveEquipment = async () => {
     try {
-        console.log('설비 등록:', eqForm.value);
-
         // 필수 필드 검증
         if (!eqForm.value.eq_type || !eqForm.value.eq_name) {
             alert('설비명은 필수입니다.');
@@ -239,7 +232,7 @@ const saveEquipment = async () => {
 
         const submitData = {
             ...eqForm.value,
-            capacity: eqForm.value.capacity ? parseInt(eqForm.value.capacity) : null,  // 숫자 변환
+            capacity: eqForm.value.capacity ? parseInt(eqForm.value.capacity) : null,
             chk_cycle: eqForm.value.chk_cycle ? parseInt(eqForm.value.chk_cycle) : null,
             eq_make_date: formatDateForDB(eqForm.value.eq_make_date) || formatDateForDB(new Date()),
             bring_date: formatDateForDB(eqForm.value.bring_date) || formatDateForDB(new Date()),
@@ -251,16 +244,13 @@ const saveEquipment = async () => {
         const response = await axios.post('/api/eq', submitData);
 
         if (response.data.success) {
-            console.log('설비 등록 완료');
             alert('설비가 성공적으로 등록되었습니다.');
             await resetForm();
-            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+            emit('data-updated');
         } else {
-            console.error('등록 실패:', response.data.error);
             alert('설비 등록에 실패했습니다.');
         }
     } catch (error) {
-        console.error('설비 등록 실패:', error);
         alert('설비 등록 중 오류가 발생했습니다.');
     }
 };
@@ -268,8 +258,6 @@ const saveEquipment = async () => {
 // 설비 수정 함수
 const updateEquipment = async () => {
     try {
-        console.log('설비 수정:', eqForm.value);
-
         // 필수 필드 검증
         if (!eqForm.value.eq_name) {
             alert('설비명은 필수입니다.');
@@ -290,24 +278,20 @@ const updateEquipment = async () => {
         const response = await axios.put(`/api/eq/${eqForm.value.eq_code}`, submitData);
 
         if (response.data.success) {
-            console.log('설비 수정 완료');
             alert('설비가 성공적으로 수정되었습니다.');
             await resetForm();
-            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+            emit('data-updated');
         } else {
-            console.error('수정 실패:', response.data.error);
             alert('설비 수정에 실패했습니다.');
         }
     } catch (error) {
-        console.error('설비 수정 실패:', error);
         alert('설비 수정 중 오류가 발생했습니다.');
     }
 };
 
 // 수정 취소 함수
 const cancelEdit = () => {
-    console.log('수정 취소');
-    emit('data-updated'); // 부모에서 선택 해제하도록 알림
+    emit('data-updated');
 };
 </script>
 

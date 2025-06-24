@@ -6,7 +6,7 @@
             <!-- 설비코드 -->
             <div class="flex items-center gap-3 w-full">
                 <label class="font-semibold w-24">점검항목코드</label>
-                <InputText v-model="search.chk_type_code" class="flex-1" placeholder="설비코드 입력" />
+                <InputText v-model="search.chk_type_code" class="flex-1" placeholder="점검항목코드 입력" />
             </div>
 
             <!-- 설비명 -->
@@ -18,8 +18,8 @@
 
             <!-- 제조사 -->
             <div class="flex items-center gap-3 w-full">
-                <label class="font-semibold w-24">항목명</label>
-                <InputText v-model="search.chk_text" class="flex-1" placeholder="제조사명 입력" />
+                <label class="font-semibold w-24">점검항목명</label>
+                <InputText v-model="search.chk_text" class="flex-1" placeholder="점검항목명 입력" />
             </div>
 
             <!-- 상태 -->
@@ -46,7 +46,7 @@
         </div>
 
         <!-- 우측: 점검항목 등록 영역 (45%) -->
-                <EqSpecInputForm :selectedData="selectedEqichkT" @data-updated="onDataUpdated" />
+                <EqSpecInputForm ref="inputFormRef" :selectedData="selectedEqichkT" @data-updated="onDataUpdated" />
 
     </div>
 
@@ -76,7 +76,7 @@ const search = ref({
 });
 
 const ects = ref([]);
-const tableColumns = ['chk_type_code', 'eq_type', 'chk_text', 'range_top', 'range_bot', 'unit', 'jdg_mth'];
+const tableColumns = ['chk_type_code', 'eq_type', 'chk_text', 'range_top', 'range_bot', 'unit', 'chk_mth', 'jdg_mth'];
 
 const selectedEqichkT = ref(null);
 
@@ -101,14 +101,14 @@ const eqTypeOptions = [
 
 // 선택된 ㅎ
 const onSelectionChange = (selectedItems) => {
-    console.log('선택 변경:', selectedItems);
+    // console.log('선택 변경:', selectedItems);
 
     if (selectedItems.length === 1) {
         selectedEqichkT.value = selectedItems[0];
-        console.log('수정 모드:', selectedItems[0]);
+        // console.log('수정 모드:', selectedItems[0]);
     } else {
         selectedEqichkT.value = null;
-        console.log('등록 모드');
+        // console.log('등록 모드');
     }
 };
 
@@ -124,11 +124,12 @@ const fetchEquipment = async () => {
             // 서버가 배열 형태로 직접 반환하는 경우
             ects.value = response.data;
         } else {
-            console.error('검색 실패:', response.data);
+            // console.error('검색 실패:', response.data);
             ects.value = [];
         }
     } catch (error) {
-        console.error('검색 API 호출 실패:', error);
+        // console.error('검색 API 호출 실패:', error);
+        alert('검색 중 오류가 발생했습니다.');
         ects.value = [];
     }
 };
@@ -147,13 +148,15 @@ const loadAll = async () => {
             ects.value = [];
         }
     } catch (error) {
-        console.error('전체 데이터 로드 실패:', error);
+        // console.error('전체 데이터 로드 실패:', error);
+        alert('전체 데이터 로드 중 오류가 발생했습니다.');
         ects.value = [];
     }
 };
-
+const inputFormRef = ref(null);
 // 초기화 버튼 기능
-const resetSearch = async (selectedItems) => {
+const resetSearch = async () => {
+    // 1. 검색 조건 초기화
     search.value = {
         chk_type_code: '',
         eq_type: '',
@@ -161,11 +164,20 @@ const resetSearch = async (selectedItems) => {
         chk_mth: ''
     };
 
+    // 2. 테이블 선택 해제
     if (ectTableRef.value) {
         ectTableRef.value.clearSelection();
     }
 
+    // 3. InputForm에 직접 초기화 신호 보내기!
+    if (inputFormRef.value) {
+        inputFormRef.value.resetForm();
+    }
+
+    // 4. selectedData도 null로 설정
     selectedEqichkT.value = null;
+    
+    // 5. 전체 데이터 다시 로드
     await loadAll();
 };
 

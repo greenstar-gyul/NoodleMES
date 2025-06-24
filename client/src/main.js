@@ -9,6 +9,7 @@ import prodRouter from './router/production';
 import eqRouter from './router/equipment';
 import mprRouter from './router/mpr';
 import minRouter from './router/min';
+import moutRouter from './router/mout';
 import mpoRouter from './router/mpo';
 import qcrRouter from './router/quality';
 import stdRouter from './router/standard';
@@ -33,6 +34,7 @@ app.use(eqRouter);
 /* 자재 시작 */
 app.use(mprRouter);
 app.use(minRouter);
+app.use(moutRouter);
 app.use(mpoRouter);
 /* 자재 끝 */
 
