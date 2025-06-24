@@ -68,7 +68,8 @@ onMounted(async () => {
     productList.value = prodRes.data.data; // 전체 제품 목록 저장
 
     } catch (err) {
-        console.error('제품 리스트 불러오기 실패:', err);
+        // console.error('제품 리스트 불러오기 실패:', err);
+        alert('제품 리스트를 불러오는 데 실패했습니다.');
     }
 });
 </script>

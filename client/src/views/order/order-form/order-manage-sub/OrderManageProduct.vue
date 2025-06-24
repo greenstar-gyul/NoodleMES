@@ -43,12 +43,6 @@ const currentProductRow = ref(null);
 //제품리스트
 const productList = ref([]);
 
-// 규격 옵션 목록
-// const specOptions = ref([]);
-
-// 단위 옵션 목록 
-// const unitOptions = ref([]);
-
 /* ===== FUNCTIONS ===== */
 // 제품명 팝업 열기
 const openProductPopup = (row) => {
@@ -58,7 +52,7 @@ const openProductPopup = (row) => {
 
 // 팝업에서 제품 선택 시 현재 행에 값 반영
 const handleProductConfirm = (selectedProduct) => {
-    console.log('선택된 제품:', selectedProduct);
+    // console.log('선택된 제품:', selectedProduct);
     if (currentProductRow.value) {
         // 선택된 제품 정보를 현재 선택된 행에 넣기
         currentProductRow.value.prod_name = selectedProduct.prod_name;
@@ -148,17 +142,9 @@ onMounted(async () => {
     const prodRes = await axios.get('/api/order/products'); // 제품 전체 목록 불러오기
     productList.value = prodRes.data.data; // 전체 제품 목록 저장
 
-    // // 규격 옵션 (공통코드: 0O, 0X, 0Y)
-    // const specRes = await axios.get('/api/order/spec');
-    // specOptions.value = specRes.data.data;
-
-    // // 단위 옵션 (공통코드: 0H)
-    // const unitRes = await axios.get('/api/order/unit');
-    // unitOptions.value = unitRes.data.data;
-
-
     } catch (err) {
-        console.error('제품 리스트 불러오기 실패:', err);
+        // console.error('제품 리스트 불러오기 실패:', err);
+        alert('제품 목록을 불러오는 데 실패했습니다.');
     }
 });
 </script>

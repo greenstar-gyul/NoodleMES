@@ -101,14 +101,14 @@ const eqTypeOptions = [
 
 // 선택된 ㅎ
 const onSelectionChange = (selectedItems) => {
-    console.log('선택 변경:', selectedItems);
+    // console.log('선택 변경:', selectedItems);
 
     if (selectedItems.length === 1) {
         selectedEqichkT.value = selectedItems[0];
-        console.log('수정 모드:', selectedItems[0]);
+        // console.log('수정 모드:', selectedItems[0]);
     } else {
         selectedEqichkT.value = null;
-        console.log('등록 모드');
+        // console.log('등록 모드');
     }
 };
 
@@ -124,11 +124,12 @@ const fetchEquipment = async () => {
             // 서버가 배열 형태로 직접 반환하는 경우
             ects.value = response.data;
         } else {
-            console.error('검색 실패:', response.data);
+            // console.error('검색 실패:', response.data);
             ects.value = [];
         }
     } catch (error) {
-        console.error('검색 API 호출 실패:', error);
+        // console.error('검색 API 호출 실패:', error);
+        alert('검색 중 오류가 발생했습니다.');
         ects.value = [];
     }
 };
@@ -147,7 +148,8 @@ const loadAll = async () => {
             ects.value = [];
         }
     } catch (error) {
-        console.error('전체 데이터 로드 실패:', error);
+        // console.error('전체 데이터 로드 실패:', error);
+        alert('전체 데이터 로드 중 오류가 발생했습니다.');
         ects.value = [];
     }
 };
