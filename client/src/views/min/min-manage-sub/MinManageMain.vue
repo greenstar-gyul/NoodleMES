@@ -172,7 +172,7 @@ const handleReset = () => {
 // 저장 - 등록
 const handleSave = async () => {
   if (!mins.matName.value || !mins.ordQtt.value || !mins.inbndQtt.value || !mins.inbndDate.value || !mins.qioCode.value) {
-    alert('입력하지 않은 정보가 있습니다..');
+    alert('입력하지 않은 정보가 있습니다.');
     return;
   }
   const min = {
@@ -188,6 +188,8 @@ const handleSave = async () => {
   mat_sup: clientMap[mins.supName.value], 
   mcode: empMap[mins.mName.value],
   };
+  console.log('min.mat_code');
+  console.log(min.mat_code);
   try {
     await axios.post('/api/min/insert', min)
     alert('자재입고 정보가 등록되었습니다.');
@@ -221,7 +223,7 @@ const handleMinbndConfirm = async (selectedMin) => {
 
     // 자재입고 정보 초기 설정
     mins.mInBndCode.value = selectedMin.minbnd_code;
-    mins.matName.value = selectedMin.mat_name; 
+    mins.matName.value = selectedMin.mat_name;
     mins.matType.value = selectedMin.mat_type;
     mins.ordQtt.value = selectedMin.ord_qtt;
     mins.inbndQtt.value = selectedMin.inbnd_qtt;
@@ -244,22 +246,29 @@ const handleqioConfirm = async (selectedQio) => {
     // 전체 자재입고정보 조회
     const qioRes = await axios.get(`/api/min/qio`);
     const qioList = qioRes.data.data;//store 함수 사용
-
+        
     // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
     qioList.forEach((item, idx) => {
       item.qio_num_code = item.qio_num_code || `row-${idx}`;
     });
+    
+    console.log('이름 테스트');
+    console.log(selectedQio.mat_name);
+    console.log('코드 테스트');
+    console.log(selectedQio.mat_code);
 
     const matRes = await axios.get('/api/min/selmat', {
       params: { mat_code: selectedQio.mat_code }
     });
 
+    
     // 자재입고 정보 초기 설정
-    mins.matName.value = matCodeMap[matRes.data.data[0].mat_code];
+    mins.matName.value = selectedQio.mat_name;
     mins.unit .value = matRes.data.data[0].unit;
     mins.matType.value = matRes.data.data[0].mat_type;
     mins.supName.value = matRes.data.data[0].sup_name;
     mins.qioCode.value = selectedQio.qio_code;
+
   } catch (err){
       throw err;
   }
