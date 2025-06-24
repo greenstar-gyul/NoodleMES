@@ -19,17 +19,13 @@ const emit = defineEmits(['resetList', 'saveData']);
 // 상위 props로부터 데이터 전달받기
 const mins = defineProps({
   mInBndCode: { type: Object, required: true }, // 자재입고코드
-  matCode: { type: Object, required: true }, // 자재코드
-  matType: { type: Object, required: true }, // 자재유형코드
-  commMatType: { type: Object, required: true }, // 자재유형
+  matName: { type: Object, required: true }, // 자재이름
+  matType: { type: Object, required: true }, // 자재유형
   ordQtt: { type: Object, required: true }, // 주문수량
   inbndQtt: { type: Object, required: true }, // 입고수량
-  unit: { type: Object, required: true }, // 단위코드
-  commUnit: { type: Object, required: true }, // 단위
+  unit: { type: Object, required: true }, // 단위
   inbndDate: { type: Object, required: true }, // 입고일자
-  matSup: { type: Object, required: true }, // 공급업체
   supName: { type: Object, required: true }, // 공급업체명
-  mCode: { type: Object, required: true }, // 담당자
   mName: { type: Object, required: true }, // 담당자명
   qioCode: { type: Object, required: true }, // 검사지시코드
   lotNum: { type: Object, required: true }, // LOT 번호
@@ -55,9 +51,6 @@ const { setMinRows, resetMinRows,  } = minStore;
 // 자재입고정보 팝업
 const minPopupVisible = ref(false);
 
-// 자재정보 팝업
-const matPopupVisible = ref(false);
-
 // 품질검사정보 팝업
 const qioPopupVisible = ref(false);
 
@@ -70,14 +63,35 @@ const matRef = ref([]);
 // 품질검사정보 데이터
 const qioRef = ref([]);
 
-// 단위 코드 매핑 (단방향: 값 → 코드)
+// 자재 코드 매핑
+const matCodeMap = {
+  '밀가루(중력분)': 'MAT-1001',
+  '팜유': 'MAT-1002',
+  '정제염': 'MAT-1003',
+  '대파 분말': 'MAT-1004',
+  '양파 분말': 'MAT-1005',
+  '고춧가루': 'MAT-1006',
+  '간장분말': 'MAT-1007',
+  'MSG': 'MAT-1008',
+  '봉지라면 포장지': 'MAT-2001',
+  '봉지라면 박스(20입)': 'MAT-2002',
+  '봉지라면 박스(40입)': 'MAT-2003',
+  '컵라면 용기(대)': 'MAT-2004',
+  '컵라면 용기(소)': 'MAT-2005',
+  '컵라면 뚜껑(대)': 'MAT-2006',
+  '컵라면 뚜껑(소)': 'MAT-2007',
+  '컵라면 박스(16입)': 'MAT-2008',
+  '컵라면 박스(12입)': 'MAT-2009',
+};
+
+// 단위 코드 매핑
 const unitCodeMap = {
   'kg': 'h1',
   'L': 'h3',
   'ea': 'h4',
 };
 
-// 자재유형 매핑 (양방향: 코드 → 분류명)
+// 자재유형 매핑
 const matTypeMap = {
   '원자재': 't1',
   '원자재': 'i4',
@@ -98,6 +112,23 @@ const clientMap = {
   '조미료공급사': 'CLIENT-009',
   '컵용기공급사': 'CLIENT-010',
   '예담마트': 'CLIENT-011',
+};
+
+// 직원 코드 매핑
+const empMap = {
+  '시스템관리자': 'EMP-10000',
+  '김영업': 'EMP-10001',
+  '이생산': 'EMP-10002',
+  '박자재': 'EMP-10003',
+  '최설비': 'EMP-10004',
+  '정품질': 'EMP-10005',
+  '강구매': 'EMP-10006',
+  '오영업원': 'EMP-10007',
+  '유생산원': 'EMP-10008',
+  '송자재원': 'EMP-10009',
+  '임설비원': 'EMP-10010',
+  '한품질원': 'EMP-10011',
+  '서구매원': 'EMP-10012',
 };
 
 // 삭제
@@ -124,17 +155,13 @@ const handleDelete = async () => {
 const handleReset = () => {
 // 자재입고정보 초기화
   mins.mInBndCode.value = '';
-  mins.matCode.value = '';
+  mins.matName.value = '';
   mins.matType.value = '';
-  mins.commMatType.value = '';
   mins.ordQtt.value = '';
   mins.inbndQtt.value = '';
   mins.unit.value = '';
-  mins.commUnit.value = '';
   mins.inbndDate.value = '';
-  mins.matSup.value = '';
   mins.supName.value = '';
-  mins.mCode.value = 'EMP-10001';
   mins.mName.value = '김영업';
   mins.qioCode.value = '';
   mins.lotNum.value = '';
@@ -146,25 +173,25 @@ const handleReset = () => {
 
 // 저장 - 등록
 const handleSave = async () => {
-  if (!mins.matCode.value || !mins.ordQtt.value || !mins.inbndQtt.value || !mins.inbndDate.value || !mins.qioCode.value) {
+  if (!mins.matName.value || !mins.ordQtt.value || !mins.inbndQtt.value || !mins.inbndDate.value || !mins.qioCode.value) {
     alert('입력하지 않은 정보가 있습니다..');
     return;
   }
   const min = {
   // minbnd_code: mins.mInBndCode.value,
-  mat_code: mins.matCode.value,
-  mat_type: matTypeMap[mins.commMatType.value],
-  unit: unitCodeMap[mins.commUnit.value], 
+  mat_code: matCodeMap[mins.matName.value],
+  mat_type: matTypeMap[mins.matType.value],
+  unit: unitCodeMap[mins.unit.value], 
   inbnd_qtt: mins.inbndQtt.value,
   inbnd_date: moment(mins.inbndDate.value).format('YYYY-MM-DD'), 
   ord_qtt: mins.ordQtt.value, 
   qio_code: mins.qioCode.value,
   // lot_num: mins.lotNum.value,
   mat_sup: clientMap[mins.supName.value], 
-  mcode: mins.mCode.value,
+  mcode: empMap[mins.mName.value],
   };
   // console.log('왜안나옴');
-  // console.log(mins.commMatType.value);
+  // console.log(mins);
   // console.log('왜안나옴2');
   // console.log(mat_type);
   try {
@@ -183,73 +210,49 @@ const handleSave = async () => {
   };
 }; // end of handleSave
 
+
 // 자재입고정보 팝업 Confirm 핸들러
-// const handleMinbndConfirm = async (selectedMin) => {
-//   // console.log('체크 포인트', selectedMin);
-//   // console.log(selectedMin);
+const handleMinbndConfirm = async (selectedMin) => {
   
-//   try {
-//     // 전체 자재입고정보 조회
-//     const minBunRes = await axios.get(`/api/min/all`);
-//     const minBunList = minBunRes.data;//store 함수 사용
-    
-//     // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
-//     minBunList.forEach((item, idx) => {
-//       item.min_bnd_num_code = item.min_bnd_num_code || `row-${idx}`;
-//     });
-    
-//    console.log('선택 입고정보 확인');
-//    console.log(selectedMin);
-
-//     // 자재입고 정보 초기 설정
-//     mins.mInBndCode.value = selectedMin.minbnd_code;
-//     mins.matCode.value = selectedMin.mat_code;
-//     mins.matType.value = selectedMin.material_type_code;
-//     mins.commMatType.value = selectedMin.comm_mat_type;
-//     mins.ordQtt.value = selectedMin.ord_qtt;
-//     mins.inbndQtt.value = selectedMin.inbnd_qtt;
-//     mins.unit.value = selectedMin.unit;
-//     mins.commUnit.value = selectedMin.comm_unit;
-//     mins.inbndDate.value = moment(selectedMin.inbnd_date).format("YYYY-MM-DD")
-//     mins.matSup.value = selectedMin.mat_sup;
-//     mins.supName.value = selectedMin.sup_name;
-//     mins.mCode.value = selectedMin.emp_code;
-//     mins.mName.value = selectedMin.emp_name;
-//     mins.qioCode.value = selectedMin.qio_code;
-//     mins.lotNum.value = selectedMin.lot_num;
-    
-//     // console.log('선택값 확인');
-//     // console.log(selectedMin);
-//     console.log('자재입고 정보');
-//     console.log(mins);
-
-//     setMinRows(minBunList);
-//   } catch (err) {
-//     console.error('자재입고정보 조회 실패:', err);
-//   }
-// }; // end of handleMinbndConfirm
-
-// 자재선택 팝업 Confirm 핸들러
-const handleMatbndConfirm = async (selectedMat) => {
   try {
     // 전체 자재입고정보 조회
-    const matRes = await axios.get(`/api/min/mat`);
-    const matList = matRes.data.data;//store 함수 사용
+    const minBunRes = await axios.get(`/api/min/all`);
+    const minBunList = minBunRes.data;//store 함수 사용
     
     // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
-    matList.forEach((item, idx) => {
-      item.mat_num_code = item.mat_num_code || `row-${idx}`;
+    minBunList.forEach((item, idx) => {
+      item.min_bnd_num_code = item.min_bnd_num_code || `row-${idx}`;
     });
     
+    console.log('선택값 확인');
+    console.log(selectedMin);
+
+    selectedMin.emp_code = 'EMP-10001';
+
     // 자재입고 정보 초기 설정
-    mins.matCode.value = selectedMat.mat_code;
-    mins.commUnit.value = selectedMat.unit;
-    mins.commMatType.value = selectedMat.mat_type;
-    mins.supName.value = selectedMat.sup_name;
-  } catch (err){
-    console.error('자재 기본정보 조회 실패:', err);
+    mins.mInBndCode.value = selectedMin.minbnd_code;
+    mins.matName.value = selectedMin.mat_name; 
+    mins.matType.value = selectedMin.mat_type;
+    mins.ordQtt.value = selectedMin.ord_qtt;
+    mins.inbndQtt.value = selectedMin.inbnd_qtt;
+    mins.unit.value = selectedMin.unit;
+    mins.inbndDate.value = moment(selectedMin.inbnd_date).format("YYYY-MM-DD")
+    mins.supName.value = selectedMin.client_name;
+    // mins.mName.value = empMap[selectedMin.emp_code] ;
+    mins.qioCode.value = selectedMin.qio_code;
+    mins.lotNum.value = selectedMin.lot_num;
+    
+    // console.log('초기값');
+    // console.log(selectedMin.unit);
+    // console.log('저장값');
+    // console.log(mins);
+
+
+    setMinRows(minBunList);
+  } catch (err) {
+    console.error('자재입고정보 조회 실패:', err);
   }
-}; // end of handleMatbndConfirm
+}; // end of handleMinbndConfirm
 
 // 품질검사 팝업 Confirm 핸들러
 const handleqioConfirm = async (selectedQio) => {
@@ -272,12 +275,11 @@ const handleqioConfirm = async (selectedQio) => {
     // const selmat = matRes;//store 함수 사용
     // console.log(matRes.data.data[0].mat_code);
 
-    mins.matCode.value = matRes.data.data[0].mat_code;
-    mins.commUnit.value = matRes.data.data[0].unit;
-    mins.commMatType.value = matRes.data.data[0].mat_type;
-    mins.supName.value = matRes.data.data[0].sup_name;
-
     // 자재입고 정보 초기 설정
+    mins.matName.value = matCodeMap[matRes.data.data[0].mat_code];
+    mins.unit .value = matRes.data.data[0].unit;
+    mins.matType.value = matRes.data.data[0].mat_type;
+    mins.supName.value = matRes.data.data[0].sup_name;
     mins.qioCode.value = selectedQio.qio_code;
   } catch (err){
     console.error('자재 기본정보 조회 실패:', err);
@@ -349,7 +351,7 @@ onMounted(async () => {
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="자재입고코드" v-model="mins.mInBndCode.value" :disabled="true" placeholder="등록 시 생성" />
-      <LabeledInput label="자재코드" v-model="mins.matCode.value"  placeholder="자재정보" readonly/>
+      <LabeledInput label="자재이름" v-model="mins.matName.value"  placeholder="자재정보" readonly/>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -358,15 +360,15 @@ onMounted(async () => {
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledInput label="단위" v-model="mins.commUnit.value" placeholder="자재선택 시 자동입력" readonly/>
+      <LabeledInput label="단위" v-model="mins.unit.value" placeholder="자재선택 시 자동입력" readonly/>
       <!-- <LabeledInput label="단위코드" v-model="mins.unit.value" style="display: none"/> -->
-      <LabeledInput label="자재유형" v-model="mins.commMatType.value" placeholder="자재선택 시 자동입력" readonly/>
+      <LabeledInput label="자재유형" v-model="mins.matType.value" placeholder="자재선택 시 자동입력" readonly/>
       <!-- <LabeledInput label="자재유형코드" v-model="mins.matType.value" style="display: none"/> -->
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledDatePicker label="입고일자" v-model="mins.inbndDate.value" />
-      <LabeledInput label="담당자" v-model="mins.mCode.value" placeholder="로그인한 유저" readonly/>
+      <LabeledInput label="담당자" v-model="mins.mName.value" placeholder="로그인한 유저" readonly/>
       <!-- <LabeledInput label="담당자코드" v-model="mins.mName.value" style="display: none"/> -->
     </div>
     
@@ -387,14 +389,6 @@ onMounted(async () => {
       :mapper="minMapping.minbndMapping"
       :dataKey="'minbnd_code'"
   />
-  <!-- ===== 자재정보 팝업 ===== -->
-  <!-- <SinglePopup
-      v-model:visible="matPopupVisible"
-      :items="matRef"
-      @confirm="handleMatbndConfirm"  
-      :mapper="minMapping.matMapping"
-      :dataKey="'mat_code'"
-  /> -->
   <!-- ===== 품질검사정보 팝업 ===== -->
   <SinglePopup
       v-model:visible="qioPopupVisible"

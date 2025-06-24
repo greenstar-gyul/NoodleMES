@@ -28,22 +28,7 @@ import MinMapper from '@/service/MinMapping.js';
 </script>
 
 <template>
-  <!-- <MinManageMain 
-    :mInBndCode="mInBndCode"
-    :matCode="matCode"
-    :matType="matType"
-    :commMatType="commMatType"
-    :ordQtt="ordQtt"
-    :inbndQtt="inbndQtt"
-    :unit="unit"
-    :commUnit="commUnit"
-    :inbndDate="inbndDate"
-    :matSup="matSup"
-    :supName="supName"
-    :mCode="mCode"
-    :mName="mName"
-    :qioCode="qioCode"
-    :lotNum="lotNum"
-  /> -->
+  <MinManageMain 
+  />
 </template>
 

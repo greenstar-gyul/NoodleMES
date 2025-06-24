@@ -15,10 +15,10 @@ const findAllMin = async () => {
   return list;
 }; // end of findAllMin
 
-// 날짜 조건을 반영한 자재입고 조회
+// 자재입고 조회
 const findMinsWithDate = async (fromDate, toDate) => {
   try {
-    const result = await mariadb.query("selectOrderListWithDate", [fromDate, toDate]);
+    const result = await mariadb.query("selectAllMatInList", [fromDate, toDate]);
     return result;
   } catch (err) {
     console.error("조회 실패:", err);
