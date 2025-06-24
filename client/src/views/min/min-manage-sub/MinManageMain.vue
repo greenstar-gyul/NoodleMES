@@ -188,8 +188,6 @@ const handleSave = async () => {
   mat_sup: clientMap[mins.supName.value], 
   mcode: empMap[mins.mName.value],
   };
-  console.log('min.mat_code');
-  console.log(min.mat_code);
   try {
     await axios.post('/api/min/insert', min)
     alert('자재입고 정보가 등록되었습니다.');
@@ -251,11 +249,6 @@ const handleqioConfirm = async (selectedQio) => {
     qioList.forEach((item, idx) => {
       item.qio_num_code = item.qio_num_code || `row-${idx}`;
     });
-    
-    console.log('이름 테스트');
-    console.log(selectedQio.mat_name);
-    console.log('코드 테스트');
-    console.log(selectedQio.mat_code);
 
     const matRes = await axios.get('/api/min/selmat', {
       params: { mat_code: selectedQio.mat_code }
@@ -283,9 +276,8 @@ onMounted(async () => {
     minRef.value = MinRes.data.map(min => ({
       //기존  객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...min,
-      inbnd_date: moment(min.inbndDate).format('YYYY-MM-DD'),
+      inbnd_date: moment(min.inbnd_date).format('YYYY-MM-DD'),
     }));
-    
     // 자재기준정보 조회
     const MatRes = await axios.get('/api/min/mat');
     matRef.value = MatRes.data.data.map(mat => ({
@@ -330,20 +322,20 @@ onMounted(async () => {
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="자재입고코드" v-model="mins.mInBndCode.value" :disabled="true" placeholder="등록 시 생성" />
-      <LabeledInput label="자재이름" v-model="mins.matName.value"  placeholder="자재정보" readonly/>
+      <LabeledInputIcon label="검사지시코드" v-model="mins.qioCode.value" @click="qioPopupVisible = true" placeholder="검사지시코드 선택" readonly/>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <LabeledInput label="자재이름" v-model="mins.matName.value"  placeholder="검사지시정보를 선택해주세요" readonly/>
+      <LabeledInput label="자재유형" v-model="mins.matType.value" placeholder="검사지시정보를 선택해주세요" readonly/>
+      <LabeledInput label="공급업체명" v-model="mins.supName.value" placeholder="검사지시정보를 선택해주세요" readonly/>
+      <LabeledInput label="단위" v-model="mins.unit.value" placeholder="검사지시정보를 선택해주세요" readonly/>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="주문수량" v-model="mins.ordQtt.value" />
       <LabeledInput label="입고수량" v-model="mins.inbndQtt.value" />
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledInput label="단위" v-model="mins.unit.value" placeholder="자재선택 시 자동입력" readonly/>
-      <!-- <LabeledInput label="단위코드" v-model="mins.unit.value" style="display: none"/> -->
-      <LabeledInput label="자재유형" v-model="mins.matType.value" placeholder="자재선택 시 자동입력" readonly/>
-      <!-- <LabeledInput label="자재유형코드" v-model="mins.matType.value" style="display: none"/> -->
-    </div>
+    </div>    
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledDatePicker label="입고일자" v-model="mins.inbndDate.value" />
@@ -351,11 +343,6 @@ onMounted(async () => {
       <!-- <LabeledInput label="담당자코드" v-model="mins.mName.value" style="display: none"/> -->
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledInputIcon label="검사지시코드" v-model="mins.qioCode.value" @click="qioPopupVisible = true" placeholder="검사지시코드 선택" readonly/>
-      <LabeledInput label="공급업체명" v-model="mins.supName.value" placeholder="자재선택 시 자동입력" readonly/>
-      <!-- <LabeledInput label="공급업체코드" v-model="mins.matSup.value" style="display: none" readonly/> -->
-    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="LOT번호" v-model="mins.lotNum.value" :disabled="true" placeholder="등록 시 생성"/>
     </div>

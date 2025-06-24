@@ -59,14 +59,14 @@ const findAllQio = async () => {
 
 
 // 자재입고 등록
-const insertMin = async (minData) => {
-  // minData는 minbnd_code부터 mcode까지 배열 형태로 전달됨
-  const result = await mariadb.query("insertMin", minData)
-    .catch(err => 
-       alert('오류 발생')
-    );
-  return result;
-};
+// const insertMin = async (minData) => {
+//   // minData는 minbnd_code부터 mcode까지 배열 형태로 전달됨
+//   const result = await mariadb.query("insertMinBnd", minData)
+//     .catch(err => 
+//        alert('오류 발생')
+//     );
+//   return result;
+// };
 
 // 자재입고 최종등록
 const insertMinAll = async (data) => {
@@ -78,12 +78,15 @@ const insertMinAll = async (data) => {
     // minbnd_code 생성
     const newMinCode = await mariadb.queryConn(conn, "selectMinCodeForUpdate");
    
+    console.log('data');
+    console.log(data);
     // lot_num 생성
     let newLotNum ='';
     if(data.mat_type === 't1' || data.mat_type === 'i4') {
       newLotNum = await conn.query(minsql.selectLotNumForUpdateOne);
       await conn.query(minsql.insertMatLOT, [
       newLotNum[0].lot_num,
+      data.inbnd_date,
       data.mat_type,
       data.mat_code,
       ]);
@@ -91,6 +94,7 @@ const insertMinAll = async (data) => {
         newLotNum = await conn.query(minsql.selectLotNumForUpdateTwo);
         await conn.query(minsql.insertMatLOT, [
         newLotNum[0].lot_num,
+        data.inbnd_date,
         data.mat_type,
         data.mat_code,
       ]);
@@ -148,7 +152,7 @@ module.exports ={
     findSelMat,
 
     /* 등록 */
-    insertMin,
+    // insertMin,
     insertMinAll,
     
     /* 삭제 */
