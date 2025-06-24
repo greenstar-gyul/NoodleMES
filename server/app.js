@@ -8,7 +8,7 @@ const DEV_MODE = process.env.DEV_MODE === 'dev' ? true : false; // 개발 모드
 // 개발 모드일 때 context path에 api 패스 추가
 const contextPath = DEV_MODE ? '' : '/api';
 
-const PORT = 3721;
+const PORT = 80;
 
 const express = require('express');
 const http = require('http');

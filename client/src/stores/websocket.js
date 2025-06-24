@@ -3,9 +3,9 @@ import { ref, computed } from 'vue';
 import { NoodleClient } from '@/service/noodle_client.js';
 
 // 서버 설정
-const HOST = '223.130.135.17';
+const HOST = 'codenote.store';
 // const HOST = 'localhost'; // 로컬 개발용
-const PORT = '3721';
+const PORT = '80';
 const server = `ws://${HOST}:${PORT}`;
 
 export const useWebSocketStore = defineStore('websocket', () => {
