@@ -10,6 +10,7 @@ defineProps({
 })
 </script>
 
+
 <template>
     <div v-if="data.length !== 0">
         <TableWithExcel :data="data" :mapper="mapper" :dataKey="'mrp_d_code'" title="MRP조회" />

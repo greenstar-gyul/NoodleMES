@@ -24,13 +24,10 @@ const saveData = async () => {
     const data = {};
     data.mrpData = mrpInfo.value;
     data.detailData = mrpDetailList.value;
-    // console.log(data);
-
+    
     if (data.mrpData.mrp_code === '') {
-        // console.log(data);
         const response = await axios.post(`/api/mrp/create`, data);
         const result = response.data;
-        console.log(result);
         if (result.result_code === "SUCCESS") {
             alert('저장에 성공했습니다.');
             resetData();
@@ -40,10 +37,8 @@ const saveData = async () => {
         }
     }
     else {
-        // console.log(data.mrpData.mrp_code);
         const response = await axios.put(`/api/mrp/${data.mrpData.mrp_code}`, data);
         const result = response.data;
-        console.log(result);
         if (result.result_code === "SUCCESS") {
             alert('수정에 성공했습니다.');
             resetData();
@@ -75,7 +70,6 @@ const resetData = () => {
 const loadMrpDetail = async (mrpCode) => {
     // mrp_code가 없다는 것은.. 등록된 mrp가 아님..
     if (mrpCode != undefined && mrpCode != null && mrpCode != '') {
-        // console.log(mrpCode);
         const result = await axios.get(`/api/mrp/detail/${mrpCode}`);
         mrpDetailList.value = await result.data.data;
     }
@@ -100,7 +94,6 @@ mrpInfo.value = {
 watch(() => mrpInfo.value, (newVal) => {
     // loadMrpInfo();
     prdpCode.value = mrpInfo.value.prdp_code;
-    // console.log(mrpInfo.value);
     loadMrpDetail(mrpInfo.value.mrp_code);
 })
 

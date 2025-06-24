@@ -30,13 +30,10 @@ onMounted(() => {
 const loadPlansData = async () => {
     try {
         const response = await axios.get(`/api/mrp/plan-list`);
-        // response.result_code = "SUCCESS";
-        // response.message = "조회성공";
-        // console.log(response);
         prodPlans.value = await response.data.data;
     }
     catch(err) {
-        console.error(err);
+        alert(err);
     }
 }
 

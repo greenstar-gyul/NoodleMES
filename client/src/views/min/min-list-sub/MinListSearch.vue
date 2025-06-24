@@ -68,7 +68,7 @@ onMounted(() => {
   try {
     fetchMinsSearch();
   } catch(err){
-    console.error('데이터 로딩 실패:', err);
+    throw err;
   }
 });
 
