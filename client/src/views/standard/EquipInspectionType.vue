@@ -41,7 +41,7 @@
         <div class="space-y-6" style="width: 55%">
             <!-- 검색결과 테이블 -->
             <EqSpecWDETable style="margin-bottom:0px; height:100%" ref="ectTableRef" :data="ects" :dataKey="'chk_type_code'"
-                :columns="tableColumns" :mapper="eqstMapper" title="설비점검항목 목록" @selection-change="onSelectionChange"
+                :columns="tableColumns" :mapper="eqstMapper" :unitOptions="unitOptions" title="설비점검항목 목록" @selection-change="onSelectionChange"
                 @delete="handleDelete" />
         </div>
 
@@ -97,6 +97,21 @@ const eqTypeOptions = [
     { label: '중량 선별기', value: 'WEI' },
     { label: '박스포장기', value: 'CTN' },
     { label: '출하설비', value: 'CVY' }
+];
+
+const unitOptions = [
+    { label: 'kg', value: 'h1' },
+    { label: 't', value: 'h2' },
+    { label: 'L', value: 'h3' },
+    { label: 'ea', value: 'h4' },
+    { label: 'box', value: 'h5' },
+    { label: 'g', value: 'h6' },
+    { label: 'mm', value: 'h7' },
+    { label: '%', value: 'h8' },
+    { label: 'cm', value: 'h9' },
+    { label: 'N', value: 'ha' },
+    { label: 'mg', value: 'hb' },
+    { label: 'ml', value: 'hc' }
 ];
 
 // 선택된 ㅎ
