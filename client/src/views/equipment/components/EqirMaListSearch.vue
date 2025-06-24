@@ -38,7 +38,6 @@ const parseDate = (dateString) => {
     return dateString;
 };
 
-// computed 제거하고 일반 ref로 변경
 const currentData = ref({
     eq_ma_code: '',
     eq_name: '',
@@ -56,7 +55,6 @@ const currentData = ref({
     fix_emp_name: 'EMP-10001'
 });
 
-// props 변화 감지해서 currentData 업데이트
 watch(() => props.data, (newData) => {
     if (newData && !isInternalUpdate.value) {
         currentData.value = {
@@ -79,7 +77,6 @@ watch(() => props.data, (newData) => {
 }, { immediate: true, deep: true });
 
 
-// 날짜 비교 헬퍼 함수
 const isSameDateValue = (oldVal, newVal) => {
     if (!oldVal && !newVal) return true;
     if (!oldVal || !newVal) return false;
@@ -89,11 +86,8 @@ const isSameDateValue = (oldVal, newVal) => {
     return oldStr === newStr;
 };
 
-// 각 업데이트 함수들 수정
 const updateFailDate = (newDate) => {
-    // 같은 값이면 업데이트 안 함!
     if (isSameDateValue(props.data.fail_date, newDate)) {
-        console.log('fail_date 같음, 업데이트 건너뜀');
         return;
     }
 
@@ -110,7 +104,6 @@ const updateFailDate = (newDate) => {
 
 const updateStartDate = (newDate) => {
     if (isSameDateValue(props.data.start_date, newDate)) {
-        console.log('start_date 같음, 업데이트 건너뜀');
         return;
     }
 
@@ -127,7 +120,6 @@ const updateStartDate = (newDate) => {
 
 const updateEndDate = (newDate) => {
     if (isSameDateValue(props.data.end_date, newDate)) {
-        console.log('end_date 같음, 업데이트 건너뜀');
         return;
     }
 
@@ -144,7 +136,6 @@ const updateEndDate = (newDate) => {
 
 const updateReChkExpDate = (newDate) => {
     if (isSameDateValue(props.data.re_chk_exp_date, newDate)) {
-        console.log('re_chk_exp_date 같음, 업데이트 건너뜀');
         return;
     }
 
@@ -161,7 +152,6 @@ const updateReChkExpDate = (newDate) => {
 
 const updateRegDate = (newDate) => {
     if (isSameDateValue(props.data.regdate, newDate)) {
-        console.log('regdate 같음, 업데이트 건너뜀');
         return;
     }
 
@@ -176,10 +166,8 @@ const updateRegDate = (newDate) => {
     });
 };
 
-// 일반 필드들도 체크 추가
 const updateEqName = (newName) => {
     if (props.data.eq_name === newName) {
-        console.log('eq_name 같음, 업데이트 건너뜀');
         return;
     }
 
@@ -196,7 +184,6 @@ const updateEqName = (newName) => {
 
 const updateFailCause = (newCause) => {
     if (props.data.fail_cause === newCause) {
-        console.log('fail_cause 같음, 업데이트 건너뜀');
         return;
     }
     
@@ -213,7 +200,6 @@ const updateFailCause = (newCause) => {
 
 const updateActDetail = (newDetail) => {
     if (props.data.act_detail === newDetail) {
-        console.log('act_detail 같음, 업데이트 건너뜀');
         return;
     }
     
@@ -230,7 +216,6 @@ const updateActDetail = (newDetail) => {
 
 const updateActResult = (newResult) => {
     if (props.data.act_result === newResult) {
-        console.log('act_result 같음, 업데이트 건너뜀');
         return;
     }
     
@@ -247,7 +232,6 @@ const updateActResult = (newResult) => {
 
 const updateEqirCode = (newCode) => {
     if (props.data.eqir_code === newCode) {
-        console.log('eqir_code 같음, 업데이트 건너뜀');
         return;
     }
     
@@ -264,7 +248,6 @@ const updateEqirCode = (newCode) => {
 
 const updateNote = (newNote) => {
     if (props.data.note === newNote) {
-        console.log('note 같음, 업데이트 건너뜀');
         return;
     }
     
@@ -294,12 +277,11 @@ const deletePlan = async () => {
 
         if (response.data.success) {
             alert('삭제에 성공했습니다.');
-            emit('resetList'); // 데이터 초기화
+            emit('resetList');
         } else {
             alert('삭제에 실패했습니다.');
         }
     } catch (error) {
-        console.error('삭제 중 오류:', error);
         alert('삭제 중 오류가 발생했습니다.');
     }
 };
@@ -317,7 +299,6 @@ const statusMapping = {
 const loadPlansData = async () => {
     try {
         const response = await axios.get(`/api/eq/eqirmg`);
-        console.log('Plans data loaded:', response.data);
 
         eqirmgs.value = response.data.map(item => ({
             ...item,
@@ -330,7 +311,7 @@ const loadPlansData = async () => {
         }));
 
     } catch (err) {
-        console.error('데이터 로딩 에러:', err);
+        alert('조치 결과 데이터를 불러오는 데 실패했습니다.');
     }
 };
 
@@ -340,7 +321,7 @@ const loadSelectedPlan = async (value) => {
         return;
     }
 
-    // 내부 업데이트임을 표시
+    // 내부 업데이트 플래그 설정
     isInternalUpdate.value = true;
 
     const newData = {
@@ -382,9 +363,7 @@ const loadSelectedPlan = async (value) => {
 const loadEqirData = async () => {
     try {
         const response = await axios.get('/api/eq/eqirall');
-        console.log('점검결과 데이터 로딩:', response.data);
 
-        // 응답 구조에 맞게 처리
         if (Array.isArray(response.data)) {
             eqirss.value = response.data.map(item => ({
                 ...item,
@@ -400,7 +379,7 @@ const loadEqirData = async () => {
         }
 
     } catch (err) {
-        console.error('점검결과 데이터 로딩 에러:', err);
+        alert('점검결과 데이터를 불러오는 데 실패했습니다.');
     }
 };
 
@@ -413,7 +392,6 @@ const loadSelectedEqirPlan = async (value) => {
 
     isInternalUpdate.value = true;
 
-    // eqir_code만 업데이트하면 됨
     const updatedData = {
         ...props.data,
         eqir_code: value.eqir_code,
@@ -424,7 +402,6 @@ const loadSelectedEqirPlan = async (value) => {
     currentData.value.eq_name = value.eq_name || '';
     emit('update:data', updatedData);
 
-    // 다음 틱에서 플래그 해제
     nextTick(() => {
         isInternalUpdate.value = false;
     });
@@ -506,7 +483,6 @@ const eqirss = ref([]);
         </div>
     </div>
 
-    <!-- 팝업 컴포넌트 -->
     <eqirmgsinglePopup v-model:visible="eqirmgPopupVisibil" :items="eqirmgs" @confirm="loadSelectedPlan"
         :selectedHeader="['eq_ma_code', 'eq_name', 'fail_date', 'act_detail', 'act_result']" :mapper="eqiiresmgMapping"
         :visibleFields="['eq_ma_code', 'eq_name', 'fail_date', 'act_detail', 'act_result']" :dataKey="'eq_ma_code'"
