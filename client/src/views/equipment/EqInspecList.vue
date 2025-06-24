@@ -154,6 +154,8 @@ const saveData = async () => {
             detailData: eqirDataForServer
         };
 
+        console.log('Saving data:', requestData);
+
         let response;
         if (!eqiiInfo.value.eqii_code) {
             response = await axios.post(`/api/eq/eqii/save-all`, requestData);

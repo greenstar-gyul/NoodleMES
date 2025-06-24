@@ -97,8 +97,6 @@ const exportToExcel = () => {
                 <div class="flex items-center gap-2 flex-nowrap">
                     <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" @click="deleteSelected"
                         :disabled="!selectedWDEeiqchk || selectedWDEeiqchk.length == 0" />
-                    <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined
-                        @click="exportToExcel" />
                 </div>
             </div>
         </div>
