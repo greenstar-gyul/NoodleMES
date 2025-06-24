@@ -39,7 +39,7 @@ const regdate = ref(today)
 const check_method = ref('');
 const note = ref('')
 
-// ✅ 외부에서 set할 수 있게
+// 외부에서 set할 수 있게
 const setFormData = (data) => {
   qcr_code.value = data.qcr_code ?? ''
   inspection_item.value = data.inspection_item ?? ''
@@ -53,7 +53,7 @@ const setFormData = (data) => {
   note.value = data.note ?? ''
 }
 
-// ✅ 외부에서 get할 수 있게
+// 외부에서 get할 수 있게
 const getFormData = () => ({
   qcr_code: qcr_code.value,
   inspection_item: inspection_item.value,

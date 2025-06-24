@@ -1,7 +1,5 @@
 <template>
-    <!-- 검색 조회 테이블 영역 -->
     <div class="card mt-6">
-        <!-- 테이블 상단 (타이틀 + 엑셀 다운로드 버튼) -->
         <div class="grid grid-cols-1 gap-4 mb-4">
             <div class="flex justify-between">
                 <div>
@@ -13,7 +11,6 @@
             </div>
         </div>
 
-        <!-- DataTable (PrimeVue) -->
         <DataTable
             v-model:selection="selectedWE"
             :value="data"
@@ -23,7 +20,6 @@
             scrollHeight="400px"
             tableStyle="min-width: 50rem"
         >
-            <!-- 동적 컬럼 생성 -->
             <Column
                 v-for="item in itemsWE"
                 :key="item"
@@ -59,13 +55,10 @@ const props = defineProps({
   }
 });
 
-// 부모에게 알릴 이벤트들
 const emit = defineEmits(['loadInspectionResults']);
 
-// 테이블에 보여줄 제품 데이터 (예시 데이터)
 const itemsWE = ref([]);
 
-// 데이터가 바뀔 때마다 열 추출
 watch(
     () => props.data,
     (newVal) => {
@@ -78,8 +71,6 @@ watch(
     { immediate: true }
 );
 
-
-// DataTable 선택된 행 (선택 모드)
 const selectedWE = ref();
 
 const loadInspectionResults = () => {

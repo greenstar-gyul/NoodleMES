@@ -6,20 +6,19 @@ import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 import moment from 'moment';
 
 const searchOption = ref({
-  qio_code: '',         // 품질검사코드
-  prdr_code: '',        // 생산자코드
-  mpr_d_code: '',       // 제조상세코드
-  emp_name: '',         // 직원명
-  start_date: null,     // 검사일자 시작 (qio_date)
-  end_date: null,       // 검사일자 종료 (qio_date)
-  insp_start_date: null, // 검사일자 시작 (insp_date)
-  insp_end_date: null    // 검사일자 종료 (insp_date)
+  qio_code: '',
+  prdr_code: '',
+  mpr_d_code: '',
+  emp_name: '',
+  start_date: null,
+  end_date: null,
+  insp_start_date: null,
+  insp_end_date: null
 });
 
 const emit = defineEmits(['search', 'resetSearch']);
 
 const fetchSearch = () => {
-  // 날짜 포맷팅
   const searchParams = {
     qio_code: searchOption.value.qio_code,
     prdr_code: searchOption.value.prdr_code,
@@ -35,11 +34,10 @@ const fetchSearch = () => {
       moment(searchOption.value.insp_end_date).format('YYYY-MM-DD') : null
   };
 
-  console.log('🔍 검색 조건 전송:', searchParams);
+  console.log('검색 조건 전송:', searchParams);
   emit('search', searchParams);
 };
 
-// 초기화
 const resetSearchOption = () => {
   searchOption.value = {
     qio_code: '',
@@ -63,31 +61,23 @@ defineExpose({ resetSearchOption });
 </script>
 
 <template>
-  <!-- 검색바 영역 -->
   <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-      <!-- 품질검사코드 -->
       <SearchText v-model="searchOption.qio_code" label="품질검사코드" placeholder="품질검사코드를 입력하세요" />
 
-      <!-- 검사일자 범위 (qio_date) -->
       <SearchDateBetween label="검사일자" :from="searchOption.start_date" :to="searchOption.end_date"
         @update:from="searchOption.start_date = $event" @update:to="searchOption.end_date = $event" />
 
-      <!-- 검사일자 범위 (insp_date) -->
       <SearchDateBetween label="검사완료일자" :from="searchOption.insp_start_date" :to="searchOption.insp_end_date"
         @update:from="searchOption.insp_start_date = $event" @update:to="searchOption.insp_end_date = $event" />
 
-      <!-- 생산자코드 -->
       <SearchText v-model="searchOption.prdr_code" label="생산자코드" placeholder="생산자코드를 입력하세요" />
 
-      <!-- 제조상세코드 -->
       <SearchText v-model="searchOption.mpr_d_code" label="제조상세코드" placeholder="제조상세코드를 입력하세요" />
 
-      <!-- 직원명 -->
       <SearchText v-model="searchOption.emp_name" label="직원명" placeholder="직원명을 입력하세요" />
     </div>
 
-    <!-- 조회/초기화 버튼 -->
     <div class="flex justify-center gap-3 mt-4">
       <Button label="초기화" severity="contrast" @click="handleReset" />
       <Button label="조회" severity="info" @click="fetchSearch" />

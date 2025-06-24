@@ -124,7 +124,7 @@ const confirm = () => {
 };
 
 const searchOrders = () => {
-  console.log('검색 실행:', searchKeyword.value);
+  // console.log('검색 실행:', searchKeyword.value);
   // 실제 검색 로직은 부모에서 props로 넘겨도 되고, emit 해도 됨
 };
 </script>

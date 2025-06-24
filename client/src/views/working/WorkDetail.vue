@@ -9,18 +9,14 @@ import { useWebSocketStore } from '../../stores/websocket';
 import moment from 'moment';
 
 const wsStore = useWebSocketStore();
-
 const route = useRoute();
-console.log('📦 쿼리 파라미터:', route.query);
 const wko_code = route.params.wko_code;
 const eq_code = route.params.eq_code;
-console.log('🧩 wko_code:', wko_code, '| eq_code:', eq_code);
 
 const workDetail = ref(null); // 처음에는 null
 
 // 상세 데이터 조회
 onMounted(() => {
-  console.log('🧩 wko_code:', wko_code, '| eq_code:', eq_code);
   loadDetail();
 });
 
@@ -33,9 +29,8 @@ const loadDetail = async () => {
     workDetail.value = res.data;
     workDetail.value.start_date = workDetail.value.start_date ? moment(workDetail.value.start_date).format('YYYY-MM-DD HH:mm:ss') : null;
     workDetail.value.end_date = workDetail.value.end_date ? moment(workDetail.value.end_date).format('YYYY-MM-DD HH:mm:ss') : null;
-    console.log('✅ 상세 데이터:', workDetail.value);
   } catch (err) {
-    console.error('❌ 상세조회 실패:', err);
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
   }
 }
 

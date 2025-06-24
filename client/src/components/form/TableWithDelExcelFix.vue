@@ -9,7 +9,7 @@ const selectedWDE = ref([]);
 
 watch(selectedWDE, (newVal) => {
   if (newVal) {
-    console.log('✅ 선택된 제품:', newVal);
+    // console.log('✅ 선택된 제품:', newVal);
     emit('row-click', newVal);
   }
 });

@@ -76,7 +76,7 @@ const handleReset = () => {
   // 제품 목록 초기화
   resetProductRows();
 
-  console.log('초기화 완료 (출고 + 주문정보 + 거래처 + 제품 목록)');
+  // console.log('초기화 완료 (출고 + 주문정보 + 거래처 + 제품 목록)');
 };
 
 //삭제
@@ -102,7 +102,7 @@ const handleDelete = async () => {
       handleReset(); // 초기화 함수 호출
       alert('출고가 삭제되었습니다.');
     } catch (error) {
-      console.error('출고 삭제 실패:', error);
+      // console.error('출고 삭제 실패:', error);
       alert('출고 삭제 중 오류가 발생했습니다.');
     }
 };
@@ -175,9 +175,9 @@ const handleSave = async () => {
       out_req_date: moment(release.out_req_date).format('YYYY-MM-DD')
     }));
 
-    console.log("저장용 details 데이터:", details);
+    // console.log("저장용 details 데이터:", details);
   } catch (err) {
-    console.error('출고 저장 실패:', err);
+    // console.error('출고 저장 실패:', err);
     alert(err.message || '출고 저장 중 오류 발생');
   }
 };
@@ -186,7 +186,7 @@ const handleSave = async () => {
 
 // 주문정보 팝업 Confirm 핸들러
 const orderHandleConfirm = async (selectedOrder) => {
-  console.log('선택된 주문:', selectedOrder);
+  // console.log('선택된 주문:', selectedOrder);
 
   try {
     // 주문 상세 조회
@@ -214,12 +214,9 @@ const orderHandleConfirm = async (selectedOrder) => {
     clientLabel.value = client ? client.client_name : '';
     clientCode.value = selectedOrder.client_code;
     clientLabel.value = client ? client.client_name : '';
-
-    console.log('선택된 거래처 코드:', selectedOrder.client_code);
-    console.log('전체 거래처 목록:', allClients.value);
-    console.log('매핑된 거래처 이름:', client?.client_name);
   } catch (err) {
-    console.error('주문 상세 조회 실패:', err);
+    // console.error('주문 상세 조회 실패:', err);
+    alert('주문 상세정보 불러오기에 실패했습니다.');
   }
 };
 
@@ -261,7 +258,7 @@ const releaseHandleConfirm = async (selectedRelease) => {
     props.note.value = selectedRelease.note || '';
 
   } catch (err) {
-    console.error("출고 상세 조회 실패:", err);
+    // console.error("출고 상세 조회 실패:", err);
     alert("출고 상세정보 불러오기에 실패했습니다.");
   }
 };
@@ -296,7 +293,8 @@ onMounted(async () => {
     allClients.value = clientList;
 
   } catch (err) {
-    console.error('데이터 로딩 실패:', err);
+    // console.error('데이터 로딩 실패:', err);
+    alert('데이터를 불러오는 데 실패했습니다.');
   }
 });
 </script>
