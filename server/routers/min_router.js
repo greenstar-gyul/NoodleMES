@@ -43,18 +43,20 @@ router.get('/min', async (req, res) => {
 
 // 구간 날짜에 맞는 자재입고 목록 조회
 router.get('/minDate', async (req, res) => {
-    const { min_date_from, min_date_to } = req.query;
+    const { inbndDateFrom, inbndDateTo } = req.query;
+    // console.log(inbndDateFrom);
+    // console.log(inbndDateTo);
     try {
         // 둘 다 존재하는 경우에만 진행
-        if (!min_date_from || !min_date_to) {
+        if (!inbndDateFrom || !inbndDateTo) {
             return res.status(400).json({
                 result_code: "FAIL",
                 message: "실패",
-                error: "min_date_from 또는 min_date_to 누락되었습니다."
+                error: "inbndDateFrom 또는 inbndDateTo 누락되었습니다."
             });
         }
 
-        const result = await orderService.findMinsWithDate(min_date_from, min_date_to);
+        const result = await minService.findMinsWithDate(inbndDateFrom, inbndDateTo);
 
         res.json({
             result_code: "SUCCESS",
