@@ -15,7 +15,7 @@ const eqiiInfo = ref({
     chk_exp_date: null,
     stat: '',
     note: '',
-    inst_emp_name: 'EMP-10001',
+    inst_emp_name: '김영업',
     inst_emp_code: 'EMP-10001'
 });
 
@@ -189,7 +189,7 @@ const resetData = () => {
         chk_exp_date: null,
         stat: '',
         note: '',
-        inst_emp_name: 'EMP-10001',
+        inst_emp_name: '김영업',
         inst_emp_code: 'EMP-10001'
     };
     currentEqiiCode.value = '';
