@@ -184,50 +184,50 @@ const handleSave = async () => {
 }; // end of handleSave
 
 // 자재입고정보 팝업 Confirm 핸들러
-const handleMinbndConfirm = async (selectedMin) => {
-  // console.log('체크 포인트', selectedMin);
-  // console.log(selectedMin);
+// const handleMinbndConfirm = async (selectedMin) => {
+//   // console.log('체크 포인트', selectedMin);
+//   // console.log(selectedMin);
   
-  try {
-    // 전체 자재입고정보 조회
-    const minBunRes = await axios.get(`/api/min/all`);
-    const minBunList = minBunRes.data;//store 함수 사용
+//   try {
+//     // 전체 자재입고정보 조회
+//     const minBunRes = await axios.get(`/api/min/all`);
+//     const minBunList = minBunRes.data;//store 함수 사용
     
-    // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
-    minBunList.forEach((item, idx) => {
-      item.min_bnd_num_code = item.min_bnd_num_code || `row-${idx}`;
-    });
+//     // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
+//     minBunList.forEach((item, idx) => {
+//       item.min_bnd_num_code = item.min_bnd_num_code || `row-${idx}`;
+//     });
     
-   console.log('선택 입고정보 확인');
-   console.log(selectedMin);
+//    console.log('선택 입고정보 확인');
+//    console.log(selectedMin);
 
-    // 자재입고 정보 초기 설정
-    mins.mInBndCode.value = selectedMin.minbnd_code;
-    mins.matCode.value = selectedMin.mat_code;
-    mins.matType.value = selectedMin.material_type_code;
-    mins.commMatType.value = selectedMin.comm_mat_type;
-    mins.ordQtt.value = selectedMin.ord_qtt;
-    mins.inbndQtt.value = selectedMin.inbnd_qtt;
-    mins.unit.value = selectedMin.unit;
-    mins.commUnit.value = selectedMin.comm_unit;
-    mins.inbndDate.value = moment(selectedMin.inbnd_date).format("YYYY-MM-DD")
-    mins.matSup.value = selectedMin.mat_sup;
-    mins.supName.value = selectedMin.sup_name;
-    mins.mCode.value = selectedMin.emp_code;
-    mins.mName.value = selectedMin.emp_name;
-    mins.qioCode.value = selectedMin.qio_code;
-    mins.lotNum.value = selectedMin.lot_num;
+//     // 자재입고 정보 초기 설정
+//     mins.mInBndCode.value = selectedMin.minbnd_code;
+//     mins.matCode.value = selectedMin.mat_code;
+//     mins.matType.value = selectedMin.material_type_code;
+//     mins.commMatType.value = selectedMin.comm_mat_type;
+//     mins.ordQtt.value = selectedMin.ord_qtt;
+//     mins.inbndQtt.value = selectedMin.inbnd_qtt;
+//     mins.unit.value = selectedMin.unit;
+//     mins.commUnit.value = selectedMin.comm_unit;
+//     mins.inbndDate.value = moment(selectedMin.inbnd_date).format("YYYY-MM-DD")
+//     mins.matSup.value = selectedMin.mat_sup;
+//     mins.supName.value = selectedMin.sup_name;
+//     mins.mCode.value = selectedMin.emp_code;
+//     mins.mName.value = selectedMin.emp_name;
+//     mins.qioCode.value = selectedMin.qio_code;
+//     mins.lotNum.value = selectedMin.lot_num;
     
-    // console.log('선택값 확인');
-    // console.log(selectedMin);
-    console.log('자재입고 정보');
-    console.log(mins);
+//     // console.log('선택값 확인');
+//     // console.log(selectedMin);
+//     console.log('자재입고 정보');
+//     console.log(mins);
 
-    setMinRows(minBunList);
-  } catch (err) {
-    console.error('자재입고정보 조회 실패:', err);
-  }
-}; // end of handleMinbndConfirm
+//     setMinRows(minBunList);
+//   } catch (err) {
+//     console.error('자재입고정보 조회 실패:', err);
+//   }
+// }; // end of handleMinbndConfirm
 
 // 자재선택 팝업 Confirm 핸들러
 const handleMatbndConfirm = async (selectedMat) => {
@@ -388,13 +388,13 @@ onMounted(async () => {
       :dataKey="'minbnd_code'"
   />
   <!-- ===== 자재정보 팝업 ===== -->
-  <SinglePopup
+  <!-- <SinglePopup
       v-model:visible="matPopupVisible"
       :items="matRef"
       @confirm="handleMatbndConfirm"  
       :mapper="minMapping.matMapping"
       :dataKey="'mat_code'"
-  />
+  /> -->
   <!-- ===== 품질검사정보 팝업 ===== -->
   <SinglePopup
       v-model:visible="qioPopupVisible"

@@ -41,6 +41,35 @@ router.get('/min', async (req, res) => {
     }
 });
 
+// 구간 날짜에 맞는 자재입고 목록 조회
+router.get('/minDate', async (req, res) => {
+    const { min_date_from, min_date_to } = req.query;
+    try {
+        // 둘 다 존재하는 경우에만 진행
+        if (!min_date_from || !min_date_to) {
+            return res.status(400).json({
+                result_code: "FAIL",
+                message: "실패",
+                error: "min_date_from 또는 min_date_to 누락되었습니다."
+            });
+        }
+
+        const result = await orderService.findMinsWithDate(min_date_from, min_date_to);
+
+        res.json({
+            result_code: "SUCCESS",
+            message: "성공",
+            data: result
+        });
+    } catch (err) {
+        // console.error("조회 실패:", err);
+        res.status(500).json({
+            result_code: "FAIL",
+            message: "실패",
+            error: err.message
+        });
+    }
+});
 
 // 전체 자재기본 정보 조회
 router.get('/mat', async (req, res) => {

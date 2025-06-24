@@ -15,6 +15,17 @@ const findAllMin = async () => {
   return list;
 }; // end of findAllMin
 
+// 날짜 조건을 반영한 자재입고 조회
+const findMinsWithDate = async (fromDate, toDate) => {
+  try {
+    const result = await mariadb.query("selectOrderListWithDate", [fromDate, toDate]);
+    return result;
+  } catch (err) {
+    console.error("조회 실패:", err);
+    throw err;
+  }
+};
+
 // 자재 전체 조회
 const findAllMat = async () => {
   const result = await mariadb.query("selectAllMatList")
@@ -132,6 +143,7 @@ const deleteMpr = async (mprCode) => {
 module.exports ={
     /* 조회 */ 
     findAllMin,
+    findMinsWithDate,
     findAllQio,
     findAllMat,
     findSelMat,

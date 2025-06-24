@@ -63,6 +63,23 @@ LEFT JOIN emp_tbl emp
 WHERE  min.minbnd_code LIKE '%?%'
 `;
 
+// 날짜 조건 반영을 위한 주문 조회
+const selectMinListWithDate = `
+  SELECT DISTINCT o.ord_code,
+         o.ord_name,
+         o.ord_date,
+         o.note,
+         c.client_name,
+         comm_name(o.ord_stat) AS ord_stat,
+         d.ord_amount,
+         d.delivery_date
+  FROM ord_tbl o
+  INNER JOIN ord_d_tbl d ON o.ord_code = d.ord_code
+  LEFT JOIN client_tbl c ON o.client_code = c.client_code
+  WHERE o.ord_date BETWEEN ? AND ?
+  ORDER BY o.ord_code
+`;
+
 // 전체 자재기준정보 조회
 const selectAllMatList =
 `
@@ -230,6 +247,7 @@ module.exports = {
   /* 조회*/ 
   selectAllMatInList,
   selectSearchMatInList,
+  selectMinListWithDate,
   selectAllMatList,
   selectSearchMat,
   selectAllQioList,
