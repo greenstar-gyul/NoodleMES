@@ -37,7 +37,7 @@ const processPopup = `
 SELECT d.no,
        d.po_code,
        p.po_name,
-       comm_name(d.eq_type) AS "eq_type",
+       d.eq_type,
        d.pp_code
 FROM prod_proc_d_tbl d
 LEFT JOIN po_tbl p ON d.po_code = p.po_code
