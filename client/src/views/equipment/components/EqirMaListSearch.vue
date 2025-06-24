@@ -309,6 +309,11 @@ const statusOptions = [
     { label: '조치완료', value: 'g2' }
 ];
 
+const statusMapping = {
+    'g1': '조치중',
+    'g2': '조치완료'
+};
+
 const loadPlansData = async () => {
     try {
         const response = await axios.get(`/api/eq/eqirmg`);
@@ -320,7 +325,8 @@ const loadPlansData = async () => {
             start_date: item.start_date ? moment(item.start_date).format('YYYY-MM-DD HH:mm') : null,
             end_date: item.end_date ? moment(item.end_date).format('YYYY-MM-DD HH:mm') : null,
             re_chk_exp_date: item.re_chk_exp_date ? moment(item.re_chk_exp_date).format('YYYY-MM-DD') : null,
-            regdate: item.regdate ? moment(item.regdate).format('YYYY-MM-DD HH:mm') : null
+            regdate: item.regdate ? moment(item.regdate).format('YYYY-MM-DD HH:mm') : null,
+            act_result: statusMapping[item.act_result] || item.act_result || '미정'
         }));
 
     } catch (err) {
