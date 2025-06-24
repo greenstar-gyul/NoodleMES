@@ -320,7 +320,7 @@ class NoodleServer {
 
     // 자재가 재고보다 적거나 없다면 생산 진행 하면 안 됨
     for (const material of materialList) {
-      if (material.cur_qtt < material.req_qtt) {
+      if (parseFloat(material.cur_qtt) < parseFloat(material.req_qtt)) {
         console.error(`❌ 자재 ${material.mat_code}의 재고가 부족합니다. 현재: ${material.cur_qtt}, 필요: ${material.req_qtt}`);
         insufficientMaterials.push(material.mat_name);
       }
