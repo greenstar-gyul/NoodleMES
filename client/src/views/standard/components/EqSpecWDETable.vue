@@ -51,7 +51,7 @@ const onRowSelect = (event) => {
     emit('selection-change', selectedWDE.value);  // 전체 선택 배열 보내기
 };
 
-// const onRowUnselect = (event) => {
+const onRowUnselect = (event) => {
 //     console.log('행 선택 해제:', event.data);
 //     console.log('현재 선택된 항목들:', selectedWDE.value);
     emit('selection-change', selectedWDE.value);  // 전체 선택 배열 보내기
