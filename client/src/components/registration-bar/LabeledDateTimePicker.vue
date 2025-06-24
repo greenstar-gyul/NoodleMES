@@ -39,7 +39,7 @@ watch(() => props.modelValue, (newVal) => {
       :showTime="showTime"
       :showSeconds="false"
       :readonly="readonly"
-      dateFormat="yy-mm-dd HH:mm"
+      dateFormat="yy-mm-dd"
       class="flex-1"
     />
   </div>
