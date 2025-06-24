@@ -152,7 +152,7 @@ const qirForm = ref({
     result: '',
     note: '',
     qio_code: '',
-    qir_emp_name: '',
+    qir_emp_name: '정품질',
     inspection_item: '',
     qcr_code: ''
 });
@@ -182,7 +182,7 @@ const resetForm = async () => {
         result: '',
         note: '',
         qio_code: '',
-        qir_emp_name: '',
+        qir_emp_name: '정품질',
         inspection_item: '',
         qcr_code: ''
     };
