@@ -310,11 +310,9 @@ const loadMprsData = async () => {
             console.log('원본 data 배열:', response.data.data);
             if (response.data.data.length > 0) {
                 console.log('첫 번째 아이템:', response.data.data[0]);
-                console.log('첫 번째 아이템 키들:', Object.keys(response.data.data[0]));
             }
 
             loadMprPopupInfo.value = response.data.data.map((item, index) => {
-                console.log(`${index}번째 아이템 매핑 중:`, item);
 
                 const mappedItem = {
                     mpr_d_code: item.mpr_d_code || '',
@@ -325,19 +323,11 @@ const loadMprsData = async () => {
                     req_qtt: item.req_qtt || 0
                 };
 
-                console.log(`${index}번째 매핑 결과:`, mappedItem);
                 return mappedItem;
             });
 
-            console.log('최종 loadMprPopupInfo.value:', loadMprPopupInfo.value);
-            console.log('loadMprPopupInfo.value 길이:', loadMprPopupInfo.value.length);
-            console.log('loadMprPopupInfo.value는 배열?', Array.isArray(loadMprPopupInfo.value));
-
         } else {
             console.error('❌ 조건 실패!');
-            console.log('- response.data 존재?', !!response.data);
-            console.log('- result_code === SUCCESS?', response.data?.result_code === "SUCCESS");
-            console.log('- data가 배열?', Array.isArray(response.data?.data));
             loadMprPopupInfo.value = [];
         }
 
