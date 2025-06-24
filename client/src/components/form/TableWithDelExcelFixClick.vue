@@ -77,7 +77,7 @@ const handleRowClick = (event) => {
         <div class="font-semibold text-2xl">{{ title }}</div>
         <div class="flex items-center gap-2">
           <Button label="삭제" severity="danger" class="min-w-fit whitespace-nowrap" />
-          <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined />
+          <!-- <Button label="엑셀 다운로드" severity="success" class="min-w-fit whitespace-nowrap" outlined /> -->
         </div>
       </div>
     </div>
