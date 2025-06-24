@@ -6,6 +6,7 @@ export const minbndMapping = {
   mat_name: '자재명', 
   material_type_code: '자재유형코드',
   comm_mat_type: '자재유형',
+  mat_type: '자재유형',
   unit: '단위코드',
   comm_unit: '단위',
   inbnd_qtt: '입고수량',
@@ -15,6 +16,7 @@ export const minbndMapping = {
   lot_num: 'LOT 번호',
   mat_sup: '공급업체',
   sup_name: '공급업체명',
+  client_name: '공급업체명',
   emp_code: '담당자 코드',
   emp_name: '담당자 이름',
 };
