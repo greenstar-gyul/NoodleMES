@@ -286,6 +286,7 @@ onMounted(async () => {
     const releaseRes = await axios.get('/api/order/releases/popup');
     releaseList.value = releaseRes.data.data.map(release => ({
       ...release,
+      outbnd_qtt: release.outbnd_qtt ?? 0,
       out_req_date: moment(release.out_req_date).format('YYYY-MM-DD')
     }));
 

@@ -4,7 +4,7 @@
 
 <script setup>
 import axios from 'axios';
-import MinManageMain from './min-manage-sub/MinManageMain.vue';
+// import MinManageMain from './min-manage-sub/MinManageMain.vue';
 import { onMounted, ref } from 'vue';
 import MinMapper from '@/service/MinMapping.js';
 
