@@ -15,22 +15,22 @@ const minStore = useMinStore();
 // 상태
 const { selectedMin, } = storeToRefs(minStore);
 
-const { fetchMinsByDate, resetSearch,  } = minStore;
+const { fetchMinsSearch, resetSearch,  } = minStore;
 
 // 컴포넌트 초기화
 onMounted(() => {
-  fetchMinsByDate();
+  fetchMinsSearch();
 });
 
 // 검색 초기화 함수
 const onReset = () => {
   resetSearch();
-  fetchMinsByDate(); // 초기화 후 기본 날짜로 조회
+  fetchMinsSearch(); // 초기화 후 기본 날짜로 조회
 };
 
 // 검색 실행 함수
 const onSearch = () => {
-    fetchMinsBySearch();
+    fetchMinsSearch();
 };
 
 // 단위 코드 매핑 (단방향: 값 → 코드)
@@ -68,7 +68,7 @@ const clientMap = {
 // 최초 로딩시 자재입고 정보 조회
 onMounted(() => {
   try {
-    fetchMinsBySearch();
+    fetchMinsSearch();
   } catch(err){
     console.error('데이터 로딩 실패:', err);
   }

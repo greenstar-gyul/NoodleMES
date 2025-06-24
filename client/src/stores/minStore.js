@@ -32,7 +32,7 @@ export const useMinStore = defineStore('minStore', () => {
   };
   
   // 기본 날짜 조건 주문 목록 조회
-  async function fetchMinsByDate() {
+  async function fetchMinsSearch() {
     try {
       if (!selectedMin.value.inbndDateFrom || !selectedMin.value.inbndDateTo) {
         // console.warn('날짜가 설정되지 않았습니다.');
@@ -82,7 +82,7 @@ export const useMinStore = defineStore('minStore', () => {
   return {
     minRows,
     selectedMin,
-    fetchMinsByDate,
+    fetchMinsSearch ,
     setMinRows,
     setSelectedMin,
     resetMinRows,

@@ -8,12 +8,11 @@ import TableWithExcel from '@/components/form/TableWithExcel.vue';
 
 const minStore = useMinStore();
 
-// 상위 props로부터 데이터 전달받기
 const { mins } = storeToRefs(minStore);
-const { fetchMinsByDate, setDefaultDateRange } = minStore;
+const { fetchMinsSearch,  } = minStore;
 
 onMounted(async () => {
-  fetchMinsByDate();
+  fetchMinsSearch();
 })
 
 </script>
