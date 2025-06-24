@@ -5,7 +5,7 @@ import { NoodleClient } from '@/service/noodle_client.js';
 // 서버 설정
 const HOST = 'codenote.store';
 // const HOST = 'localhost'; // 로컬 개발용
-const PORT = '80';
+const PORT = '3721';
 const server = `ws://${HOST}:${PORT}`;
 
 export const useWebSocketStore = defineStore('websocket', () => {
