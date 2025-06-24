@@ -114,7 +114,8 @@ onMounted(async () => {
 
             <Column field="outbnd_qtt" header="출고수량" style="width: 130px" bodyStyle="width: 100px">
                 <template #body="slotProps">
-                    <InputNumber v-model="slotProps.data.outbnd_qtt" :min="0" :max="slotProps.data.ord_amount" showButtons :inputStyle="{ width: '100%' }"/>
+                    <!-- <InputNumber v-model="slotProps.data.outbnd_qtt" :min="0" :max="slotProps.data.ord_amount" showButtons :inputStyle="{ width: '100%' }"/> -->
+                    <InputNumber v-model="slotProps.data.outbnd_qtt" :min="0" :max="Math.min(slotProps.data.ord_amount, slotProps.data.stock_qtt)" showButtons :inputStyle="{ width: '100%' }"/>
                 </template>
             </Column>            
             
