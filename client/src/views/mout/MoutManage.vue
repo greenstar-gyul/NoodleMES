@@ -4,7 +4,7 @@
 
 <script setup>
 import axios from 'axios';
-import MinManageMain from './min-manage-sub/MinManageMain.vue';
+// import MinManageMain from './min-manage-sub/MinManageMain.vue';
 import { onMounted, ref } from 'vue';
 import MinMapper from '@/service/MinMapping.js';
 
@@ -28,7 +28,7 @@ import MinMapper from '@/service/MinMapping.js';
 </script>
 
 <template>
-  <MinManageMain 
+  <!-- <MinManageMain 
     :mInBndCode="mInBndCode"
     :matCode="matCode"
     :matType="matType"
@@ -44,6 +44,6 @@ import MinMapper from '@/service/MinMapping.js';
     :mName="mName"
     :qioCode="qioCode"
     :lotNum="lotNum"
-  />
+  /> -->
 </template>
 
