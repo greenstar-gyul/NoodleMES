@@ -229,8 +229,6 @@ const formatDateForDB = (date) => {
 // 설비 등록 함수
 const saveEquipment = async () => {
     try {
-        console.log('설비 등록:', eqForm.value);
-
         // 필수 필드 검증
         if (!eqForm.value.eq_type || !eqForm.value.eq_name) {
             alert('설비명은 필수입니다.');
@@ -251,16 +249,13 @@ const saveEquipment = async () => {
         const response = await axios.post('/api/eq', submitData);
 
         if (response.data.success) {
-            console.log('설비 등록 완료');
             alert('설비가 성공적으로 등록되었습니다.');
             await resetForm();
             emit('data-updated'); // 부모에게 데이터 업데이트 알림
         } else {
-            console.error('등록 실패:', response.data.error);
             alert('설비 등록에 실패했습니다.');
         }
     } catch (error) {
-        console.error('설비 등록 실패:', error);
         alert('설비 등록 중 오류가 발생했습니다.');
     }
 };
@@ -268,8 +263,6 @@ const saveEquipment = async () => {
 // 설비 수정 함수
 const updateEquipment = async () => {
     try {
-        console.log('설비 수정:', eqForm.value);
-
         // 필수 필드 검증
         if (!eqForm.value.eq_name) {
             alert('설비명은 필수입니다.');
@@ -290,23 +283,19 @@ const updateEquipment = async () => {
         const response = await axios.put(`/api/eq/${eqForm.value.eq_code}`, submitData);
 
         if (response.data.success) {
-            console.log('설비 수정 완료');
             alert('설비가 성공적으로 수정되었습니다.');
             await resetForm();
             emit('data-updated'); // 부모에게 데이터 업데이트 알림
         } else {
-            console.error('수정 실패:', response.data.error);
             alert('설비 수정에 실패했습니다.');
         }
     } catch (error) {
-        console.error('설비 수정 실패:', error);
         alert('설비 수정 중 오류가 발생했습니다.');
     }
 };
 
 // 수정 취소 함수
 const cancelEdit = () => {
-    console.log('수정 취소');
     emit('data-updated'); // 부모에서 선택 해제하도록 알림
 };
 </script>

@@ -61,10 +61,6 @@
         <!-- 우측: 설비 등록 영역 (45%) -->
         <EqInputForm :selectedData="selectedEquipment" @data-updated="onDataUpdated" />
     </div>
-
-    <!-- <MultiplePopup v-model:visible="dialogVisible" :items="submats" @confirm="handleConfirm" :mapper="bomSubMapper" :dataKey="'mat_code'"></MultiplePopup> -->
-    <!-- <SinglePopup v-model:visible="dialogVisible" :items="clients" @confirm="handleConfirm" :mapper="clientMapper"
-        :dataKey="'client_code'"></SinglePopup> -->
 </template>
 
 <script setup>
@@ -87,15 +83,10 @@ const search = ref({
     is_used: ''
 });
 
-const openPopup = () => {
-    dialogVisible.value = true;
-}
-
 const eqs = ref([]);
 const tableColumns = ['eq_code', 'eq_name', 'eq_maker', 'is_used'];
 
 // 팝업
-const dialogVisible = ref(false);
 const selectedEquipment = ref(null);
 
 // 주문상태 옵션 (예시 데이터)
@@ -107,14 +98,10 @@ const StatusOptions = [
 
 // 선택된 ㅎ
 const onSelectionChange = (selectedItems) => {
-    console.log('선택 변경:', selectedItems);
-
     if (selectedItems.length === 1) {
         selectedEquipment.value = selectedItems[0];
-        console.log('수정 모드:', selectedItems[0]);
     } else {
         selectedEquipment.value = null;
-        console.log('등록 모드');
     }
 };
 
@@ -130,11 +117,9 @@ const fetchEquipment = async () => {
             // 서버가 배열 형태로 직접 반환하는 경우
             eqs.value = response.data;
         } else {
-            console.error('검색 실패:', response.data);
             eqs.value = [];
         }
     } catch (error) {
-        console.error('검색 API 호출 실패:', error);
         eqs.value = [];
     }
 };
@@ -153,7 +138,6 @@ const loadAll = async () => {
             eqs.value = [];
         }
     } catch (error) {
-        console.error('전체 데이터 로드 실패:', error);
         eqs.value = [];
     }
 };
@@ -205,7 +189,6 @@ const handleDelete = async (selectedItems) => {
             await loadAll();
         }
     } catch (error) {
-        console.error('삭제 처리 중 오류:', error);
         alert('삭제 중 오류가 발생했습니다.');
     }
 };
@@ -213,10 +196,6 @@ const handleDelete = async (selectedItems) => {
 onMounted(async () => {
     await loadAll();
 })
-
-const onRowSelect = (rowData) => {
-    selectedEquipment.value = rowData;
-};
 
 const onDataUpdated = async () => {
     await loadAll();
