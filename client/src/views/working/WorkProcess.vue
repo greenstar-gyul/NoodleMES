@@ -102,10 +102,6 @@ watch(() => wsStore.messages, (messages) => {
             proc_rate: latest.progress || 0,
             input_qtt: latest.inputQtt || latest.input_qtt
         });
-        
-        if (updatedProcess) {
-            alert(`${updatedProcess.po_name} 공정 시작`);
-        }
     }
 }, { deep: true });
 
