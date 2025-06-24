@@ -76,14 +76,32 @@ FROM   mat_tbl mat
      ON  mat.sup = cl.client_code
 `;
 
+// 선택 자재정보 조회
+const selectSearchMat =
+`
+SELECT mat.mat_code
+	    ,mat.mat_name
+      ,comm_name(mat.unit) as 'unit'
+      ,comm_name(mat.material_type_code) as 'mat_type'
+      ,cl.client_name as 'sup_name'
+FROM   mat_tbl mat
+	 LEFT OUTER JOIN client_tbl cl
+     ON  mat.sup = cl.client_code
+WHERE mat_code = ?
+`;
+
 // 품질검사지시정보 전체 조회
 const selectAllQioList =
 `
-SELECT qio_code
-	    ,qio_date
-      ,prdr_code
-      ,po_code
-FROM   qio_tbl
+SELECT qio.qio_code,
+       mprd.mat_code,
+       mat.mat_name, 
+       qio.qio_date
+FROM   qio_tbl qio
+INNER JOIN mpr_d_tbl mprd
+        ON qio.mpr_d_code = mprd.mpr_d_code
+INNER JOIN mat_tbl mat
+        ON mprd.mat_code = mat.mat_code
 `
 ;
 
@@ -213,7 +231,9 @@ module.exports = {
   selectAllMatInList,
   selectSearchMatInList,
   selectAllMatList,
+  selectSearchMat,
   selectAllQioList,
+  
 
 
   /* 등록 */

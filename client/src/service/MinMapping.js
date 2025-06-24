@@ -30,10 +30,11 @@ export const matMapping = {
 export const qioMapping = {
   qio_code: '품질검사코드',
   qio_date: '검사지시일자',
-  prdr_code: '생산실적코드',
-  po_code: '공정코드',
-  // mpr_d_code: '?',
+  mat_code: '자재코드',
+  mat_name: '자재명',
+  mpr_d_code: '자재구매상세',
   emp_code: '담당자 코드',
+  // prdr_code: '자재구매요청상세',
 };
 
 
