@@ -474,12 +474,12 @@ const updateQir = async () => {
         }
 
         if (!qirForm.value.result) {
-            alert('검사 결과를 선택해줘!');
+            alert('검사 결과를 선택해주세요.');
             return;
         }
 
         if (!qirForm.value.qir_emp_name) {
-            alert('검사자를 입력해줘!');
+            alert('검사자를 입력해주세요.');
             return;
         }
         
