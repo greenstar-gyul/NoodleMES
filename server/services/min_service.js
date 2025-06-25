@@ -38,9 +38,18 @@ const findAllMat = async () => {
   return result;
 };
 
+// 검색 결과 조회
+const findSearchMin = async (values) => {  
+  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
+  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
+  let list = await mariadb.query("selectSearchMatInList", values)
+                          .catch(err => alert(err));
+  return list;
+};
+
 // 선택 자재 조회
 const findSelMat = async (mat) => {
-  const result = await mariadb.query("selectSearchMat", mat)
+  const result = await mariadb.query("selectOneMatInList", mat)
     .catch(err => 
       alert('오류 발생')
       );
@@ -149,6 +158,7 @@ module.exports ={
     findMinsWithDate,
     findAllQio,
     findAllMat,
+    findSearchMin,
     findSelMat,
 
     /* 등록 */
