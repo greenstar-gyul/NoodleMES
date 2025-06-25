@@ -246,10 +246,10 @@ const saveData = async () => {
             alert('저장이 완료되었습니다.');
 
             const newQioCode = response.data.data.qio_code;
+            await checkAndCreateFinishedProduct(formattedQirList);
             if (newQioCode) {
                 await forcedDataReload(newQioCode);
             }
-            await checkAndCreateFinishedProduct(formattedQirList);
         } else {
             alert('저장에 실패했습니다.');
         }
@@ -265,7 +265,7 @@ const checkAndCreateFinishedProduct = async (qirList) => {
         console.log('- prdrList.prod_name:', prdrList.value.prod_name);
         
         // 🚨 1단계: QIR 데이터가 있는지 먼저 체크!
-        if (!qirList || qirList.length === 0) {
+        if (!qioInfo.value.qio_code || qioInfo.value.qio_code === '') {
             console.log('📝 QIR 데이터가 없음 - 신규 QIO 등록 단계이므로 완제품 등록 스킵');
             return; // 🚪 여기서 바로 리턴!
         }
