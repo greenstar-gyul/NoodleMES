@@ -44,27 +44,8 @@ export const useMinStore = defineStore('minStore', () => {
     return d;
   }
   
-  // 전체 min정보를 불러오는 함수
+  // 전체 자재입고목록을 불러오는 함수
   async function fetchAllMins() {
-    try {
-      // const params = {
-      //   ...selectedMin.value,
-      //   inbndDateFrom: safeFormat(selectedMin.value.inbndDateFrom),
-      //   inbndDateTo: safeFormat(selectedMin.value.inbndDateTo),
-      // };
-      const res = await axios.get('/api/min/all');
-        mins.value = res.data.map(min => ({
-        ...min,
-        inbnd_date: formatDate(min.inbnd_date),
-      }));
-      // console.log(mins.value[0].minbnd_code)
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  // 목록 조회
-  async function fetchMinsSearch() {
     try {
       const params = {
         ...selectedMin.value,
@@ -81,7 +62,44 @@ export const useMinStore = defineStore('minStore', () => {
     }
   }
 
-    // 검색 초기화
+  // 검색 목록 조회
+  async function fetchMinsSearch() {
+    console.log('Store 체크')
+    try {
+      const params = {
+        ...selectedMin.value,
+        inbndDateFrom: safeFormat(selectedMin.value.inbndDateFrom),
+        inbndDateTo: safeFormat(selectedMin.value.inbndDateTo),
+      };
+      const res = await axios.get('/api/min/search', { params });
+        mins.value = res.data.map(min => ({
+        ...min,
+        inbnd_date: formatDate(min.inbnd_date),
+      }));
+    } catch (err) {
+      throw err;
+    }
+  }
+
+    // 전체 목록 조회
+  // async function fetchMinsSearch() {
+  //   try {
+  //     const params = {
+  //       ...selectedMin.value,
+  //       inbndDateFrom: safeFormat(selectedMin.value.inbndDateFrom),
+  //       inbndDateTo: safeFormat(selectedMin.value.inbndDateTo),
+  //     };
+  //     const res = await axios.get('/api/min/all', { params });
+  //       mins.value = res.data.map(min => ({
+  //       ...min,
+  //       inbnd_date: formatDate(min.inbnd_date),
+  //     }));
+  //   } catch (err) {
+  //     throw err;
+  //   }
+  // }
+
+  // 검색 초기화
   function resetSearch() {
     const selMin = selectedMin.value;
     selMin.matName = '';

@@ -17,22 +17,7 @@ const { mins, selectedMin, } = storeToRefs(minStore);
 
 const { fetchMinsSearch, resetSearch, fetchAllMins } = minStore;
 
-// 컴포넌트 초기화
-onMounted(() => {
-  fetchAllMins();
-});
 
-// 검색 초기화 함수
-const onReset = () => {
-  resetSearch();
-  // fetchMinsSearch(); // 초기화 후 기본 날짜로 조회
-};
-
-// 검색 실행 함수
-const onSearch = () => {
-    fetchMinsSearch();
-    console.log(mins);
-};
 
 // 단위 코드 매핑 (단방향: 값 → 코드)
 const unitCodeMap = {
@@ -64,9 +49,22 @@ const clientMap = {
   '예담마트': 'CLIENT-011',
 };
 
+// 검색 초기화 함수
+const onReset = () => {
+  resetSearch();
+  // fetchMinsSearch(); // 초기화 후 기본 날짜로 조회
+};
+
+// 검색 실행 함수
+const onSearch = () => {
+    fetchMinsSearch();
+    console.log('검색이벤트 체크');
+};
+
 // 최초 로딩시 자재입고 정보 조회
 onMounted(() => {
   try {
+    fetchAllMins();
     fetchMinsSearch();
   } catch(err){
     throw err;

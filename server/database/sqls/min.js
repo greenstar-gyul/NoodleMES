@@ -32,7 +32,7 @@ LEFT JOIN emp_tbl emp
 ;
 
 // 자재입고목록 선택조회
-const selectSearchMatInList =
+const selectOneMatInList =
 `
 SELECT min.minbnd_code
 	    ,min.mat_code
@@ -58,6 +58,35 @@ LEFT JOIN emp_tbl emp
 	ON emp.emp_code = min.mcode
 WHERE  min.minbnd_code LIKE '%?%'
 `;
+
+// 자재입고목록 검색조회
+const selectSearchMatInList =
+`
+SELECT min.minbnd_code,
+       min.qio_code,
+       mat.mat_name,
+       comm_name(min.mat_type) AS 'mat_type',
+       comm_name(min.unit) AS 'unit',
+       min.inbnd_qtt,
+       min.inbnd_date,
+       min.ord_qtt,
+       min.lot_num,
+       cli.client_name,
+       emp.emp_name
+FROM   minbnd_tbl min
+LEFT JOIN mat_tbl mat
+       ON mat.mat_code = min.mat_code
+LEFT JOIN client_tbl cli
+       ON cli.client_code = min.mat_sup
+LEFT JOIN emp_tbl emp
+       ON emp.emp_code = min.mcode
+WHERE  min.mat_code LIKE CONCAT('%', ?, '%')
+  AND  min.mat_type LIKE CONCAT('%', ?, '%')
+  AND  min.inbnd_date BETWEEN IFNULL(?, '1970-01-01') AND IFNULL(?, '9999-12-31')
+  AND  min.mat_sup LIKE CONCAT('%', ?, '%')
+  AND  min.mcode LIKE CONCAT('%', ?, '%')
+ORDER BY min.minbnd_code;
+`
 
 // 날짜 조건 반영을 위한 주문 조회
 const selectMinListWithDate = `
@@ -242,6 +271,7 @@ const deleteMprDetail =
 module.exports = {
   /* 조회*/ 
   selectAllMatInList,
+  selectOneMatInList,
   selectSearchMatInList,
   selectMinListWithDate,
   selectAllMatList,
