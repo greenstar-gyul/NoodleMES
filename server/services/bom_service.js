@@ -63,12 +63,13 @@ const insertProductAndBomTx = async (data) => {
       bomData.is_used
     ]);
 
-    // ✅ 7. BOM 자재 구성 등록
-    // ✅ 7. BOM 자재 구성 등록
+    //  7. BOM 자재 구성 등록
     for (const item of detailData) {
       // 🔄 타입 매핑
       const typeMap = {
-        '반제품': 'i2'
+        '반제품': 'i2',
+        '부자재': 'i3',
+        '원자재': 'i4'
       };
 
       const mat_type_code = typeMap[item.mat_type] || item.mat_type; // 코드로 변환
