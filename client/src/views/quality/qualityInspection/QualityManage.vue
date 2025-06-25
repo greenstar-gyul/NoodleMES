@@ -260,31 +260,45 @@ const saveData = async () => {
 
 const checkAndCreateFinishedProduct = async (qirList) => {
     try {
-        // 🎯 1단계: 제품 생산 검사인지 확인!
+        console.log('🎯 완제품 자동 등록 체크 시작!');
+        console.log('- QIR 목록:', qirList);
+        console.log('- prdrList.prod_name:', prdrList.value.prod_name);
+        
+        // 🚨 1단계: QIR 데이터가 있는지 먼저 체크!
+        if (!qirList || qirList.length === 0) {
+            console.log('📝 QIR 데이터가 없음 - 신규 QIO 등록 단계이므로 완제품 등록 스킵');
+            return; // 🚪 여기서 바로 리턴!
+        }
+        
+        // 🎯 2단계: 제품 생산 검사인지 확인!
         if (!prdrList.value.prod_name || prdrList.value.prod_name === '') {
             console.log('🔍 자재 검사이므로 완제품 등록 스킵');
             return; // 🚨 여기서 바로 리턴!
         }
         
-        // 🎯 2단계: 모든 QIR이 완료되었는지 확인
+        console.log('✅ 제품 생산 검사 확인됨! 완제품 등록 진행~');
+        
+        // 🎯 3단계: 모든 QIR이 완료되었는지 확인
         const allCompleted = qirList.every(qir => 
             qir.end_date && qir.end_date !== '' && qir.pass_qtt > 0
         );
         
         if (!allCompleted) {
+            console.log('⚠️ 아직 완료되지 않은 검사가 있음');
             alert('모든 품질검사가 완료되지 않았습니다. 검사를 모두 완료한 후 다시 시도해주세요.');
             return;
         }
         
-        // 🎯 3단계: 합격된 수량 계산
+        // 🎯 4단계: 합격된 수량 계산
         const totalPassQtt = qirList.reduce((sum, qir) => sum + (qir.pass_qtt || 0), 0);
         
         if (totalPassQtt === 0) {
+            console.log('❌ 합격 수량이 0이므로 완제품 등록 안함');
             alert('합격된 수량이 0이므로 완제품을 등록하지 않습니다.');
             return;
         }
         
-        // 🎯 4단계: 완제품 등록 (제품 생산 검사만!)
+        // 🎯 5단계: 완제품 등록 (제품 생산 검사만!)
         const pinbndData = {
             qtt: totalPassQtt,
             pinbnd_date: new Date().toISOString().split('T')[0],

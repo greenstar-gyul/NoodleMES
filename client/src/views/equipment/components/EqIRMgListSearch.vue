@@ -75,7 +75,7 @@ defineExpose({
 <template>
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <SearchText v-model="searchOption.eq_ma_code" label="유지보수코드" placeholder="유지보수코드를 입력하세요" />
+            <SearchText v-model="searchOption.eq_ma_code" label="조치결과코드" placeholder="조치결과코드를 입력하세요" />
 
             <SearchText v-model="searchOption.eq_name" label="설비명" placeholder="설비명을 입력하세요" />
 
