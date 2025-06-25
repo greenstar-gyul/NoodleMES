@@ -53,7 +53,7 @@ const selectBomList = `
            comm_name(b.is_used) AS "is_used"
     FROM   bom_tbl b
     JOIN prod_tbl p ON b.prod_code = p.prod_code
-    ORDER BY b.bom_code DESC
+    ORDER BY b.bom_code
 `;
 
 // 제품 단건 조회
