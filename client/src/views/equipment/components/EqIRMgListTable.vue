@@ -70,5 +70,5 @@ onMounted(() => {
             end_date: '조치종료일시',
             m_emp_name: '담당자명',
             fix_emp_name: '수리자명'
-        }" title="설비 유지보수 목록" @crctEqii="handleEqMaSelect" />
+        }" title="조치결과 목록" @crctEqii="handleEqMaSelect" />
 </template>
