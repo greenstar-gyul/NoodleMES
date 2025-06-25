@@ -408,7 +408,7 @@ WHERE emp_name = ?
 `;
 
 module.exports = {
-    getQioList: BASE_QUERY + ' ORDER BY a.qio_date DESC',
+    getQioList: BASE_QUERY + ' ORDER BY a.qio_code DESC',
     searchQioListByCode: BASE_QUERY + ' WHERE a.qio_code = ?',
     fetchOrders,
     selectList,
