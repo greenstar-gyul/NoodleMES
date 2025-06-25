@@ -247,9 +247,10 @@ const saveData = async () => {
 
             const newQioCode = response.data.data.qio_code;
             await checkAndCreateFinishedProduct(formattedQirList);
-            if (newQioCode) {
-                await forcedDataReload(newQioCode);
-            }
+            resetData();
+            // if (newQioCode) {
+            //     await forcedDataReload(newQioCode);
+            // }
         } else {
             alert('저장에 실패했습니다.');
         }
@@ -359,8 +360,9 @@ const forcedDataReload = async (qioCode) => {
 
         // QIO 정보 다시 로드
         const qioResponse = await axios.get(`/api/qlt/qio/${qioCode}`);
-        if (qioResponse.data && qioResponse.data.data) {
-            const freshQioData = qioResponse.data.data;
+        const qioData = await qioResponse.data;
+        if (qioData && qioData.data) {
+            const freshQioData = qioData.data;
 
             // 직접 qioInfo 업데이트 (watch 트리거)
             qioInfo.value = {
@@ -836,13 +838,13 @@ const updateqioList = async (newList) => {
 <template>
     <div>
         <div class="grid grid-cols-2 gap-4 mt-4">
+            <QualityManageMiddleTbl :data="combinedMiddleData" @update:data="updatePrdrOrMprList"
+                @reset-list="resetData" @save-data="saveData">
+            </QualityManageMiddleTbl>
             <QualityManageSearch :data="qioInfo" @loadPrdrByQio="loadPrdrInfoByQioCode"
                 @loadQirByQio="loadQirListByQioCode" @update:data="updateqioInfo" @reset-list="resetData"
                 @save-data="saveData">
             </QualityManageSearch>
-            <QualityManageMiddleTbl :data="combinedMiddleData" @update:data="updatePrdrOrMprList"
-                @reset-list="resetData" @save-data="saveData">
-            </QualityManageMiddleTbl>
         </div>
         <div class="grid grid-cols-2 gap-4 mt-4">
             <!-- <div class="space-y-6" style="width: 43%"> -->
