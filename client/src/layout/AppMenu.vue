@@ -104,10 +104,6 @@ const model = ref([
                 label: '품질',
                 items: [
                     {
-                        label: '품질기준정보',
-                        to: '/quality/qualityInspection/QualityStandard'
-                    },
-                    {
                         label: '품질검사목록',
                         to: '/quality/qualityInspection/QualityList'
                     },
