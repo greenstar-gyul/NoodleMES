@@ -57,8 +57,6 @@ export const useMinStore = defineStore('minStore', () => {
         ...min,
         inbnd_date: formatDate(min.inbnd_date),
       }));
-      console.log('mins 테스트')
-      console.log(mins)
       // console.log(mins.value[0].minbnd_code)
     } catch (err) {
       throw err;

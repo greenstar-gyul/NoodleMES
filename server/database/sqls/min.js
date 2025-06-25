@@ -11,13 +11,13 @@ made by KMS
 const selectAllMatInList =
 `
 SELECT min.minbnd_code
-	  ,mat.mat_name
+      ,min.qio_code
+	    ,mat.mat_name
       ,comm_name(min.mat_type) as 'mat_type'
       ,comm_name(min.unit) as 'unit'
       ,min.inbnd_qtt
       ,min.inbnd_date
       ,min.ord_qtt
-      ,min.qio_code
       ,min.lot_num
       ,cli.client_name
       ,emp.emp_name

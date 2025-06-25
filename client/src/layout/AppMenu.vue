@@ -148,10 +148,10 @@ const model = ref([
                         label: '자재입고 내역조회',
                         to: '/min/list'
                     },
-                    {
-                        label: '자재출고 내역조회',
-                        to: '/mout/list'
-                    },                    
+                    // {
+                    //     label: '자재출고 내역조회',
+                    //     to: '/mout/list'
+                    // },                    
                     // {
                     //     label: '자재재고 목록조회',
                     //     to: '/mat/inven'
