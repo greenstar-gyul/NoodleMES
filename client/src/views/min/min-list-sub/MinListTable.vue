@@ -19,5 +19,5 @@ onMounted(async () => {
 
 <template>
    <!-- 결과 테이블 -->
-  <TableWithExcel :data="mins" :dataKey="'min_code'" :mapper="minMapping.minbndMapping" title="검색결과" />
+  <TableWithExcel :data="mins" :dataKey="'minbnd_code'" :mapper="minMapping.minbndMapping" title="자재입고내역" />
 </template>

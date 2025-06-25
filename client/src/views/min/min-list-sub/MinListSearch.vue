@@ -13,7 +13,7 @@ import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 const minStore = useMinStore();
 
 // 상태
-const { selectedMin, } = storeToRefs(minStore);
+const { mins, selectedMin, } = storeToRefs(minStore);
 
 const { fetchMinsSearch, resetSearch, fetchAllMins } = minStore;
 
@@ -31,6 +31,7 @@ const onReset = () => {
 // 검색 실행 함수
 const onSearch = () => {
     fetchMinsSearch();
+    console.log(mins);
 };
 
 // 단위 코드 매핑 (단방향: 값 → 코드)
