@@ -146,7 +146,6 @@ const handleDelete = async () => {
     handleReset(); // 초기화 함수 호출
     alert('자재입고정보가 삭제되었습니다.');
   } catch (error) {
-    console.error('삭제 실패:', error);
     alert('삭제 중 오류가 발생했습니다.');
   }
 };
@@ -168,13 +167,12 @@ const handleReset = () => {
   
 // 정보 초기화, store 함수 사용
   resetMinRows();
-  console.log('자재입고정보 초기화');
 };
 
 // 저장 - 등록
 const handleSave = async () => {
   if (!mins.matName.value || !mins.ordQtt.value || !mins.inbndQtt.value || !mins.inbndDate.value || !mins.qioCode.value) {
-    alert('입력하지 않은 정보가 있습니다..');
+    alert('입력하지 않은 정보가 있습니다.');
     return;
   }
   const min = {
@@ -190,10 +188,6 @@ const handleSave = async () => {
   mat_sup: clientMap[mins.supName.value], 
   mcode: empMap[mins.mName.value],
   };
-  // console.log('왜안나옴');
-  // console.log(mins);
-  // console.log('왜안나옴2');
-  // console.log(mat_type);
   try {
     await axios.post('/api/min/insert', min)
     alert('자재입고 정보가 등록되었습니다.');
@@ -205,7 +199,6 @@ const handleSave = async () => {
       inbnd_date: moment(min.inbndDate).format('YYYY-MM-DD'),
     }));
   } catch (err) {
-    console.error('등록 실패:', err)
     alert('등록 실패: ' + err.message)
   };
 }; // end of handleSave
@@ -223,15 +216,12 @@ const handleMinbndConfirm = async (selectedMin) => {
     minBunList.forEach((item, idx) => {
       item.min_bnd_num_code = item.min_bnd_num_code || `row-${idx}`;
     });
-    
-    console.log('선택값 확인');
-    console.log(selectedMin);
 
     selectedMin.emp_code = 'EMP-10001';
 
     // 자재입고 정보 초기 설정
     mins.mInBndCode.value = selectedMin.minbnd_code;
-    mins.matName.value = selectedMin.mat_name; 
+    mins.matName.value = selectedMin.mat_name;
     mins.matType.value = selectedMin.mat_type;
     mins.ordQtt.value = selectedMin.ord_qtt;
     mins.inbndQtt.value = selectedMin.inbnd_qtt;
@@ -241,16 +231,10 @@ const handleMinbndConfirm = async (selectedMin) => {
     // mins.mName.value = empMap[selectedMin.emp_code] ;
     mins.qioCode.value = selectedMin.qio_code;
     mins.lotNum.value = selectedMin.lot_num;
-    
-    // console.log('초기값');
-    // console.log(selectedMin.unit);
-    // console.log('저장값');
-    // console.log(mins);
-
 
     setMinRows(minBunList);
   } catch (err) {
-    console.error('자재입고정보 조회 실패:', err);
+    throw err;
   }
 }; // end of handleMinbndConfirm
 
@@ -260,29 +244,26 @@ const handleqioConfirm = async (selectedQio) => {
     // 전체 자재입고정보 조회
     const qioRes = await axios.get(`/api/min/qio`);
     const qioList = qioRes.data.data;//store 함수 사용
-
+        
     // 각 행에 고유 ID 부여 (반응형 처리 위해 꼭 필요)
     qioList.forEach((item, idx) => {
       item.qio_num_code = item.qio_num_code || `row-${idx}`;
     });
-    
-    console.log('출력값확인')
-    console.log(selectedQio.mat_code)
 
     const matRes = await axios.get('/api/min/selmat', {
       params: { mat_code: selectedQio.mat_code }
     });
-    // const selmat = matRes;//store 함수 사용
-    // console.log(matRes.data.data[0].mat_code);
 
+    
     // 자재입고 정보 초기 설정
-    mins.matName.value = matCodeMap[matRes.data.data[0].mat_code];
+    mins.matName.value = selectedQio.mat_name;
     mins.unit .value = matRes.data.data[0].unit;
     mins.matType.value = matRes.data.data[0].mat_type;
     mins.supName.value = matRes.data.data[0].sup_name;
     mins.qioCode.value = selectedQio.qio_code;
+
   } catch (err){
-    console.error('자재 기본정보 조회 실패:', err);
+      throw err;
   }
 
 }; // end of handleMinConfirm
@@ -292,18 +273,13 @@ onMounted(async () => {
   try {
     // 전체 자재입고정보 조회
     const MinRes = await axios.get('/api/min/all');
-    // console.log('자재입고정보')
-    // console.log(MinRes)
     minRef.value = MinRes.data.map(min => ({
       //기존  객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...min,
-      inbnd_date: moment(min.inbndDate).format('YYYY-MM-DD'),
+      inbnd_date: moment(min.inbnd_date).format('YYYY-MM-DD'),
     }));
-    
     // 자재기준정보 조회
     const MatRes = await axios.get('/api/min/mat');
-    // console.log('자재기준정보')
-    // console.log(MatRes);
     matRef.value = MatRes.data.data.map(mat => ({
       //기존 객체를 그대로 복사
       ...mat,
@@ -311,19 +287,14 @@ onMounted(async () => {
 
     // 품질검사정보 조회
     const QioRes = await axios.get('/api/min/qio');
-    // console.log('품질검사정보')
-    // console.log(QioRes);
+
     qioRef.value = QioRes.data.data.map(qio => ({
     //기존 객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...qio,
       qio_date: moment(qio.qio_date).format('YYYY-MM-DD'),
     }));
-    // console.log('테스트');
-    // console.log(minRef.value);
-    // console.log(matRef.value);
-    // console.log(qioRef.value);
   } catch(err){
-    console.error('데이터 로딩 실패:', err);
+    throw err;
   }
 });
 </script>
@@ -351,20 +322,20 @@ onMounted(async () => {
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="자재입고코드" v-model="mins.mInBndCode.value" :disabled="true" placeholder="등록 시 생성" />
-      <LabeledInput label="자재이름" v-model="mins.matName.value"  placeholder="자재정보" readonly/>
+      <LabeledInputIcon label="검사지시코드" v-model="mins.qioCode.value" @click="qioPopupVisible = true" placeholder="검사지시코드 선택" readonly/>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <LabeledInput label="자재이름" v-model="mins.matName.value"  placeholder="검사지시정보를 선택해주세요" readonly/>
+      <LabeledInput label="자재유형" v-model="mins.matType.value" placeholder="검사지시정보를 선택해주세요" readonly/>
+      <LabeledInput label="공급업체명" v-model="mins.supName.value" placeholder="검사지시정보를 선택해주세요" readonly/>
+      <LabeledInput label="단위" v-model="mins.unit.value" placeholder="검사지시정보를 선택해주세요" readonly/>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="주문수량" v-model="mins.ordQtt.value" />
       <LabeledInput label="입고수량" v-model="mins.inbndQtt.value" />
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledInput label="단위" v-model="mins.unit.value" placeholder="자재선택 시 자동입력" readonly/>
-      <!-- <LabeledInput label="단위코드" v-model="mins.unit.value" style="display: none"/> -->
-      <LabeledInput label="자재유형" v-model="mins.matType.value" placeholder="자재선택 시 자동입력" readonly/>
-      <!-- <LabeledInput label="자재유형코드" v-model="mins.matType.value" style="display: none"/> -->
-    </div>
+    </div>    
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledDatePicker label="입고일자" v-model="mins.inbndDate.value" />
@@ -372,11 +343,6 @@ onMounted(async () => {
       <!-- <LabeledInput label="담당자코드" v-model="mins.mName.value" style="display: none"/> -->
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <LabeledInputIcon label="검사지시코드" v-model="mins.qioCode.value" @click="qioPopupVisible = true" placeholder="검사지시코드 선택" readonly/>
-      <LabeledInput label="공급업체명" v-model="mins.supName.value" placeholder="자재선택 시 자동입력" readonly/>
-      <!-- <LabeledInput label="공급업체코드" v-model="mins.matSup.value" style="display: none" readonly/> -->
-    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <LabeledInput label="LOT번호" v-model="mins.lotNum.value" :disabled="true" placeholder="등록 시 생성"/>
     </div>

@@ -71,7 +71,7 @@ const insertEq = async (eqData) => {
       eqData.eq_model,
       eqData.eq_maker,
       eqData.capacity,
-      eqData.stat,
+      eqData.stat || 'w1',
       eqData.eq_make_date,
       eqData.bring_date,
       eqData.take_date,

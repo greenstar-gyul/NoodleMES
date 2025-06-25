@@ -477,8 +477,8 @@ const eqirss = ref([]);
             <LabeledInput label="수리요청자" :model-value="currentData.fix_emp_name" :disabled="true" />
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <LabeledInput label="점검결과 코드" :model-value="currentData.eqir_code" @click="openEqirPopup"
-                @update:model-value="updateEqirCode" placeholder="클릭하여 점검결과를 선택하세요" readonly style="cursor: pointer;" />
+            <LabeledInput label="유지보수 코드" :model-value="currentData.eqir_code" @click="openEqirPopup"
+                @update:model-value="updateEqirCode" placeholder="클릭하여 유지보수 코드를 선택하세요" readonly style="cursor: pointer;" />
             <LabeledTextarea label="비고" :model-value="currentData.note" @update:model-value="updateNote" />
         </div>
     </div>
@@ -490,12 +490,12 @@ const eqirss = ref([]);
     </eqirmgsinglePopup>
     <EqirSinglePopup v-model:visible="eqirPopupVisibil" :items="eqirss" @confirm="loadSelectedEqirPlan"
         :selectedHeader="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']" :mapper="{
-            eqir_code: '점검결과 코드',
+            eqir_code: '유지보수 코드',
             eq_name: '설비명',
             chk_start_date: '점검 시작일시',
             chk_end_date: '점검 종료일시',
             eqi_stat: '상태'
         }" :visibleFields="['eqir_code', 'eq_name', 'chk_start_date', 'chk_end_date', 'eqi_stat']"
-        :dataKey="'eqir_code'" :placeholder="'점검결과 선택'">
+        :dataKey="'eqir_code'" :placeholder="'유지보수 선택'">
     </EqirSinglePopup>
 </template>

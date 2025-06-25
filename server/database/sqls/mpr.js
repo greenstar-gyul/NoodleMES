@@ -57,7 +57,7 @@ const selectMprDList =
 SELECT mprd.mat_code
       ,mat.mat_name
       ,mprd.req_qtt
-      ,mprd.unit
+      ,comm_name(mprd.unit) AS unit
       ,mprd.mat_sup
       ,mprd.note
       ,cl.client_name

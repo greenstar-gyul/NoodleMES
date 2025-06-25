@@ -30,7 +30,7 @@ const updateData = (selectedEqii) => {
       params: { eqiiCode: selectedEqii[0].eqii_code }
     });
   } else {
-    alert('선택된 Eqii 데이터가 잘못되었습니다. 다시 시도해주세요.');
+    alert('선택된 유지보수 데이터가 잘못되었습니다. 다시 시도해주세요.');
   }
 };
 

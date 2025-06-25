@@ -40,13 +40,14 @@ router.get('/process-popup', async (req, res) => {
 });
 
 // 설비 리스트  팝업
-router.get('/facilitie-popup', async (req, res) => {
+router.get('/facilitie-popup/:eqtype', async (req, res) => {
   try {
-    const result = await lineService.getFacilitieListPopup();
+    const eqType = req.params.eqtype; // URL 파라미터에서 eqtype 가져오기
+    const result = await lineService.getFacilitieListPopup(eqType);
     res.json(result);
   } catch (err) {
     console.error('❌ 공정 팝업 라우터 에러:', err);
-    res.status(500).send('서버 오류');
+    res.status(500).send('서버 오류'); 
   }
 });
 

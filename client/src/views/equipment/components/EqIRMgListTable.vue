@@ -61,7 +61,7 @@ onMounted(() => {
     <EqTableWithExcel :data="formattedEqMaData" :dataKey="'eq_ma_code'"
         :columns="['eq_ma_code', 'eq_name', 'fail_date', 'fail_cause', 'act_result', 'start_date', 'end_date', 'm_emp_name', 'fix_emp_name']"
         :mapper="{
-            eq_ma_code: '유지보수코드',
+            eq_ma_code: '조치결과코드',
             eq_name: '설비명',
             fail_date: '고장일',
             fail_cause: '고장원인',
@@ -70,5 +70,5 @@ onMounted(() => {
             end_date: '조치종료일시',
             m_emp_name: '담당자명',
             fix_emp_name: '수리자명'
-        }" title="설비 유지보수 목록" @crctEqii="handleEqMaSelect" />
+        }" title="조치결과 목록" @crctEqii="handleEqMaSelect" />
 </template>

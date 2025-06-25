@@ -58,7 +58,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">단위</label>
-                <InputText v-model="ectForm.unit" type="text" class="w-full" />
+                <Dropdown v-model="ectForm.unit" :options="unitOptions" optionLabel="label" optionValue="value"
+                placeholder="단위 선택" class="w-full" />
             </div>
             <div>
                 <LabeledDatePicker v-model="ectForm.regdate" label="등록일자" placeholder="날짜를 선택" :disabled="true" />
@@ -138,6 +139,21 @@ const eqTypeOptions = [
     { label: '중량 선별기', value: 'WEI' },
     { label: '박스포장기', value: 'CTN' },
     { label: '출하설비', value: 'CVY' }
+];
+
+const unitOptions = [
+    { label: 'kg', value: 'h1' },
+    { label: 't', value: 'h2' },
+    { label: 'L', value: 'h3' },
+    { label: 'ea', value: 'h4' },
+    { label: 'box', value: 'h5' },
+    { label: 'g', value: 'h6' },
+    { label: 'mm', value: 'h7' },
+    { label: '%', value: 'h8' },
+    { label: 'cm', value: 'h9' },
+    { label: 'N', value: 'ha' },
+    { label: 'mg', value: 'hb' },
+    { label: 'ml', value: 'hc' }
 ];
 
 // 폼 초기화 함수

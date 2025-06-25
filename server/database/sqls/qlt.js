@@ -282,7 +282,7 @@ const selectLotNumForUpdateThree =
 SELECT CONCAT('LOT-400-', 
            DATE_FORMAT(CURDATE(), '%Y%m%d'), '-', LPAD( IFNULL(MAX(SUBSTRING(lot_num, -3)), 0) + 1, 3,'0' )
        ) AS next_lot_num
-FROM mat_lot_tbl  
+FROM lot_tbl  
 WHERE SUBSTRING(lot_num, 9, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
 FOR UPDATE;
 `;
@@ -324,9 +324,11 @@ INSERT INTO lot_tbl (
 const selectSimpleQir = `
 SELECT qir.qir_code,
         qir.result,
+        qc.inspection_item,
         qio.qio_date
 FROM qir_tbl AS qir
 JOIN qio_tbl AS qio ON qir.qio_code = qio.qio_code
+JOIN qcr_tbl AS qc ON qir.qcr_code = qc.qcr_code
 `;
 
 const selectQirCodesByQioCode = `

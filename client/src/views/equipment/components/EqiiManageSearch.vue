@@ -42,7 +42,7 @@ const currentData = ref({
     chk_exp_date: null,
     stat: '',
     note: '',
-    inst_emp_name: 'EMP-10001'
+    inst_emp_name: '김영업'
 });
 
 watch(() => props.data, (newData) => {
@@ -53,7 +53,7 @@ watch(() => props.data, (newData) => {
             chk_exp_date: parseDate(newData.chk_exp_date),
             stat: newData.stat || '',
             note: newData.note || '',
-            inst_emp_name: newData.inst_emp_name || 'EMP-10001'
+            inst_emp_name: newData.inst_emp_name || '김영업'
         };
     }
 }, { immediate: true, deep: true });
