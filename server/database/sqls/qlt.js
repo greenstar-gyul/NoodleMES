@@ -282,7 +282,7 @@ const selectLotNumForUpdateThree =
 SELECT CONCAT('LOT-400-', 
            DATE_FORMAT(CURDATE(), '%Y%m%d'), '-', LPAD( IFNULL(MAX(SUBSTRING(lot_num, -3)), 0) + 1, 3,'0' )
        ) AS next_lot_num
-FROM mat_lot_tbl  
+FROM lot_tbl  
 WHERE SUBSTRING(lot_num, 9, 8) = DATE_FORMAT(CURDATE(), '%Y%m%d')
 FOR UPDATE;
 `;
