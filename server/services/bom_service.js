@@ -68,8 +68,8 @@ const insertProductAndBomTx = async (data) => {
       // 🔄 타입 매핑
       const typeMap = {
         '반제품': 'i2',
-        '부자재': 'i3',
-        '원자재': 'i4'
+        't1': 'i4',
+        't2': 'i3',
       };
 
       const mat_type_code = typeMap[item.mat_type] || item.mat_type; // 코드로 변환

@@ -83,7 +83,7 @@ const handleProductConfirm = (selectedItem) => {
 
   currentEditingRow.value.mat_code = selectedItem.code;
   currentEditingRow.value.mat_name = selectedItem.name;
-  currentEditingRow.value.mat_type = selectedItem.type;
+  currentEditingRow.value.mat_type = selectedItem.raw_type;
 
   matPopupVisible.value = false;
 };

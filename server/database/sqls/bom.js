@@ -94,18 +94,22 @@ const matSelectDetail = `
 
 // 자재 + 반제품 조회 
 const selectAllMaterialsForPopup = `
-  SELECT    mat_code AS code,
-            mat_name AS name,
-            comm_name(material_type_code) AS type
-  FROM      mat_tbl
+  SELECT    
+    mat_code AS code,
+    mat_name AS name,
+    comm_name(material_type_code) AS type,  -- 사용자 표시용
+    material_type_code AS raw_type          -- 실제 등록용 (t1, t2)
+  FROM mat_tbl
 
   UNION
 
-  SELECT    prod_code AS code,
-            prod_name AS name,
-            '반제품' AS type
-  FROM      prod_tbl
-  WHERE     prod_type = 'i2'
+  SELECT    
+    prod_code AS code,
+    prod_name AS name,
+    '반제품' AS type,
+    'i2' AS raw_type                         -- 반제품은 코드값 바로 사용
+  FROM prod_tbl
+  WHERE prod_type = 'i2'
 `;
 
 // 🔍 BOM 목록 검색 쿼리 개선
