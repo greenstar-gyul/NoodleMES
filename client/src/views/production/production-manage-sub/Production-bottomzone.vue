@@ -158,14 +158,12 @@
   // 제품명 팝업 열릴 때 데이터 조회
   watch(productPopupVisible, async (visible) => {
     if (visible) {
-      console.log('[팝업 열림] ord_code:', props.ord_code); // 🔍 확인 로그
       try {
         const response = await axios.get('/api/prdp/product', {
           params: {
-            ord_code: props.ord_code  // ✅ 여기에 전달받은 ord_code 사용!
+            ord_code: props.ord_code 
           }
         });
-         console.log('[서버 응답]', response.data); // 🔍 서버 응답 확인
         products.value = response.data.map(item => ({
           prod_code: item.prod_code,
           prod_name: item.prod_name,

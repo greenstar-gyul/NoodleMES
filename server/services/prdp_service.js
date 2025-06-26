@@ -46,7 +46,7 @@ const findLineByType = async (lineType, prodCode) => {
     });
 };
 
-// 제품 조건 없이 전체조회
+// 제품 조회
 const findProd = async (ordCode) => {
   try {
     let list;
@@ -66,7 +66,7 @@ const findProd = async (ordCode) => {
 const findDetail = async (prdpCode) => {
   try {
     const result = await mariadb.query("selectPrdpDOne", [prdpCode]);
-    return result; // 단건이라면 첫 번째 값만 리턴
+    return result; 
   } catch (err) {
     console.error('findDetail 오류:', err);
     throw err;
