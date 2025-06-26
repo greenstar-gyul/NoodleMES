@@ -93,6 +93,18 @@ FROM prod_tbl
 ORDER BY prod_code
 `;
 
+const selectProdOne = `
+SELECT  prod.prod_code,
+        prod.prod_name,
+        comm_name(prod.spec) AS spec,
+        comm_name(prod.unit) AS unit,
+        comm_name(prod.com_value) AS com_value
+FROM prod_tbl prod
+JOIN ord_d_tbl ordd ON ordd.prod_code = prod.prod_code
+WHERE ordd.ord_code = ?
+ORDER BY prod_code
+`;
+
 
 // 생산 계획 등록
 const insertPrdp = `
@@ -198,6 +210,7 @@ module.exports = {
     selectMonthPlans,
     selectPrdpDOne,
     selectOrdList,
+    selectProdOne,
     selectLineType,
     selectProdList,
     searchPrdp,

@@ -12,7 +12,7 @@ import orderListMapping from '@/service/OrderListMapping';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 
 // 이벤트 정의
-const emit = defineEmits(['load-planed']);
+const emit = defineEmits(['load-planed', 'ord-code-selected']);
 // 오늘 날짜
 const today = new Date().toISOString().slice(0, 10);
 const formatDate = (dateStr) => {
@@ -83,7 +83,8 @@ const handleConfirm = (selectedItem) => {
 // 팝업에서 선택 시 입력 필드에 반영
 const handleOrderConfirm = (selectedItem) => {
   ord_code.value = selectedItem.ord_code;
-  emit('load-planed', prdp_code.value);
+  emit('load-planed', prdp_code.value); 
+  emit('ord-code-selected', ord_code.value);       
 };
 // 초기화
 const resetForm = () => {

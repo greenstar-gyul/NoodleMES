@@ -47,12 +47,19 @@ const findLineByType = async (lineType, prodCode) => {
 };
 
 // 제품 조건 없이 전체조회
-const findProd = async () => {
-  // 변수 mariadb에 등록된 query 함수를 통해 서비스에서 필요한 SQL문을 실행하도록 요청
-  // -> 비동기작업이므로 await/async를 활용해서 동기식으로 동작하도록 진행
-  let list = await mariadb.query("selectProdList")
-                          .catch(err => console.log(err));
-  return list;
+const findProd = async (ordCode) => {
+  try {
+    let list;
+    if (ordCode) {
+      list = await mariadb.query("selectProdOne", [ordCode]);
+    } else {
+      list = await mariadb.query("selectProdList");
+    }
+    return list;
+  } catch (err) {
+    console.log('🔴 제품 조회 중 오류:', err);
+    return [];
+  }
 };
 
 // 상세정보 전체조회

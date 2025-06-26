@@ -55,11 +55,16 @@ router.get("/line", async (req, res) => {
   }
 });
 
-// 제품전체조회
-router.get('/product', async (req, res)=>{
-    let prodList = await prdpService.findProd()
-                                    .catch(err => console.log(err));
-    res.send(prodList); 
+// 제품조회
+router.get('/product', async (req, res) => {
+  const ordCode = req.query.ord_code;             // ✅ 쿼리 파라미터 받기
+  try {
+    const prodList = await prdpService.findProd(ordCode); // ✅ 서비스 함수에 전달
+    res.send(prodList);
+  } catch (err) {
+    console.error('🔴 제품 조회 실패:', err);
+    res.status(500).send('서버 오류');
+  }
 });
 
 

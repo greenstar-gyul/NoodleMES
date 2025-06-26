@@ -8,6 +8,12 @@ import ProductionBottomzone from './production-manage-sub/Production-bottomzone.
 const prdp_code = ref('');      // 선택된 생산계획 코드
 const topRef = ref(null);       // 상단 컴포넌트 ref
 const bottomRef = ref(null);    // 하단 컴포넌트 ref
+const ord_code = ref('');
+
+// 주문정보 넘기기 
+const setOrdCode = (code) => {
+  ord_code.value = code;
+};
 
 // 상단 컴포넌트에서 생산계획 코드 선택 시 호출
 const loadPlaned = (planCode) => {
@@ -51,9 +57,10 @@ const handleSave = async () => {
     @load-planed="loadPlaned"
     @reset="handleReset"
     @save="handleSave"
+    @ord-code-selected="setOrdCode"
     ref="topRef"
   />
 
   <!-- 하단 영역: 제품 및 생산라인 입력을 담당하는 컴포넌트 -->
-  <ProductionBottomzone :prdp="prdp_code" ref="bottomRef" />
+  <ProductionBottomzone :prdp="prdp_code" :ord_code="ord_code" ref="bottomRef" />
 </template>

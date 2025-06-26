@@ -21,6 +21,10 @@
     prdp: {
       type: String,
       default: '',
+    },
+    ord_code: {
+      type: String,
+      default: '',
     }
   });
   // 👀 props.prdp가 변경될 때마다 데이터 재조회
@@ -152,25 +156,30 @@
     }
   };
   // 제품명 팝업 열릴 때 데이터 조회
- watch(productPopupVisible, async (visible) => {
-  if (visible) {
-    try {
-      const response = await axios.get('/api/prdp/product');
-      // disabled 플래그 추가하여 products 세팅
-      products.value = response.data.map(item => ({
-        prod_code: item.prod_code,
-        prod_name: item.prod_name,
-        com_value: item.com_value,
-        unit: item.unit,
-        spec: item.spec
-      }));
-    } catch (error) {
-      alert('오류가 발생했습니다. 다시 시도해주세요.');
+  watch(productPopupVisible, async (visible) => {
+    if (visible) {
+      console.log('[팝업 열림] ord_code:', props.ord_code); // 🔍 확인 로그
+      try {
+        const response = await axios.get('/api/prdp/product', {
+          params: {
+            ord_code: props.ord_code  // ✅ 여기에 전달받은 ord_code 사용!
+          }
+        });
+         console.log('[서버 응답]', response.data); // 🔍 서버 응답 확인
+        products.value = response.data.map(item => ({
+          prod_code: item.prod_code,
+          prod_name: item.prod_name,
+          com_value: item.com_value,
+          unit: item.unit,
+          spec: item.spec
+        }));
+      } catch (error) {
+        alert('오류가 발생했습니다. 다시 시도해주세요.');
+      }
+    } else {
+      products.value = [];
     }
-  } else {
-    products.value = [];
-  }
-});
+  });
 
   // 📡 생산계획 상세 데이터를 로드하는 함수
   const loadPlanDetails = async () => {
