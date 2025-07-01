@@ -1,5 +1,5 @@
 <template>
-    <!-- 우측: 설비 등록/수정 영역 (45%) -->
+    <!-- 우측: 설비 등록/수정 영역 -->
     <div class="card space-y-6 p-6" style="width: 45%">
         <!-- 버튼 영역 -->
         <div class="grid grid-cols-1 gap-4 mb-4">
@@ -98,7 +98,6 @@ import Button from 'primevue/button';
 import LabeledDatePicker from '../../../components/common/LabeledDatePicker.vue';
 import axios from 'axios';
 
-// Props 정의 (부모에서 선택된 데이터 받기)
 const props = defineProps({
     selectedData: {
         type: Object,
@@ -106,10 +105,9 @@ const props = defineProps({
     }
 });
 
-// Emits 정의 (부모에게 이벤트 전달)
 const emit = defineEmits(['data-updated']);
 
-// 설비 폼 데이터
+// 설비 등록/수정 폼 데이터
 const eqForm = ref({
     eq_code: '',
     eq_name: '',
@@ -134,12 +132,9 @@ const isEditMode = computed(() => {
 // checkbox
 const isUnused = computed({
     get() {
-        // is_used가 'f1'이면 체크박스가 선택됨 (미사용)
         return eqForm.value.is_used === 'f1';
     },
     set(value) {
-        // 체크박스가 선택되면(true) is_used는 'f1' (미사용)
-        // 체크박스가 해제되면(false) is_used는 'f2' (사용)
         eqForm.value.is_used = value ? 'f1' : 'f2';
     }
 });
@@ -237,7 +232,7 @@ const saveEquipment = async () => {
 
         const submitData = {
             ...eqForm.value,
-            capacity: eqForm.value.capacity ? parseInt(eqForm.value.capacity) : null,  // 숫자 변환
+            capacity: eqForm.value.capacity ? parseInt(eqForm.value.capacity) : null,
             chk_cycle: eqForm.value.chk_cycle ? parseInt(eqForm.value.chk_cycle) : null,
             eq_make_date: formatDateForDB(eqForm.value.eq_make_date) || formatDateForDB(new Date()),
             bring_date: formatDateForDB(eqForm.value.bring_date) || formatDateForDB(new Date()),
@@ -251,7 +246,7 @@ const saveEquipment = async () => {
         if (response.data.success) {
             alert('설비가 성공적으로 등록되었습니다.');
             await resetForm();
-            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+            emit('data-updated');
         } else {
             alert('설비 등록에 실패했습니다.');
         }
@@ -285,7 +280,7 @@ const updateEquipment = async () => {
         if (response.data.success) {
             alert('설비가 성공적으로 수정되었습니다.');
             await resetForm();
-            emit('data-updated'); // 부모에게 데이터 업데이트 알림
+            emit('data-updated');
         } else {
             alert('설비 수정에 실패했습니다.');
         }
@@ -296,7 +291,7 @@ const updateEquipment = async () => {
 
 // 수정 취소 함수
 const cancelEdit = () => {
-    emit('data-updated'); // 부모에서 선택 해제하도록 알림
+    emit('data-updated');
 };
 </script>
 

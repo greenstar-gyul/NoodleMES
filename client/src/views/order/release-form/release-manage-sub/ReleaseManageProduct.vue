@@ -44,6 +44,7 @@ watch(productRows, (rows) => {
     const ordered = Number(row.ord_amount) || 0;
     const stock = Number(row.stock_qtt) || 0;
     let requested = Number(row.outbnd_qtt) || 0;
+    row.outbnd_qtt = Number(row.outbnd_qtt) || 0;
 
     // 주문 수량과 재고 수량을 비교해서 더 작은 값을 가지도록 하기
     let minQtt = Math.min(ordered, stock);
@@ -67,7 +68,8 @@ onMounted(async () => {
     productList.value = prodRes.data.data; // 전체 제품 목록 저장
 
     } catch (err) {
-        console.error('제품 리스트 불러오기 실패:', err);
+        // console.error('제품 리스트 불러오기 실패:', err);
+        alert('제품 리스트를 불러오는 데 실패했습니다.');
     }
 });
 </script>

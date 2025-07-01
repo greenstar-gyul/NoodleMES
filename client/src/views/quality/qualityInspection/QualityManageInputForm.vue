@@ -48,7 +48,7 @@
             </div>
         </div>
 
-        <!-- 🎯 품질기준항목 (텍스트박스 클릭으로 팝업) / 결과 -->
+        <!-- 품질기준항목 (텍스트박스 클릭으로 팝업) / 결과 -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="font-semibold text-xl block mb-2">품질기준항목</label>
@@ -60,7 +60,7 @@
                     readonly
                     @click="openQcrPopup" 
                 />
-                <!-- 🎯 검사방법 표시 (선택된 항목의 검사방법) -->
+                <!-- 검사방법 표시 (선택된 항목의 검사방법) -->
                 <div v-if="selectedQcrMethod" class="text-sm text-gray-600 mt-1">
                     검사방법: {{ selectedQcrMethod }}
                 </div>
@@ -106,7 +106,7 @@
         </div>
     </div>
 
-    <!-- 🎯 품질기준항목 선택 팝업 -->
+    <!-- 품질기준항목 선택 팝업 -->
     <QualitySinglePopup 
         v-model:visible="qcrPopupVisible" 
         :items="qcrPopupInfo" 
@@ -125,7 +125,6 @@
 import { ref, watch, computed, defineProps, defineEmits, nextTick } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
-import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import LabeledDatePicker from '../../../components/common/LabeledDatePicker.vue';
 import QualitySinglePopup from './QualitySinglePopup.vue';
@@ -158,12 +157,12 @@ const qirForm = ref({
     qcr_code: ''
 });
 
-// 🎯 품질기준항목 팝업 관련
+// 품질기준항목 팝업 관련
 const qcrPopupVisible = ref(false);
 const qcrPopupInfo = ref([]);
 const selectedQcrMethod = ref(''); // 선택된 검사방법 표시용
 
-// 🎯 수정 모드 여부 계산 (QIR 코드가 있고 임시코드가 아니면 수정모드)
+// 수정 모드 여부 계산 (QIR 코드가 있고 임시코드가 아니면 수정모드)
 const isEditMode = computed(() => {
     return props.selectedData && 
            props.selectedData.qir_code && 
@@ -193,7 +192,7 @@ const resetForm = async () => {
     await nextTick();
 };
 
-// 🎯 QIO 코드 유지하고 폼 초기화
+// QIO 코드 유지하고 폼 초기화
 const resetFormKeepQio = async () => {
     const qioCode = qirForm.value.qio_code;
     await resetForm();
@@ -221,7 +220,7 @@ watch(
                 qcr_code: newData.qcr_code || ''
             };
             
-            // 🎯 검사방법도 복원 (기존 데이터에 있다면)
+            // 검사방법도 복원 (기존 데이터에 있다면)
             selectedQcrMethod.value = newData.check_method || '';
         } else {
             resetForm();
@@ -256,13 +255,13 @@ const resultOptions = [
     { label: '조건부 합격', value: 'g3' }
 ];
 
-// 🎯 품질기준항목 데이터 로딩
+// 품질기준항목 데이터 로딩
 const loadQcrData = async () => {
     try {
-        console.log('🔍 품질기준항목 데이터 로딩 시작...');
+        console.log('품질기준항목 데이터 로딩 시작...');
         const response = await axios.get('/api/qlt/qio/qcr');
 
-        console.log('🎯 QCR API 응답:', response.data);
+        console.log('QCR API 응답:', response.data);
 
         if (response.data && Array.isArray(response.data)) {
             qcrPopupInfo.value = response.data.map(item => ({
@@ -278,15 +277,15 @@ const loadQcrData = async () => {
                 check_method: item.check_method || ''
             }));
         } else {
-            console.warn('❌ QCR 데이터 구조가 예상과 다름:', response.data);
+            console.warn('QCR 데이터 구조가 예상과 다름:', response.data);
             qcrPopupInfo.value = [];
         }
 
-        console.log('✅ QCR 데이터 로딩 완료:', qcrPopupInfo.value.length, '건');
+        console.log('QCR 데이터 로딩 완료:', qcrPopupInfo.value.length, '건');
         
-        // 🚨 데이터가 없으면 임시 데이터로 테스트
+        // 데이터가 없으면 임시 데이터로 테스트
         if (qcrPopupInfo.value.length === 0) {
-            console.log('🚨 QCR 데이터가 비어있어서 임시 데이터 주입!');
+            console.log('QCR 데이터가 비어있어서 임시 데이터 주입');
             qcrPopupInfo.value = [
                 {
                     inspection_item: '외관검사',
@@ -304,7 +303,7 @@ const loadQcrData = async () => {
         }
 
     } catch (error) {
-        console.error('💥 QCR 데이터 로딩 실패:', error);
+        console.error('QCR 데이터 로딩 실패:', error);
         qcrPopupInfo.value = [
             {
                 inspection_item: '외관검사',
@@ -318,19 +317,19 @@ const loadQcrData = async () => {
     }
 };
 
-// 🎯 품질기준항목 팝업 열기
+// 품질기준항목 팝업 열기
 const openQcrPopup = async () => {
-    console.log('🚀 품질기준항목 팝업 열기!');
+    console.log('품질기준항목 팝업 열기');
     await loadQcrData();
     qcrPopupVisible.value = true;
 };
 
-// 🎯 품질기준항목 선택 처리
+// 품질기준항목 선택 처리
 const loadSelectedQcr = (selectedItem) => {
-    console.log('🎯 선택된 품질기준항목:', selectedItem);
+    console.log('선택된 품질기준항목:', selectedItem);
 
     if (!selectedItem || !selectedItem.inspection_item) {
-        alert('품질기준항목을 선택해줘! 🤔');
+        alert('품질기준항목을 선택해주세요.');
         return;
     }
 
@@ -342,7 +341,7 @@ const loadSelectedQcr = (selectedItem) => {
     // 팝업 닫기
     qcrPopupVisible.value = false;
 
-    console.log('✅ 품질기준항목 선택 완료!');
+    console.log('품질기준항목 선택 완료!');
     console.log('- 검사항목:', qirForm.value.inspection_item);
     console.log('- 검사방법:', selectedQcrMethod.value);
 };
@@ -388,7 +387,7 @@ const formatDateTimeForDB = (date) => {
         return null;
     }
     
-    // 🎯 날짜+시간! YYYY-MM-DD HH:mm:ss 형식
+    // 날짜+시간! YYYY-MM-DD HH:mm:ss 형식
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -399,33 +398,33 @@ const formatDateTimeForDB = (date) => {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-// 🎯 QIR 등록 함수 (메모리 전용)
+// QIR 등록 함수 (메모리 전용)
 const saveQir = async () => {
     try {
         // 필수 데이터 검증
         if (!qirForm.value.qio_code) {
-            alert('검사지시코드가 없어! 먼저 검사지시를 저장해줘 😅');
+            alert('검사지시코드가 없습니다. 먼저 검사지시를 저장해주세요.');
             return;
         }
 
         if (!qirForm.value.inspection_item) {
-            alert('품질기준항목을 선택해줘! 🤔');
+            alert('품질기준항목을 선택해주세요.');
             return;
         }
 
         if (!qirForm.value.result) {
-            alert('검사 결과를 선택해줘! ✨');
+            alert('검사 결과를 선택해줘!');
             return;
         }
 
         if (!qirForm.value.qir_emp_name) {
-            alert('검사자를 입력해줘! 👨‍🔬');
+            alert('검사자를 입력해줘!');
             return;
         }
 
-        console.log('💾 QIR 메모리 등록 시작...');
+        console.log('QIR 메모리 등록 시작...');
         
-        // 🎯 새 QIR 코드 생성 (임시)
+        // 새 QIR 코드 생성 (임시)
         const tempQirCode = `QIR-TEMP-${Date.now()}`;
         
         const newQirData = {
@@ -446,43 +445,41 @@ const saveQir = async () => {
             qcr_code: qirForm.value.qcr_code || ''  // QCR 코드도 저장
         };
 
-        console.log('📤 메모리에 추가할 QIR 데이터:', newQirData);
+        console.log('메모리에 추가할 QIR 데이터:', newQirData);
 
-        // 🎯 부모(QualityManage)에게 메모리 추가 요청
+        // 부모(QualityManage)에게 메모리 추가 요청
         emit('add-to-memory', newQirData);
-        
-        alert('QIR이 목록에 추가되었어! 저장하려면 "저장" 버튼을 눌러줘! 🎉');
         
         // 폼 초기화 (QIO 코드는 유지)
         await resetFormKeepQio();
         
     } catch (error) {
-        console.error('💥 QIR 메모리 등록 실패:', error);
-        alert('QIR 등록 중 오류가 발생했어! 😭');
+        console.error('QIR 메모리 등록 실패:', error);
+        alert('QIR 등록 중 오류가 발생했습니다.');
     }
 };
 
-// 🎯 QIR 수정 함수 (메모리 전용)
+// QIR 수정 함수 (메모리 전용)
 const updateQir = async () => {
     try {
         // 필수 데이터 검증
         if (!qirForm.value.qio_code) {
-            alert('검사지시코드가 없어! 😅');
+            alert('검사지시코드가 없습니다.');
             return;
         }
 
         if (!qirForm.value.inspection_item) {
-            alert('품질기준항목을 선택해줘! 🤔');
+            alert('품질기준항목을 선택해주세요.');
             return;
         }
 
         if (!qirForm.value.result) {
-            alert('검사 결과를 선택해줘! ✨');
+            alert('검사 결과를 선택해줘!');
             return;
         }
 
         if (!qirForm.value.qir_emp_name) {
-            alert('검사자를 입력해줘! 👨‍🔬');
+            alert('검사자를 입력해줘!');
             return;
         }
         
@@ -504,19 +501,17 @@ const updateQir = async () => {
             qcr_code: qirForm.value.qcr_code || ''  // QCR 코드도 저장
         };
 
-        console.log('📤 메모리에서 수정할 QIR 데이터:', updatedQirData);
+        console.log('메모리에서 수정할 QIR 데이터:', updatedQirData);
 
-        // 🎯 부모에게 메모리 수정 요청
+        // 부모에게 메모리 수정 요청
         emit('update-in-memory', updatedQirData);
-        
-        alert('QIR이 목록에서 수정되었어! 저장하려면 "저장" 버튼을 눌러줘! 🎉');
         
         // 폼 초기화 (QIO 코드는 유지)
         await resetFormKeepQio();
         
     } catch (error) {
-        console.error('💥 QIR 메모리 수정 실패:', error);
-        alert('QIR 수정 중 오류가 발생했어! 😭');
+        console.error('QIR 메모리 수정 실패:', error);
+        alert('QIR 수정 중 오류가 발생했어!');
     }
 };
 

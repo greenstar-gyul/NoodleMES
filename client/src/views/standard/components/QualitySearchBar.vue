@@ -9,7 +9,7 @@ import SearchDropdown from '@/components/search-bar/SearchDropdown.vue'
 const emit = defineEmits(['search', 'reset'])
 
 
-// 🔍 검색조건 상태 (v-model)
+// 검색조건 상태 (v-model)
 const search = ref({
   qcr_code: '',
   inspection_item: '',
@@ -24,7 +24,7 @@ const TypeOptions = [
   { label: '원자재' , value: 'i4'},
 ]
 
-// ✅ 검색 조건 getter
+// 검색 조건 getter
 const getSearchParams = () => {
   const result = { ...search.value }
   Object.keys(result).forEach((key) => {
@@ -33,7 +33,7 @@ const getSearchParams = () => {
   return result
 }
 
-// ✅ 검색 조건 초기화
+// 검색 조건 초기화
 const resetSearch = () => {
   search.value = {
     qcr_code: '',
@@ -45,7 +45,7 @@ const resetSearch = () => {
 }
 
 
-// ✅ 초기화 버튼 클릭 시 내부 리셋 + 부모 알림
+// 초기화 버튼 클릭 시 내부 리셋 + 부모 알림
 const handleResetClick = () => {
   resetSearch()
   emit('reset')

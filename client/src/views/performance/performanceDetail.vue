@@ -2,15 +2,11 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
-
 import performanceTop from './performance-detail-sub/performance-detail-top.vue';
 import performanceBottom from './performance-detail-sub/performance-detail-bottom.vue';
-
 const route = useRoute();
 const prdr_code = route.params.prdr_code;
-
 const prdrDetail = ref(null); // 처음에는 null
-
 // 상세 데이터 조회
 onMounted(async () => {
   try {
@@ -18,9 +14,8 @@ onMounted(async () => {
       params: { prdr_code }
     });
     prdrDetail.value = res.data;
-    console.log('✅ 상세 데이터:', prdrDetail.value);
   } catch (err) {
-    console.error('❌ 상세조회 실패:', err);
+    alert('오류가 발생했습니다. 다시 시도해주세요.');
   }
 });
 </script>

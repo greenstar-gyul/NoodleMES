@@ -64,7 +64,8 @@ const formatDateForDB = (date) => {
     
     return null;
   } catch (error) {
-    console.warn('날짜 변환 실패:', date, error);
+    // console.warn('날짜 변환 실패:', date, error);
+    alert('날짜 변환 실패: ' + date);
     return null;
   }
 };
@@ -86,7 +87,8 @@ const parseDateFromDB = (dateString) => {
     
     return null;
   } catch (error) {
-    console.warn('날짜 파싱 실패:', dateString, error);
+    // console.warn('날짜 파싱 실패:', dateString, error);
+    alert('날짜 파싱 실패: ' + dateString);
     return null;
   }
 };
@@ -127,19 +129,21 @@ const addRow = () => {
   });
   newRow[props.dataKey] = 'NEW_' + Date.now();
   rows.value.push(newRow);
-  console.log('새 행 추가됨! (저장은 수동으로)');
+  // console.log('새 행 추가됨! (저장은 수동으로)');
 }
 
 // 선택된 행 삭제
 const deleteSelected = () => {
   if (selectedRows.value.length === 0) {
-    console.log('삭제할 행을 선택해주세요!');
+    // console.log('삭제할 행을 선택해주세요!');
+    alert('삭제할 행을 선택해주세요!');
     return;
   }
 
   rows.value = rows.value.filter(row => !selectedRows.value.includes(row));
   selectedRows.value = [];
-  console.log('선택된 행이 삭제되었습니다! (저장은 수동으로)');
+  // console.log('선택된 행이 삭제되었습니다! (저장은 수동으로)');
+  alert('선택된 행이 삭제되었습니다!');
 }
 
 const loadEquipment = () => {
@@ -151,15 +155,15 @@ const update = () => {
 }
 
 const handleDataChange = () => {
-  console.log('데이터 변경 감지 - 로컬에서만 처리');
+  // console.log('데이터 변경 감지 - 로컬에서만 처리');
 }
 
 const handleInputChange = () => {
-  console.log('텍스트 입력 변경 - 로컬에서만 저장');
+  // console.log('텍스트 입력 변경 - 로컬에서만 저장');
 }
 
 const handleDateChange = () => {
-  console.log('날짜 변경 - 로컬에서만 저장');
+  // console.log('날짜 변경 - 로컬에서만 저장');
 }
 </script>
 

@@ -11,19 +11,14 @@ import productionMapping from '@/service/ProductionMapping';
 import orderListMapping from '@/service/OrderListMapping';
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 
-
 // 이벤트 정의
 const emit = defineEmits(['load-planed']);
-
 // 오늘 날짜
 const today = new Date().toISOString().slice(0, 10);
-
-
 const formatDate = (dateStr) => {
   return dateStr ? moment.utc(dateStr).local().format('YYYY-MM-DD') : '';
 };
-
-// ✅ ref 기반 폼 항목 정의
+// ref 기반 폼 항목 정의
 const prdp_code = ref('');
 const prdp_name = ref('');
 const prdp_date = ref(today);
@@ -33,13 +28,11 @@ const note = ref('');
 const start_date = ref('');
 const ord_code = ref('');
 const end_date = ref('');
-
-// 📦 팝업 제어 및 리스트
+// 팝업 제어 및 리스트
 const dialogVisible = ref(false);
 const orderVisible = ref(false);
 const products = ref([]);
 const orders = ref([]);
-
 // 팝업 열릴 때 생산계획 목록 조회
 watch(dialogVisible, async (visible) => {
   if (visible) {
@@ -53,11 +46,10 @@ watch(dialogVisible, async (visible) => {
         end_date: moment.utc(item.end_date).local().format('YYYY-MM-DD'),
       }));
     } catch (error) {
-      console.error('생산계획 목록 조회 실패:', error);
+      alert('오류가 발생했습니다. 다시 시도해주세요.');
     }
   }
 });
-
 // 팝업 열릴 때 주문정보 목록 조회
 watch(orderVisible, async (visible) => {
   if (visible) {
@@ -65,17 +57,16 @@ watch(orderVisible, async (visible) => {
       const response = await axios.get('/api/prdp/order-list');
       orders.value = response.data.map(item => ({
         ...item,
-        ord_date: moment.utc(item.ord_date).local().format('YYYY-MM-DD')  // ✅ 날짜 포맷 추가
+        ord_date: moment.utc(item.ord_date).local().format('YYYY-MM-DD')
       }));
     } catch (error) {
-      console.error('주문정보 목록 조회 실패:', error);
+      alert('오류가 발생했습니다. 다시 시도해주세요.');
     }
   } else {
     orders.value = [];
   }
 });
-
-// ✅ 팝업에서 선택 시 입력 필드에 반영
+// 팝업에서 선택 시 입력 필드에 반영
 const handleConfirm = (selectedItem) => {
   prdp_code.value = selectedItem.prdp_code;
   prdp_name.value = selectedItem.prdp_name;
@@ -86,18 +77,15 @@ const handleConfirm = (selectedItem) => {
   start_date.value = selectedItem.start_date;
   ord_code.value = selectedItem.ord_code;
   end_date.value = selectedItem.end_date;
-
   emit('load-planed', prdp_code.value);
 };
 
-// ✅ 팝업에서 선택 시 입력 필드에 반영
+// 팝업에서 선택 시 입력 필드에 반영
 const handleOrderConfirm = (selectedItem) => {
   ord_code.value = selectedItem.ord_code;
-
   emit('load-planed', prdp_code.value);
 };
-
-// 🔄 초기화
+// 초기화
 const resetForm = () => {
   prdp_code.value = '';
   prdp_name.value = '';
@@ -109,8 +97,7 @@ const resetForm = () => {
   ord_code.value = '';
   end_date.value = '';
 };
-
-// 📤 부모 컴포넌트에서 접근 가능하게 노출
+// 부모 컴포넌트에서 접근 가능하게 노출
 defineExpose({
   resetForm,
   getFormData: () => ({
@@ -125,6 +112,7 @@ defineExpose({
     end_date: formatDate(end_date.value)
   })
 });
+
 </script>
 <template>
   <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">

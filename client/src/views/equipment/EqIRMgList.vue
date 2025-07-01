@@ -5,26 +5,23 @@ import { useRouter } from 'vue-router';
 import EqIRMgListTable from './components/EqIRMgListTable.vue';
 import EqIRMgListSearch from './components/EqIRMgListSearch.vue';
 
-// 데이터 및 옵션
-const eqMaData = ref([]); // 화면에 표시할 데이터 (설비 유지보수 데이터)
-const originalData = ref([]); // 초기 원본 데이터
-const searchRef = ref(null); // 초기화 기능에 사용
+const eqMaData = ref([]);
+const originalData = ref([]);
+const searchRef = ref(null);
 
-const router = useRouter(); // 라우트 정보 가져오기
 
-// 초기 데이터 로드
+const router = useRouter();
+
 const initData = async () => {
     try {
         const result = await axios.get('/api/eq/eqirmg');
         originalData.value = result.data;
         eqMaData.value = result.data;
-        console.log('초기 데이터 로드 완료:', result.data.length, '건');
     } catch (err) {
-        console.error('초기 데이터 로드 실패:', err);
+        alert('초기 데이터를 불러오는 데 실패했습니다. 잠시 후 다시 시도해주세요.');
     }
 }
 
-// update:data 이벤트 핸들러 - 선택된 설비 유지보수 데이터로 상세 페이지 이동
 const updateData = (selectedEqMa) => {
     if (selectedEqMa && selectedEqMa[0].eq_ma_code) {
         router.push({
@@ -32,31 +29,22 @@ const updateData = (selectedEqMa) => {
             params: { eq_ma_code: selectedEqMa[0].eq_ma_code }
         });
     } else {
-        console.warn('선택된 설비 유지보수 데이터가 잘못되었습니다.');
+        alert('선택된 설비 유지보수 데이터가 잘못되었습니다. 다시 시도해주세요.');
     }
 };
 
-// 특정 설비코드로 필터링하는 함수
 const moveToEqMaList = (eqCode) => {
-    console.log('이동할 eqCode:', eqCode);
-    // 검색 조건 초기화
     searchRef.value.resetSearch();
 
-    // eqMaData를 해당 설비코드로 필터링
     eqMaData.value = originalData.value.filter(item => item.eq_code === eqCode);
 
-    // 검색 컴포넌트에 eqCode 전달
     searchRef.value.setEqCode(eqCode);
 };
 
 const handleSearch = async (searchParams) => {
     try {
-        console.log('🔍 검색 조건:', searchParams);
-
-        // 검색 API 호출
         const params = new URLSearchParams();
 
-        // null이나 빈 값이 아닌 경우만 파라미터에 추가
         if (searchParams.eq_ma_code) params.append('eq_ma_code', searchParams.eq_ma_code);
         if (searchParams.eq_name) params.append('eq_name', searchParams.eq_name);
         if (searchParams.act_result) params.append('act_result', searchParams.act_result);
@@ -78,7 +66,6 @@ const handleSearch = async (searchParams) => {
     }
 };
 
-// 검색 조건 초기화
 const resetSearch = () => {
     eqMaData.value = [...originalData.value];
 };
@@ -90,13 +77,10 @@ onMounted(() => {
 </script>
 
 <template>
-    <!-- 검색 컴포넌트 -->
     <EqIRMgListSearch @search="handleSearch" @resetSearch="resetSearch" ref="searchRef" />
 
-    <!-- 테이블 컴포넌트 -->
     <EqIRMgListTable :eqmadata="eqMaData" @initData="initData" @update:data="updateData" />
 
-    <!-- 조건 미일치 메시지 -->
     <div v-if="eqMaData.length === 0" class="text-center text-gray-500 mt-4">
         조건에 맞는 데이터가 없습니다.
     </div>

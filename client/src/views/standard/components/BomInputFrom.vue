@@ -38,7 +38,7 @@ const edate = ref('')
 const regdate = ref(today)
 const note = ref('')
 
-// ✅ 사용안함 체크박스용 computed
+// 사용안함 체크박스용 computed
 const isUsedChecked = computed({
   get: () => is_used.value === 'f1',       // 체크되면 사용안함(f1)
   set: (val) => {
@@ -46,7 +46,7 @@ const isUsedChecked = computed({
   }
 })
 
-// ✅ 자동 옵션 조정
+// 자동 옵션 조정
 watch([prod_type, com_value], ([type, value]) => {
   if (type === 'i2') {
     unitOptions.value = [{ label: 'EA', value: 'h4' }]
@@ -97,7 +97,7 @@ watch([prod_type, com_value], ([type, value]) => {
 
 
 
-// ✅ 외부에서 set할 수 있게
+// 외부에서 set할 수 있게
 const setFormData = (data) => {
   prod_code.value = data.prod_code ?? ''
   prod_name.value = data.prod_name ?? ''
@@ -111,7 +111,7 @@ const setFormData = (data) => {
   note.value = data.note ?? ''
 }
 
-// ✅ 외부에서 get할 수 있게
+// 외부에서 get할 수 있게
 const getFormData = () => ({
   prod_code: prod_code.value,
   prod_name: prod_name.value,

@@ -443,6 +443,130 @@ const insertQcrTx = async (qcrDataList) => {
   }
 };
 
+// const insertPinbnd = `
+// INSERT INTO pinbnd_tbl (
+//     pinbnd_code,
+//     qtt,
+//     pinbnd_date,
+//     note,
+//     qir_code,
+//     mcode,
+//     prod_code,
+//     lot_num)
+//     VALUES (?, ?, ?, ?, ?, (SELECT emp_code FROM emp_tbl WHERE qir_emp_code = ?), (SELECT prod_code FROM prod_tbl WHERE prod_name = ?), ?);
+// `;
+
+const getProdCodeByName = async (prodName) => {
+  if (!prodName) {
+    console.warn('❗ prodName이 제공되지 않았습니다.');
+    return null;
+  }
+  try {
+    const result = await mariadb.query("getProdCodeByName", [prodName])
+      .catch(err => {
+        console.error(`❌ ${prodName}에 대한 제품 코드 조회 실패:`, err);
+        throw err;
+      });
+    if (result.length === 0) {
+      console.warn(`❗ 제품 이름 "${prodName}"에 대한 코드가 없습니다.`);
+      return null;
+    }
+    console.log(`✅ 제품 코드 조회 완료 (${prodName}):`, result[0].prod_code);
+    return result[0].prod_code;
+  } catch (error) {
+    console.error('❌ 제품 코드 조회 서비스 실패:', error);
+    return null;
+  }
+};
+
+const getEmpCodeByQirEmpCode = async (qirEmpCode) => {
+  if (!qirEmpCode) {
+    console.warn('❗ qirEmpCode가 제공되지 않았습니다.');
+    return 'EMP-10001'; // 기본값으로 사용
+  }
+  try {
+    const result = await mariadb.query("selectEmpCodeByQirEmpCode", [qirEmpCode])
+      .catch(err => {
+        console.error('❌ 직원 코드 조회 실패:', err);
+        throw err;
+      });
+    if (result.length === 0) {
+      console.warn(`❗ 직원 코드 "${qirEmpCode}"에 대한 정보가 없습니다.`);
+      return 'EMP-10001'; // 기본값으로 사용
+    }
+    console.log(`✅ 직원 코드 조회 완료 (${qirEmpCode}):`, result[0].emp_code);
+    return result[0].emp_code;
+  } catch (error) {
+    console.error('❌ 직원 코드 조회 서비스 실패:', error);
+    return 'EMP-10001'; // 기본값으로 사용
+  }
+};
+
+// const insertLot = `
+// INSERT INTO lot_tbl (
+//     lot_num,
+//     iss_date,
+//     item_type_code,
+//     prod_code)
+//     VALUES (?, ?, 'i1', ?);
+// `;
+
+const insertPinbnd = async (pinbndData) => {
+  const conn = await mariadb.connectionPool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const pinbndCodeRes = await mariadb.queryConn(conn, "selectPinbndCodeForUpdate");
+    const lotnumRes = await mariadb.queryConn(conn, "selectLotNumForUpdateThree");
+    const generatedCodeforPinbnd = pinbndCodeRes[0].next_pinbnd_code;
+    const generatedLotNum = lotnumRes[0].next_lot_num;
+
+    const lotValues = [
+      generatedLotNum,
+      formatDateForDB(pinbndData.pinbnd_date) || null,
+      pinbndData.prod_code || null
+    ];
+
+    const lotResult = await mariadb.queryConn(conn, "insertLot", lotValues);
+
+    if (lotResult.affectedRows === 0) {
+      throw new Error('로트 번호 삽입 실패');
+    }
+
+    const pinbndValues = [
+      generatedCodeforPinbnd,
+      pinbndData.qtt || 0,
+      formatDateForDB(pinbndData.pinbnd_date) || null,
+      pinbndData.note || null,
+      pinbndData.qir_code || null,
+      pinbndData.mcode,
+      pinbndData.prod_code,
+      generatedLotNum
+    ];
+
+    const pinbndResult = await mariadb.queryConn(conn, "insertPinbnd", pinbndValues);
+
+    if (pinbndResult.affectedRows === 0) {
+      throw new Error('데이터 삽입 실패');
+    }
+
+    await conn.commit();
+
+    return {
+      success: true,
+      pinbnd_code: generatedCodeforPinbnd,
+      lot_num: generatedLotNum,
+      insertId: pinbndResult.insertId
+    };
+  } catch (err) {
+    await conn.rollback();
+    console.error('❌ 품질 검사 결과 등록 실패:', err);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+
 const getQirListByQioCode = async (qioCode) => {
   console.log('🔍 QIO별 QIR 조회:', qioCode);
 
@@ -577,5 +701,8 @@ module.exports = {
   formatDateForDB,
   selectSimpleQirByQioCode,
   selectSimpleQir,
-  searchMprListByQioCode
+  searchMprListByQioCode,
+  insertPinbnd,
+  getProdCodeByName,
+  getEmpCodeByQirEmpCode
 }

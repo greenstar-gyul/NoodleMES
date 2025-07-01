@@ -22,7 +22,8 @@ export const useReleaseListStore = defineStore('releaseList', () => {
         value: client.client_name
       }));
     } catch (err) {
-      console.error('거래처 조회 실패:', err);
+      // console.error('거래처 조회 실패:', err);
+      alert('거래처 목록을 불러오는 데 실패했습니다.');
     }
   }
 
@@ -82,7 +83,8 @@ export const useReleaseListStore = defineStore('releaseList', () => {
         out_req_date: formatDate(release.out_req_date)
       }));
     } catch (err) {
-      console.error('출고요청 목록 조회 실패:', err);
+      // console.error('출고요청 목록 조회 실패:', err);
+      alert('출고요청 목록을 불러오는 데 실패했습니다.');
     }
   };
 
@@ -116,7 +118,8 @@ export const useReleaseListStore = defineStore('releaseList', () => {
         out_req_date: formatDate(release.out_req_date)
       }));
     } catch (err) {
-      console.error('출고조건 조회 실패:', err);
+      // console.error('출고조건 조회 실패:', err);
+      alert('출고요청 검색 조회에 실패했습니다.');
     }
   };
 

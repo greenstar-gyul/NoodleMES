@@ -25,11 +25,11 @@ const deptOptions = [
   { label: '생산팀', value: 'DEPT-2' },
 ]
 
-// 📦 팝업 제어 및 제품 목록
+// 팝업 제어 및 제품 목록
 const prodVisible = ref(false)
 const products = ref([])
 
-// 📦 제품코드 값
+// 제품코드 값
 const prod_code = ref('')
 
 const today = moment().format('YYYY-MM-DD HH:mm')
@@ -38,12 +38,12 @@ const today = moment().format('YYYY-MM-DD HH:mm')
 const line_code = ref('')
 const line_name = ref('')
 const line_type = ref('')
-const is_used = ref('f2') // 기본값: 사용함
+const is_used = ref('f2') 
 const regdate_t = ref(today)
 const note = ref('')
 const mdept_code = ref('')
 
-// ✅ 사용안함 체크박스용 computed
+// 사용안함 체크박스용 computed
 const isUsedChecked = computed({
   get: () => is_used.value === 'f1',
   set: (val) => {
@@ -51,7 +51,7 @@ const isUsedChecked = computed({
   }
 })
 
-// ✅ 외부에서 set할 수 있게
+// 외부에서 set할 수 있게
 const setFormData = (data) => {
   line_code.value = data.line_code ?? ''
   line_name.value = data.line_name ?? ''
@@ -63,7 +63,7 @@ const setFormData = (data) => {
   prod_code.value = data.prod_code ?? ''
 }
 
-// ✅ 외부에서 get할 수 있게
+// 외부에서 get할 수 있게
 const getFormData = () => ({
   line_code: line_code.value,
   line_name: line_name.value,
@@ -75,7 +75,7 @@ const getFormData = () => ({
   prod_code: prod_code.value
 })
 
-// ✅ 리셋
+// 리셋
 const resetForm = () => {
   line_code.value = ''
   line_name.value = ''
@@ -89,19 +89,19 @@ const resetForm = () => {
 
 defineExpose({ setFormData, getFormData, resetForm })
 
-// 👉 제품 목록 조회 (팝업 열릴 때)
+// 제품 목록 조회 (팝업 열릴 때)
 watch(prodVisible, async (visible) => {
   if (visible) {
     try {
       const response = await axios.get('/api/line/product')
       products.value = response.data
     } catch (error) {
-      console.error('❌ 제품 목록 조회 실패:', error)
+      alert('오류가 발생했습니다. 다시 시도해주세요.');
     }
   }
 })
 
-// 👉 제품전용일 때만 팝업 열기
+// 제품전용일 때만 팝업 열기
 const handleProductClick = () => {
   if (line_type.value === 's3') {
     prodVisible.value = true
@@ -110,12 +110,10 @@ const handleProductClick = () => {
   }
 }
 
-// 👉 팝업에서 제품 선택 시
+// 팝업에서 제품 선택 시
 const handleOrderConfirm = (selected) => {
-  console.log('✅ 선택된 제품:', selected); // ✅ 확인용 로그
   prod_code.value = selected.prod_code;
   prodVisible.value = false;
-
   emit('product-selected', selected); // 부모로 emit
 };
 

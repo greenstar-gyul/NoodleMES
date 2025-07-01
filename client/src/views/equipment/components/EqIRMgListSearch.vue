@@ -8,7 +8,7 @@ import moment from 'moment';
 import LabeledSelect from '../../../components/registration-bar/LabeledSelect.vue';
 import SearchDropdown from '../../../components/search-bar/SearchDropdown.vue';
 
-// 검색 조건 (설비 유지보수용)
+// 검색 조건
 const searchOption = ref({
     eq_ma_code: '',
     eq_name: '',
@@ -36,7 +36,6 @@ const fetchSearch = () => {
         fail_cause: searchOption.value.fail_cause
     };
 
-    console.log('🔍 검색 조건 전송:', searchParams);
     emit('search', searchParams);
 };
 
@@ -68,41 +67,31 @@ const handleReset = () => {
 
 defineExpose({
     resetSearchOption,
-    resetSearch: handleReset,
-    // setEqCode
+    resetSearch: handleReset
 });
 
 </script>
 
 <template>
-    <!-- 검색바 영역 -->
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <!-- 유지보수코드 -->
             <SearchText v-model="searchOption.eq_ma_code" label="유지보수코드" placeholder="유지보수코드를 입력하세요" />
 
-            <!-- 설비명 -->
             <SearchText v-model="searchOption.eq_name" label="설비명" placeholder="설비명을 입력하세요" />
 
-            <!-- 고장일 범위 -->
             <SearchDateBetween label="고장일" :from="searchOption.start_date" :to="searchOption.end_date"
                 @update:from="searchOption.start_date = $event" @update:to="searchOption.end_date = $event" />
 
-            <!-- 조치결과 -->
             <SearchDropdown v-model="searchOption.act_result" label="조치결과" :options="actResultOptions"
                 defaultValue="전체" />
 
-            <!-- 담당자명 -->
             <SearchText v-model="searchOption.m_emp_name" label="담당자명" placeholder="담당자명을 입력하세요" />
 
-            <!-- 수리자명 -->
             <SearchText v-model="searchOption.fix_emp_name" label="수리자명" placeholder="수리자명을 입력하세요" />
 
-            <!-- 고장원인 -->
             <SearchText v-model="searchOption.fail_cause" label="고장원인" placeholder="고장원인을 입력하세요" />
         </div>
 
-        <!-- 조회/초기화 버튼 -->
         <div class="flex justify-center gap-3 mt-4">
             <Button label="초기화" severity="contrast" @click="handleReset" />
             <Button label="조회" severity="info" @click="fetchSearch" />

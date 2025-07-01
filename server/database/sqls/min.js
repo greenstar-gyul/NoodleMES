@@ -11,22 +11,18 @@ made by KMS
 const selectAllMatInList =
 `
 SELECT min.minbnd_code
-	    ,min.mat_code
-      ,mat.material_type_code
-      ,comm_name(mat.material_type_code) as 'comm_mat_type'
-      ,mat.unit
-      ,comm_name(mat.unit) as 'comm_unit'
+	  ,mat.mat_name
+      ,comm_name(min.mat_type) as 'mat_type'
+      ,comm_name(min.unit) as 'unit'
       ,min.inbnd_qtt
       ,min.inbnd_date
       ,min.ord_qtt
       ,min.qio_code
       ,min.lot_num
-      ,min.mat_sup
-      ,cli.client_name AS 'sup_name'
-      ,emp.emp_code
-      ,emp.emp_name as 'emp_name'
+      ,cli.client_name
+      ,emp.emp_name
 FROM   minbnd_tbl min
-LEFT OUTER JOIN mat_tbl mat
+LEFT JOIN mat_tbl mat
 	ON mat.mat_code = min.mat_code
 LEFT JOIN client_tbl cli
 	ON cli.client_code = min.mat_sup

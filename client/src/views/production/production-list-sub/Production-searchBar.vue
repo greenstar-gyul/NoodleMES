@@ -7,7 +7,7 @@ import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
 const emit = defineEmits(['search', 'reset']);
 
-// 📌 오늘 기준 월의 1일과 말일 계산
+// 오늘 기준 월의 1일과 말일 계산
 const firstDay = moment().startOf('month').format('YYYY-MM-DD');
 const lastDay = moment().endOf('month').format('YYYY-MM-DD');
 

@@ -16,7 +16,7 @@ const props = defineProps({
   }
 });
 
-// 🚀 Pinia Store 사용
+// Pinia Store 사용
 const wsStore = useWebSocketStore();
 
 // props.detail을 복사하여 로컬 상태로 관리
@@ -38,8 +38,7 @@ const datas = ref({
 
 // 작업시작 버튼
 const startProcess = async () => {
-  const result = await wsStore.startProcess(datas.value);
-  console.log('sent', `작업 시작 메시지 전송`, result, wsStore.clientId);
+  await wsStore.startProcess(datas.value);
 };
 
 // 데이터 업데이트 헬퍼 함수
@@ -48,7 +47,6 @@ const updateLocalDetail = (updates) => {
     ...localDetail.value,
     ...updates
   };
-  console.log('📊 로컬 데이터 업데이트:', updates);
 };
 
 onMounted(() => {
@@ -84,32 +82,17 @@ watch(() => wsStore.messages, (messages) => {
   const latest = messages[messages.length - 1];
   
   if (!latest) return;
-  
-  console.log('📨 웹소켓 메시지 수신:', latest);
-  
   // 받은 메시지가 현재 페이지의 것인지 확인
   if (latest?.wkoCode && latest.wkoCode !== props.wkoCode) {
-    console.log('❌ 작업지시 코드 불일치:', latest.wkoCode, '!=', props.wkoCode);
     return; // 현재 작업지시와 관련 없는 메시지는 무시
   }
-  else {
-    console.log('✅ 작업지시 코드 일치:', latest.wkoCode, '==', props.wkoCode);
-  }
-
   // 현재 받은 메시지가 지금 페이지의 조회한 장비와 관련 있는지 확인
   if (latest?.eqCode && latest.eqCode !== props.detail.eq_code) {
-    console.log('❌ 설비 코드 불일치:', latest.eqCode, '!=', props.detail.eq_code);
     return; // 현재 장비와 관련 없는 메시지는 무시
   }
-  else {
-    console.log('✅ 설비 코드 일치:', latest.eq_code, '==', props.detail.eq_code);
-  }
-
   if (latest?.type === 'PRDRD_CREATED') { // PRDR 생성
-    console.log('📦 PRDR 생성 메시지 수신:', latest.message);
   }
   else if (latest?.type === 'PROCESS_COMPLETED') {
-    console.log('✅ 공정 완료 메시지 수신:', latest);
     updateLocalDetail({
       end_date: latest.timestamp,
       total_time: latest.total_time,
@@ -118,7 +101,6 @@ watch(() => wsStore.messages, (messages) => {
     });
   }
   else if (latest?.type === 'PROCESS_STARTED') {
-    console.log('▶️ 공정 시작 메시지 수신:', latest);
     updateLocalDetail({
       input_qtt: latest.inputQtt || latest.input_qtt,
       start_date: latest.timestamp,
@@ -126,7 +108,6 @@ watch(() => wsStore.messages, (messages) => {
     });
   }
   else if (latest?.type === 'PROCESS_UPDATE') {
-    console.log('🔄 진행률 업데이트 수신:', latest);
     updateLocalDetail({
       proc_rate: latest.progress,
       make_qtt: latest.makeQtt || latest.make_qtt
@@ -165,7 +146,6 @@ watch(performanceRate, (newRate) => {
 onUnmounted(() => {
   // 컴포넌트가 언마운트되어도 연결은 유지 (전역)
   // 필요시에만 wsStore.disconnect();
-  console.log('🔚 설비 상세 컴포넌트 언마운트됨');
 });
 </script>
 

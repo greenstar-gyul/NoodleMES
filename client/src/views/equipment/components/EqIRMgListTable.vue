@@ -20,10 +20,9 @@ const actResultOptions = [
 const getActResultLabel = (actValue) => {
     if (!actValue) return '';
     const option = actResultOptions.find(opt => opt.value === actValue);
-    return option ? option.label : actValue; // 못 찾으면 원본 값 반환
+    return option ? option.label : actValue;
 };
 
-// 날짜 포맷팅 함수
 const formatDate = (dateString) => {
     if (!dateString) return '';
     return moment(dateString).format('YYYY-MM-DD');
@@ -34,7 +33,6 @@ const formatDateTime = (dateString) => {
     return moment(dateString).format('YYYY-MM-DD HH:mm');
 };
 
-// 포맷팅된 데이터
 const formattedEqMaData = computed(() => {
     if (!props.eqmadata || !Array.isArray(props.eqmadata)) return [];
 
@@ -49,11 +47,9 @@ const formattedEqMaData = computed(() => {
     }));
 });
 
-// EqTableWithExcel에서 선택된 설비 유지보수 데이터를 받아서 부모로 전달
 const handleEqMaSelect = (eqMa) => {
     pickedEqMa.value = eqMa;
-    console.log('선택된 설비 유지보수:', eqMa);
-    emit('update:data', eqMa); // 부모 컴포넌트로 선택된 데이터 전달
+    emit('update:data', eqMa);
 };
 
 onMounted(() => {

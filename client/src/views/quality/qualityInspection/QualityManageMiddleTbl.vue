@@ -1,16 +1,11 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import Button from 'primevue/button';
-import LabeledTextarea from '../../../components/registration-bar/LabeledTextarea.vue';
 import LabeledInput from '../../../components/registration-bar/LabeledInput.vue';
 import axios from 'axios';
-import EquipIIMapping from '../../../service/EquipIIMapping';
 import QualitySinglePopup from './QualitySinglePopup.vue';
 import LabeledDatePicker from '../../../components/registration-bar/LabeledDatePicker.vue';
-import LabeledSelect from '../../../components/registration-bar/LabeledSelect.vue';
 import moment from 'moment';
-import mpo from '../../../router/mpo';
-import mpr from '../../../router/mpr';
 
 const emit = defineEmits(['updateList', 'updatePrdp', 'resetList', 'saveData', 'update:data']);
 const props = defineProps({
@@ -60,7 +55,6 @@ const formatDateForDB = (date) => {
         return null;
     }
 
-    // 날짜만! YYYY-MM-DD 형식
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -88,10 +82,10 @@ const currentDataType = computed(() => {
     }
 });
 
-// ✅ 무한루프 방지용 플래그
+// 무한루프 방지용 플래그
 const isInternalUpdate = ref(false);
 
-// ✅ watch 수정 - 무한루프 방지
+// watch 수정 - 무한루프 방지
 watch(() => props.data, (newData) => {
     if (newData) {
         console.log('MiddleTbl - props.data 변경 감지:', newData);
@@ -108,7 +102,7 @@ watch(() => props.data, (newData) => {
         if (!isInternalUpdate.value || isDifferentData) {
             console.log('MiddleTbl - 데이터 업데이트 진행');
 
-            // 🎯 PRDR과 MPR 필드 모두 업데이트
+            // PRDR과 MPR 필드 모두 업데이트
             currentData.value = {
                 // 기본 정보
                 qio_code: newData.qio_code || '',
@@ -121,7 +115,7 @@ watch(() => props.data, (newData) => {
                 end_date: newData.end_date ? parseDate(newData.end_date) : null,
                 production_qtt: String(newData.production_qtt || 0),
 
-                // MPR 필드들 (🎯 이 부분이 중요!)
+                // MPR 필드들 (이 부분이 중요!)
                 mpr_d_code: newData.mpr_d_code || '',
                 mpr_code: newData.mpr_code || '',
                 mat_name: newData.mat_name || '',
@@ -140,7 +134,7 @@ watch(() => props.data, (newData) => {
     }
 }, { immediate: true, deep: true });
 
-// ✅ 업데이트 함수들에 플래그 적용
+// 업데이트 함수들에 플래그 적용
 const updatePrdrCode = (newCode) => {
     isInternalUpdate.value = true;
 
@@ -300,44 +294,44 @@ const loadPlansData = async () => {
 
 const loadMprsData = async () => {
     try {
-        console.log('🔍 자재 데이터 로딩 시작...');
+        console.log('자재 데이터 로딩 시작...');
         const response = await axios.get(`/api/mpr/simple`);
 
-        console.log('🎯 자재 API 전체 응답:', response.data);
-        console.log('🎯 result_code 체크:', response.data.result_code === "SUCCESS");
-        console.log('🎯 data 배열 체크:', Array.isArray(response.data.data));
-        console.log('🎯 data 길이:', response.data.data?.length);
+        console.log('자재 API 전체 응답:', response.data);
+        console.log('result_code 체크:', response.data.result_code === "SUCCESS");
+        console.log('data 배열 체크:', Array.isArray(response.data.data));
+        console.log('data 길이:', response.data.data?.length);
 
-        // ✅ 응답 구조 체크
+        // 응답 구조 체크
         if (response.data && response.data.result_code === "SUCCESS" && Array.isArray(response.data.data)) {
-            console.log('✅ 조건 통과! 데이터 매핑 시작...');
+            console.log('조건 통과! 데이터 매핑 시작...');
 
-            // 🔍 원본 데이터 확인
-            console.log('🎯 원본 data 배열:', response.data.data);
+            // 원본 데이터 확인
+            console.log('원본 data 배열:', response.data.data);
             if (response.data.data.length > 0) {
-                console.log('🎯 첫 번째 아이템:', response.data.data[0]);
-                console.log('🎯 첫 번째 아이템 키들:', Object.keys(response.data.data[0]));
+                console.log('첫 번째 아이템:', response.data.data[0]);
+                console.log('첫 번째 아이템 키들:', Object.keys(response.data.data[0]));
             }
 
             loadMprPopupInfo.value = response.data.data.map((item, index) => {
-                console.log(`🎯 ${index}번째 아이템 매핑 중:`, item);
+                console.log(`${index}번째 아이템 매핑 중:`, item);
 
                 const mappedItem = {
                     mpr_d_code: item.mpr_d_code || '',
                     mpr_code: item.mpr_code || '',
                     mat_name: item.mat_name || '',
-                    mat_code: item.mat_code || '',  // 🎯 mat_code 추가!
+                    mat_code: item.mat_code || '',
                     deadline: item.deadline || '',
                     req_qtt: item.req_qtt || 0
                 };
 
-                console.log(`🎯 ${index}번째 매핑 결과:`, mappedItem);
+                console.log(`${index}번째 매핑 결과:`, mappedItem);
                 return mappedItem;
             });
 
-            console.log('✅ 최종 loadMprPopupInfo.value:', loadMprPopupInfo.value);
-            console.log('✅ loadMprPopupInfo.value 길이:', loadMprPopupInfo.value.length);
-            console.log('✅ loadMprPopupInfo.value는 배열?', Array.isArray(loadMprPopupInfo.value));
+            console.log('최종 loadMprPopupInfo.value:', loadMprPopupInfo.value);
+            console.log('loadMprPopupInfo.value 길이:', loadMprPopupInfo.value.length);
+            console.log('loadMprPopupInfo.value는 배열?', Array.isArray(loadMprPopupInfo.value));
 
         } else {
             console.error('❌ 조건 실패!');
@@ -362,7 +356,7 @@ const loadSelectedPlan = async (selectedItem) => {
         return;
     }
 
-    // ✅ 내부 업데이트 플래그 설정
+    // 내부 업데이트 플래그 설정
     isInternalUpdate.value = true;
     lastSelectedType.value = 'PRDR';
 
@@ -412,7 +406,7 @@ const loadSelectedMpr = async (selectedItem) => {
         return;
     }
 
-    // ✅ 내부 업데이트 플래그 설정
+    // 내부 업데이트 플래그 설정
     isInternalUpdate.value = true;
     lastSelectedType.value = 'MPR';
 
@@ -456,15 +450,15 @@ const openPopup2 = async () => {
 
     await loadMprsData();
 
-    console.log('🎯 팝업 열기 전 최종 체크:');
+    console.log('팝업 열기 전 최종 체크:');
     console.log('- loadMprPopupInfo.value:', loadMprPopupInfo.value);
     console.log('- 길이:', loadMprPopupInfo.value.length);
     console.log('- 배열인가?', Array.isArray(loadMprPopupInfo.value));
     console.log('- mprPopupVisible 상태:', mprPopupVisible.value);
 
-    // 🚨 긴급! 데이터가 없으면 임시 데이터로 테스트
+    // 긴급! 데이터가 없으면 임시 데이터로 테스트
     if (loadMprPopupInfo.value.length === 0) {
-        console.log('🚨 데이터가 비어있어서 임시 데이터 주입!');
+        console.log('데이터가 비어있어서 임시 데이터 주입!');
         loadMprPopupInfo.value = [
             {
                 mpr_d_code: 'TEST-D-001',
@@ -475,15 +469,15 @@ const openPopup2 = async () => {
                 req_qtt: 100
             }
         ];
-        console.log('🎯 임시 데이터 주입 완료:', loadMprPopupInfo.value);
+        console.log('임시 데이터 주입 완료:', loadMprPopupInfo.value);
     }
 
     mprPopupVisible.value = true;
-    console.log('🎯 팝업 상태 변경 후:', mprPopupVisible.value);
+    console.log('팝업 상태 변경 후:', mprPopupVisible.value);
 
-    // 🔍 팝업이 열린 후 잠시 후에 데이터 재확인
+    // 팝업이 열린 후 잠시 후에 데이터 재확인
     setTimeout(() => {
-        console.log('🎯 팝업 열린 후 데이터 재확인:');
+        console.log('팝업 열린 후 데이터 재확인:');
         console.log('- loadMprPopupInfo.value:', loadMprPopupInfo.value);
         console.log('- mprPopupVisible:', mprPopupVisible.value);
     }, 500);
@@ -495,7 +489,7 @@ const qios = ref([]);
 
 <template>
     <div class="p-6 bg-gray-50 shadow-md rounded-md space-y-6">
-        <!-- 🎯 헤더 부분 - 데이터 타입에 따라 제목 변경 -->
+        <!-- 헤더 부분 - 데이터 타입에 따라 제목 변경 -->
         <div class="grid grid-cols-1 gap-4">
             <div class="flex justify-between">
                 <div>
@@ -515,7 +509,7 @@ const qios = ref([]);
             </div>
         </div>
 
-        <!-- 🎯 PRDR 필드들 (생산실적) -->
+        <!-- PRDR 필드들 (생산실적) -->
         <div v-if="currentDataType === 'PRDR'" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <LabeledInput label="생산실적 코드" :model-value="currentData.prdr_code" @update:model-value="updatePrdrCode"
@@ -535,7 +529,7 @@ const qios = ref([]);
             </div>
         </div>
 
-        <!-- 🎯 MPR 필드들 (자재정보) -->
+        <!-- MPR 필드들 (자재정보) -->
         <div v-else-if="currentDataType === 'MPR'" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <LabeledInput label="자재요청 코드" :model-value="currentData.mpr_code" @update:model-value="updateMprCode"
@@ -551,7 +545,7 @@ const qios = ref([]);
             </div>
         </div>
 
-        <!-- 🎯 빈 상태 (아무것도 선택 안됨) -->
+        <!-- 빈 상태 (아무것도 선택 안됨) -->
         <div v-else class="text-center p-8 text-gray-500">
             <p>생산실적 또는 자재정보를 불러와주세요.</p>
             <p class="text-sm mt-2">위의 버튼을 사용해서 데이터를 선택해주세요.</p>

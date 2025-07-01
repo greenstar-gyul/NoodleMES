@@ -10,7 +10,7 @@ const emit = defineEmits(['search', 'reset'])
 
 const comValueOptions = ref([]);
 
-// 🔍 검색조건 상태 (v-model)
+// 검색조건 상태 (v-model)
 const search = ref({
   bom_code: '',
   prod_code: '',
@@ -20,10 +20,10 @@ const search = ref({
   com_value: ''
 })
 
-// ✅ 검색 조건 getter
+// 검색 조건 getter
 const getSearchParams = () => search.value
 
-// ✅ 검색 조건 초기화
+// 검색 조건 초기화
 const resetSearch = () => {
   search.value = {
     bom_code: '',
@@ -35,13 +35,13 @@ const resetSearch = () => {
   }
 }
 
-// ✅ 초기화 버튼 클릭 시 내부 리셋 + 부모 알림
+// 초기화 버튼 클릭 시 내부 리셋 + 부모 알림
 const handleResetClick = () => {
   resetSearch()
   emit('reset')
 }
 
-// ✅ 외부에서 접근할 수 있도록 메서드 공개
+// 외부에서 접근할 수 있도록 메서드 공개
 defineExpose({ getSearchParams, resetSearch })
 
 onMounted(async () => {

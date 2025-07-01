@@ -40,13 +40,13 @@ const selectedOrder = ref(null);
 
 // 확인 버튼 클릭 시
 const confirmOrder = () => {
-    console.log('선택된 주문:', selectedOrder.value);
+    // console.log('선택된 주문:', selectedOrder.value);
     // TODO: 상위 폼에 값 채우는 작업 추가하면 됨!
     dialogVisible.value = false;
 };
 
 const searchOrders = () => {
-    console.log('검색 실행!');
+    // console.log('검색 실행!');
 };
 //팝업 끝
 

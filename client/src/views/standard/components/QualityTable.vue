@@ -7,7 +7,6 @@ const emit = defineEmits(['rowSelected'])
 
 const handleProductRowClick = (row) => {
   emit('rowSelected', row)
-  console.log('✅ row 클릭:', row)
 }
 
 defineProps({
