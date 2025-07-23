@@ -54,7 +54,6 @@ onMounted(() => {
   if (!wsStore.isConnected) {
     wsStore.connect();
   }
-  console.log('🚀 설비 상세 컴포넌트 마운트됨', props.detail);
 });
 
 const formattedStartDate = computed({

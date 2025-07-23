@@ -52,8 +52,6 @@ const loadBom = async () => {
         const subMatList = await result.data.data;
         const originData = [...props.subData];
 
-        // console.log('subMatList', subMatList, 'originData', originData)
-
         // 기존 자재에 BOM 자재가 있다면, 값만 변경하고 없으면 추가
         const originLen = originData.length; // 원래 크기 넘어선 값은 추가된 값이니까.. 그 값 접근 막기 위함.
         subMatList.forEach(value => {
@@ -89,7 +87,6 @@ const openPopup = async () => {
         alert('생산계획을 먼저 불러오세요.');
         return;
     }
-    // console.log(props.prdp);
     await loadMatList();
     dialogVisible.value = true;
 };
@@ -100,18 +97,14 @@ const loadMatList = async () => {
         return;
     }
 
-    // console.log('아제발좀');
     const response = await axios.get(`/api/mrp/matlist`);
-    // console.log(`response!!!!!!!!!`, response);
     popupMats.value = await response.data.data;
 };
 
 const addMat = (values) => {
     const subDatas = [...props.subData];
-    // console.log(values);
     subDatas.push(...values);
     props.subData = subDatas;
-    // console.log(props.subData);
     emit('update:subData', subDatas);
 }
 
@@ -123,7 +116,6 @@ const searchMat = async (value) => {
         }
     });
     popupMats.value = await response.data.data;
-    console.log(popupMats.value);
 }
 
 onMounted(() => {

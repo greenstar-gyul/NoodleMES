@@ -84,19 +84,14 @@ const handleReset = () => {
     // 제품 목록 초기화, store 함수 사용
     resetMprRows();
     resetMrpRows();
-    console.log('mpr 기본정보 초기화 완료');
+    alert('mpr 기본정보 초기화 완료');
 };
 
 //저장 - 등록
 const handleSave = async () => {
-  // console.log("등록자 코드 (mCode):", mprs.mCode.value);
   
   if (!mprs.reqDate.value || !mprs.deadLine.value || !mprs.mrpCode.value) {
     alert('요청일자, 납기일자, MRP 계획번호는 필수입니다.');
-    // console.log('데이터 테스트');
-    // console.log(mprs.reqDate.value);
-    // console.log(mprs.deadLine.value);
-    // console.log(mprs.mrpCode.value);
     return;
   }
   if (mprRows.value.length === 0) {
@@ -123,8 +118,6 @@ const handleSave = async () => {
     mat_sup: item.mat_sup, // 저장용
     note: item.note,
   }));
-  // console.log(mpr);
-  // console.log(details);
   
   try {
     await axios.post('/api/mpr/insert', { mpr, details });
@@ -144,8 +137,7 @@ const handleSave = async () => {
     // mprRows.value = [];
 
   } catch (err) {
-    console.error('자재구매요청 저장 실패:', err);
-    alert('자재구매요청 저장 중 오류 발생');
+    alert('자재구매요청 저장 중 오류 발생', err);
   }
 };
 
@@ -165,15 +157,12 @@ const handleDelete = async () => {
       handleReset(); // 초기화 함수 호출
       alert('mpr 정보가 삭제되었습니다.');
     } catch (error) {
-      console.error('삭제 실패:', error);
-      alert('삭제 중 오류가 발생했습니다.');
+      alert('삭제 중 오류가 발생했습니다.', error);
     }
 };
 
 // MPR 팝업 Confirm 핸들러
 const handleMprConfirm = async (selectedMpr) => {
-  // console.log('선택된 MPR:', selectedMpr);
-
   try {
     // mpr 상세 조회
     const detailRes = await axios.get(`/api/mpr/${selectedMpr.mpr_code}/details`);
@@ -194,13 +183,12 @@ const handleMprConfirm = async (selectedMpr) => {
     mrps.mrp_code.value = selectedMpr.mrp_code; // mrp의 정보를 수정하여 사용
     mprs.mrpCode.value = selectedMpr.mrp_code; // 혹시 몰라서 mpr도 같이 수정해서 사용
   } catch (err) {
-    console.error('mpr 상세 조회 실패:', err);
+    alert('mpr 상세 조회 실패:', err);
   }
 }; // end of handleMprConfirm
 
 // MRP 팝업 Confirm 핸들러
 const handleMRPConfirm = async (selectedMRP) => {
-console.log('선택된 MRP:', selectedMRP);
 
   try {
     // mrp 상세 조회
@@ -225,16 +213,10 @@ console.log('선택된 MRP:', selectedMRP);
     
     setMrpRows(details);
     // setMrpRows(mrps);
-    
-    // console.log('선택 데이터 테스트');
-    // console.log('selectedMRP.mrp_code');
-    // console.log(selectedMRP.mrp_code);
-    // console.log('mrp_code');
-    // console.log(mrps.mrp_code);
     // mprs.mCode.value = selectedMRP.emp_code;
 
   } catch (err) {
-    console.error('mrp 상세 조회 실패:', err);
+    alert('mrp 상세 조회 실패:', err);
   }
 }; // end of handleMRPConfirm
 
@@ -245,8 +227,7 @@ onMounted(async () => {
     const MprRes = await axios.get('/api/mpr/all');
 
     //moment 패키지 사용
-    //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들어주는 함수
-    console.log(MprRes)
+    //map: 기존 배열의 각 요소를 가공해서 새로운 배열을 만들기
     mprRef.value = MprRes.data.map(mpr => ({
       //기존  객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...mpr,
@@ -274,7 +255,7 @@ onMounted(async () => {
     }));
     
   } catch (err) {
-    console.error('데이터 로딩 실패:', err);
+    alert('데이터 로딩 실패:', err);
   }
 });
 

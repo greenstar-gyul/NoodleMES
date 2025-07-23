@@ -6,7 +6,7 @@ import SearchDateBetween from '@/components/search-bar/SearchDateBetween.vue';
 
 const emit = defineEmits(['search', 'reset']);
 
-// 📌 오늘 기준 월의 1일과 말일 계산
+// 오늘 기준 월의 1일과 말일 계산
 const today = new Date();
 const year = today.getFullYear();
 const month = today.getMonth(); // 0-based (6월이면 5)

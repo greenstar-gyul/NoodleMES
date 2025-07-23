@@ -4,6 +4,7 @@ import TableWithDelExcelFix from '../../../components/form/TableWithDelExcelFix.
 import SinglePopup from '@/components/popup/SinglePopup.vue';
 import bomMapper from '@/service/BOMMapping.js';
 import matMapping from '@/service/MatMapping.js';
+import axios from 'axios';
 
 const props = defineProps({
   data: {
@@ -94,6 +95,25 @@ const unitOptions = [
   { label: 'MM', value: 'h7' }, { label: '%', value: 'h8' },
   { label: 'CM', value: 'h9' }
 ];
+
+// 행 추가
+const addRow = () => {
+  productRows.value.push({
+    id: Date.now(),
+    mat_code: '',
+    mat_name: '',
+    mat_type: '',
+    req_qtt: 0,
+    unit: '',
+    loss_rate: 0
+  });
+};
+
+// 선택 삭제
+const deleteSelected = () => {
+  productRows.value = productRows.value.filter(row => !selectedProducts.value.includes(row));
+  selectedProducts.value = [];
+};
 </script>
 
 <template>

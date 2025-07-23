@@ -42,7 +42,6 @@ const openMatPopup = (row) => {
 
 // 팝업에서 자재 선택 시 현재 행에 값 반영
 const handleMatConfirm = (selectedMat) => {
-    console.log('선택된 자재:', selectedMat);
     if (matRows.value) {
         // 선택된 자재의 기본 정보를 알맞은 행에 기록
         matRows.value.mat_code = selectedMat.mat_code; // 자재코드
@@ -51,8 +50,6 @@ const handleMatConfirm = (selectedMat) => {
         matRows.value.client_name = selectedMat.client_name; // 공급업체 (화면출력용)
         matRows.value.mat_sup = selectedMat.sup; // 공급업체 (DB 저장용)
 
-        console.log('sup값 확인');
-        console.log(selectedMat.sup);
         // 직접 입력해야하는 값 초기화
         matRows.value.req_qtt = 0; // 요청수량
         matRows.value.note = ''; // 비고
@@ -111,10 +108,8 @@ onMounted(async () => {
     // 제품 목록
     const mprRes = await axios.get('/api/mpr/mat'); // 제품 전체 목록 불러오기
     matList.value = mprRes.data.data; // 전체 제품 목록 저장
-    // console.log('전체 자재 출력')
-    // console.log(matList);
     } catch (err) {
-        console.error('요청자재 리스트 불러오기 실패:', err);
+        throw err;
     }
 });
 

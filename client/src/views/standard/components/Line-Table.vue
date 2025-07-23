@@ -98,7 +98,8 @@ const openProcessPopup = async (row) => {
 const openFacilitiePopup = async (row) => {
   currentEditingRow.value = row;
   try {
-    const res = await axios.get('/api/line/facilitie-popup');
+    const eqType = row.eq_type;
+    const res = await axios.get('/api/line/facilitie-popup/' + eqType);
     facilitieList.value = res.data;
 
     facilitiePopupVisible.value = true; // 성공적으로 불러오면 팝업 열기

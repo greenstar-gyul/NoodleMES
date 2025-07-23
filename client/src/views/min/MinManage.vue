@@ -8,7 +8,6 @@ import MinManageMain from './min-manage-sub/MinManageMain.vue';
 import { onMounted, ref } from 'vue';
 import MinMapper from '@/service/MinMapping.js';
 
-
 // 데이터 및 옵션
 const mInBndCode = ref({}); // 자재입고코드
 const matName = ref({}); // 자재코드

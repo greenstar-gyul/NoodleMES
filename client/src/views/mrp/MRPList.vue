@@ -20,9 +20,8 @@ const loadTableData = async () => {
   try {
     const res = await axios.get('/api/mrp/searchMonth');
     tableData.value = await formatDateFields(res.data.data);
-    // console.log('✅ 조회된 리스트:', tableData.value);
   } catch (err) {
-    console.error('❌ 리스트 조회 실패:', err);
+    alert('리스트 조회 실패:', err);
   }
 };
 
@@ -31,8 +30,6 @@ const handleSearch = async (searchParams) => {
   const cleanParams = Object.fromEntries(
     Object.entries(searchParams).map(([key, val]) => [key, val === '' ? null : val])
   );
-
-  // console.log('👉 정제된 검색 파라미터:', cleanParams);
 
   try {
     const response = await axios.get('/api/mrp/search', {
@@ -44,16 +41,15 @@ const handleSearch = async (searchParams) => {
     } else if (Array.isArray(response.data.data)) {
       tableData.value = formatDateFields(response.data.data);
     } else {
-      console.error('검색 실패:', response.data.data);
       tableData.value = [];
     }
   } catch (error) {
-    console.error('검색 API 호출 실패:', error);
+    alert('검색 API 호출 실패:', error);
     tableData.value = [];
   }
 };
 
-// ✅ 검색 초기화
+// 검색 초기화
 const resetSearch = async () => {
   await loadTableData();
 };

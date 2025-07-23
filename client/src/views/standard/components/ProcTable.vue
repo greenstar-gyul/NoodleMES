@@ -65,7 +65,6 @@ const deleteSelected = () => {
 // 제품공정흐름도 목록 테이블 클릭 시
 const handleProcessRowClick  = (row) => {
   emit('rowSelected', row);
-  alert('오류가 발생했습니다. 다시 시도해주세요.');
 };
 
 // 흐름도 상세 테이블 선택 시

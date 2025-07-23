@@ -42,10 +42,8 @@ const loadProcess = async () => {
             }));
             
             data.value = processedData;
-            alert('오류가 발생했습니다. 다시 시도해주세요.');
             
         } else {
-            alert('오류가 발생했습니다. 다시 시도해주세요.');
             data.value = [];
         }
     } catch (error) {
@@ -111,13 +109,7 @@ watch(() => wsStore.messages, (messages) => {
     }
 }, { deep: true });
 
-// 디버깅을 위한 데이터 변화 감지
-watch(() => data.value, (newData) => {
-    console.log('📊 데이터 변경됨:', newData);
-}, { deep: true });
-
 onMounted(() => {
-    console.log('🚀 컴포넌트 마운트됨');
     if (wkoCode) {
         loadProcess();
     } else {

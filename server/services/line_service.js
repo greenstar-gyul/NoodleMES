@@ -66,10 +66,10 @@ const getProcessListPopup = async () => {
 };
 
 // 설비 리스트 팝업
-const getFacilitieListPopup = async () => {
+const getFacilitieListPopup = async (eqType) => {
   const conn = await mariadb.connectionPool.getConnection();
   try {
-    const result = await conn.query(linesql.facilitieListPopup);
+    const result = await conn.query(linesql.facilitieListPopup, [eqType]);
     return result;
   } catch (err) {
     console.error('설비목록 팝업 목록 조회 실패:', err);
@@ -101,7 +101,7 @@ const insertLineAndLineD = async (data) => {
       lineData.regdate_t,
       lineData.is_used,
       lineData.note || '',
-      lineData.prod_code,
+      lineData.prod_code || null,
     ]);
 
     // ✅ 3. 라인 상세 등록 (반복문 안에서 line_eq_code 생성)
@@ -115,6 +115,9 @@ const insertLineAndLineD = async (data) => {
         line_code,
         detail.eq_code,
       ]);
+
+      // 설비의 상태를 '사용중'으로 업데이트
+      await conn.query(linesql.updateEqStatus, [detail.eq_code]);
     }
 
     await conn.commit();

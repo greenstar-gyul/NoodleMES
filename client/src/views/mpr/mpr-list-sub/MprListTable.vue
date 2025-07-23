@@ -10,6 +10,7 @@ defineProps({
   required: true,
 });
 
+
 const emit = defineEmits(['initData']);
 onMounted(() => {
   emit('initData');

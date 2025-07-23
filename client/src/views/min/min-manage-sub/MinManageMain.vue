@@ -146,7 +146,6 @@ const handleDelete = async () => {
     handleReset(); // 초기화 함수 호출
     alert('자재입고정보가 삭제되었습니다.');
   } catch (error) {
-    console.error('삭제 실패:', error);
     alert('삭제 중 오류가 발생했습니다.');
   }
 };
@@ -168,7 +167,6 @@ const handleReset = () => {
   
 // 정보 초기화, store 함수 사용
   resetMinRows();
-  console.log('자재입고정보 초기화');
 };
 
 // 저장 - 등록
@@ -190,10 +188,6 @@ const handleSave = async () => {
   mat_sup: clientMap[mins.supName.value], 
   mcode: empMap[mins.mName.value],
   };
-  // console.log('왜안나옴');
-  // console.log(mins);
-  // console.log('왜안나옴2');
-  // console.log(mat_type);
   try {
     await axios.post('/api/min/insert', min)
     alert('자재입고 정보가 등록되었습니다.');
@@ -205,7 +199,6 @@ const handleSave = async () => {
       inbnd_date: moment(min.inbndDate).format('YYYY-MM-DD'),
     }));
   } catch (err) {
-    console.error('등록 실패:', err)
     alert('등록 실패: ' + err.message)
   };
 }; // end of handleSave
@@ -223,9 +216,6 @@ const handleMinbndConfirm = async (selectedMin) => {
     minBunList.forEach((item, idx) => {
       item.min_bnd_num_code = item.min_bnd_num_code || `row-${idx}`;
     });
-    
-    console.log('선택값 확인');
-    console.log(selectedMin);
 
     selectedMin.emp_code = 'EMP-10001';
 
@@ -241,16 +231,10 @@ const handleMinbndConfirm = async (selectedMin) => {
     // mins.mName.value = empMap[selectedMin.emp_code] ;
     mins.qioCode.value = selectedMin.qio_code;
     mins.lotNum.value = selectedMin.lot_num;
-    
-    // console.log('초기값');
-    // console.log(selectedMin.unit);
-    // console.log('저장값');
-    // console.log(mins);
-
 
     setMinRows(minBunList);
   } catch (err) {
-    console.error('자재입고정보 조회 실패:', err);
+    throw err;
   }
 }; // end of handleMinbndConfirm
 
@@ -265,15 +249,10 @@ const handleqioConfirm = async (selectedQio) => {
     qioList.forEach((item, idx) => {
       item.qio_num_code = item.qio_num_code || `row-${idx}`;
     });
-    
-    console.log('출력값확인')
-    console.log(selectedQio.mat_code)
 
     const matRes = await axios.get('/api/min/selmat', {
       params: { mat_code: selectedQio.mat_code }
     });
-    // const selmat = matRes;//store 함수 사용
-    // console.log(matRes.data.data[0].mat_code);
 
     // 자재입고 정보 초기 설정
     mins.matName.value = matCodeMap[matRes.data.data[0].mat_code];
@@ -282,7 +261,7 @@ const handleqioConfirm = async (selectedQio) => {
     mins.supName.value = matRes.data.data[0].sup_name;
     mins.qioCode.value = selectedQio.qio_code;
   } catch (err){
-    console.error('자재 기본정보 조회 실패:', err);
+      throw err;
   }
 
 }; // end of handleMinConfirm
@@ -292,8 +271,6 @@ onMounted(async () => {
   try {
     // 전체 자재입고정보 조회
     const MinRes = await axios.get('/api/min/all');
-    // console.log('자재입고정보')
-    // console.log(MinRes)
     minRef.value = MinRes.data.map(min => ({
       //기존  객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...min,
@@ -302,8 +279,6 @@ onMounted(async () => {
     
     // 자재기준정보 조회
     const MatRes = await axios.get('/api/min/mat');
-    // console.log('자재기준정보')
-    // console.log(MatRes);
     matRef.value = MatRes.data.data.map(mat => ({
       //기존 객체를 그대로 복사
       ...mat,
@@ -311,19 +286,14 @@ onMounted(async () => {
 
     // 품질검사정보 조회
     const QioRes = await axios.get('/api/min/qio');
-    // console.log('품질검사정보')
-    // console.log(QioRes);
+
     qioRef.value = QioRes.data.data.map(qio => ({
     //기존 객체를 그대로 복사하면서 date 값만 YYYY-MM-DD 포맷으로 변환
       ...qio,
       qio_date: moment(qio.qio_date).format('YYYY-MM-DD'),
     }));
-    // console.log('테스트');
-    // console.log(minRef.value);
-    // console.log(matRef.value);
-    // console.log(qioRef.value);
   } catch(err){
-    console.error('데이터 로딩 실패:', err);
+    throw err;
   }
 });
 </script>

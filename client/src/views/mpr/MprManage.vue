@@ -11,7 +11,6 @@ import MprManageDetail from './mpr-manage-sub/MprManageDetail.vue';
 import { onMounted, ref } from 'vue';
 import MprMapper from '@/service/MprMapping.js';
 
-
 // 데이터 및 옵션
 const mprCode = ref({}); // 자재구매요청코드
 const reqDate = ref({});   // 요청일자

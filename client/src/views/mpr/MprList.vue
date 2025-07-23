@@ -23,22 +23,19 @@ const initData = async () => {
     originalData.value = await result.data;
     mprdata.value = result.data; 
   } catch (err) {
-    console.log(result.data);
-    console.error(err);
+    alert.error(err);
   } 
 }
 
 // 검색(조회 이벤트)
 const handleSearch = async (search) => {
   try {
-    console.log(search);
     let result = await axios.get(`/api/mpr/search`, {
       params:search
     });
-    // console.log(result.data);
     mprdata.value = await result.data;
   } catch (err) {
-    console.error(err);
+    alert(err);
   }
   // axios로 서버에 요청
   // 임시로 전체 데이터 조회

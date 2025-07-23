@@ -55,36 +55,26 @@ export const useMinStore = defineStore('minStore', () => {
         ...min,
         inbnd_date: formatDate(min.inbnd_date),
       }));
-      // console.log('테스트1');
-      // console.log(res.data);
-      // console.log('테스트2');
-      // console.log(mins.value);
     } catch (err) {
-      console.error('주문 목록 조회 실패:', err);
+      throw err;
     }
   }
 
   // 목록 조회
   async function fetchMinsSearch() {
-    // console.log('테스트');
-    // console.log(safeFormat(selectedMin.value.inbndDateFrom));
-    // console.log(selectedMin.value.inbndDateTo);
     try {
       const params = {
         ...selectedMin.value,
         inbndDateFrom: safeFormat(selectedMin.value.inbndDateFrom),
         inbndDateTo: safeFormat(selectedMin.value.inbndDateTo),
       };
-      // console.log(params);
       const res = await axios.get('/api/min/all', { params });
-      // console.log('테스트');
-      // console.log(res);
         mins.value = res.data.map(min => ({
         ...min,
         inbnd_date_date: formatDate(min.inbnd_date),
       }));
     } catch (err) {
-      console.error('주문 목록 조회 실패:', err);
+      throw err;
     }
   }
 
@@ -117,7 +107,6 @@ export const useMinStore = defineStore('minStore', () => {
   function resetMinRows() {
     minRows: [];
     selectedMin: [];
-    // console.log('리셋 확인');
   };
   
   return {

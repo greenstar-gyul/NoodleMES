@@ -9,6 +9,7 @@ import MinListTable from './min-list-sub/MinListTable.vue';
 
 </script>
 
+
 <template>
   <MinListSearch 
     :mInBndCode="mInBndCode"
